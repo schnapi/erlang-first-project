@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <title>My Site - {{pagetitle}}</title>
+    </head>
+
+    <body>
+        <div id="header">{{pagetitle}}</div>
+        <div id="nav">
+            <ul>
+              {% for page in navMenu%}
+                <li><a href="/{{page|lower}}">{{page}}</a></li>
+              {% endfor %}
+            </ul>
+        </div>
+        <section>
+          {% for post in posts %}
+              {{post.name}}
+              {{post.content}}
+            </br>
+          {% endfor %}
+        </section>
+    </body>
+
+</html>
