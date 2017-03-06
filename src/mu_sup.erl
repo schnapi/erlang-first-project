@@ -4,6 +4,7 @@
 %%%-------------------------------------------------------------------
 
 -module(mu_sup).
+-include("../include/mu.hrl").
 
 -behaviour(supervisor).
 

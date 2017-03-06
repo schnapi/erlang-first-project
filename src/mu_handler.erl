@@ -1,8 +1,11 @@
 -module(mu_handler).
+-include("../include/mu.hrl").
+
 -export([init/2]).
 
 init(Req0, State) ->
   lager:debug("req: ~p",[Req0]),
+    lager:debug("req: ~p",["test1"]),
   Path = cowboy_req:path(Req0),
   lager:debug("path accessed: ~p",[Path]),
   % Version = cowboy_req:version(Req).

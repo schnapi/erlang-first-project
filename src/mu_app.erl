@@ -4,6 +4,7 @@
 %%%-------------------------------------------------------------------
 
 -module(mu_app).
+-include("../include/mu.hrl").
 
 -behaviour(application).
 
@@ -20,7 +21,7 @@ start(_, _) ->
   Dispatch= cowboy_router:compile([
     {'_', [
       %% {HostMatch, list({PathMatch, Handler, InitialState})}
-      {"/static/[...]", cowboy_static, {dir, "apps/mu/www"}},
+      {"/test/[...]", cowboy_static, {dir, "www"}},
       {"/[...]", mu_handler, []}
     ]}
   ]),
@@ -39,4 +40,3 @@ stop(_State) ->
 %%====================================================================
 %% Internal functions
 %%====================================================================
-
