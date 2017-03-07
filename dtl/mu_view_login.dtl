@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <h1>Prijava</h1>
+  <div>
+    <form action="/login" method="post" >
+      <div>
+        <label>Uporabniško ime</label><br>
+        <input type="text" name="username"/>
+      </div>
+      <div style="margin-top:10px;">
+        <label>Geslo</label><br>
+        <input type="text" name="password"/>
+      </div>
+
+      <input style="margin-top:10px;" type="submit" value="Prijava">
+    </form>
+  </div>
+</body>
+
+</html>
