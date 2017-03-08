@@ -17,6 +17,8 @@ init(Req0, State) ->
       respond_302(Req0, State);
     <<"/index">> ->
       respond_index(Req0, State);
+    <<"/login">> ->
+      respond_login(Req0, State);
     _ ->
       respond_404(Req0, State)
   end.
@@ -40,5 +42,10 @@ respond_index(Req0, State) ->
     {posts, [#{"name" => "PostName1", "content" => "Content1"},
     #{"name" => "PostName2", "content" => "Content2"}]}],
   {ok, Html} = mu_view_index:render(Context),
+  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"text/html">>}, Html , Req0),
+  {ok, Req, State}.
+
+respond_login(Req0, State) ->
+  {ok, Html} = mu_view_login:render(),
   Req = cowboy_req:reply(200, #{<<"content-type">> => <<"text/html">>}, Html , Req0),
   {ok, Req, State}.

@@ -1,21 +1,42 @@
 <!DOCTYPE html>
 <html>
+<meta charset="utf-8">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+  function login() {
+    var username = $("#username").val();
+    var password = $("#password").val();
+    if(username.length > 0 && password.length > 0) {
+      var userdata = JSON.stringify({"username":username, "password": password});
+      $.post("http://localhost:8080/api/login", userdata, function(data) {
+        if(data.result) {
+          alert("Ustrezno vnešeni podatki, success");
+        }
+        else {
+          alert(data.error);
+        }
+      })
+    }
+    else {
+      alert("Uporabniško ime in geslo sta obvezni polji.");
+    }
+  }
+</script>
 
 <body>
   <h1>Prijava</h1>
   <div>
-    <form action="/login" method="post" >
-      <div>
-        <label>Uporabniško ime</label><br>
-        <input type="text" name="username"/>
-      </div>
-      <div style="margin-top:10px;">
-        <label>Geslo</label><br>
-        <input type="text" name="password"/>
-      </div>
+    <div>
+      <label>Uporabniško ime</label><br>
+      <input type="text" name="username" id="username"/>
+    </div>
+    <div style="margin-top:10px;">
+      <label>Geslo</label><br>
+      <input type="text" name="password" id="password"/>
+    </div>
 
-      <input style="margin-top:10px;" type="submit" value="Prijava">
-    </form>
+    <button style="margin-top:10px;" onclick="login()">Prijava</button>
   </div>
 </body>
 

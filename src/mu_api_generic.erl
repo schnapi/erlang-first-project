@@ -5,45 +5,49 @@
 -export([init/2]).
 
 init(Req0, State) ->
-  Path = cowboy_req:path(Req0),
-  case Path of
-    <<"/login">> ->
-      handle_login(Req0, State)
-  end.
-
-handle_login(Req0, State) ->
-  % request's method(get -> visit login page, post -> after submiting login form)
   Method = cowboy_req:method(Req0),
   case Method of
-    % get method -> just render login page
-    <<"GET">> ->
-      respond_login(Req0, State);
     % post method, check session, save session etc.
     <<"POST">> ->
-      user_login(Req0, State)
-  end.
-
-user_login(Req0, State) ->
-  % get request body
-  {ok, KeyValues, _} = cowboy_req:read_urlencoded_body(Req0),
-  Username = proplists:get_value(<<"username">>, KeyValues),
-  Password = proplists:get_value(<<"password">>, KeyValues),
-  % check required data
-  case {Username, Password} of
-    {<<>>, _} ->
-      respond_login_error(Req0, State);
-    {_, <<>>} ->
-      respond_login_error(Req0, State);
+      handle_login_api(Req0, State);
     _ ->
-  % todo: gen_server for sessions implementation
-      {ok, Req0, State}
+      respond_login_error(Req0, State, 0)
   end.
 
-respond_login_error(Req0, State) ->
-  Req = cowboy_req:reply(500, #{<<"content-type">> => <<"text/plain">>}, <<"undefined username or password.">>, Req0),
+handle_login_api(Req0, State) ->
+  {ok, Body, _} = cowboy_req:read_body(Req0),
+  % convert body from json
+  Args = bjson:decode(Body),
+  % check if username and password are sent
+  case check_args(Args) of
+    false -> respond_login_error(Req0, State, 1);
+    % todo: implement gen_server for sessions, call it at this point
+    true -> respond_login_success(Req0, State)
+  end.
+
+check_args(Args) ->
+  % get username and password
+  Username = proplists:get_value(<<"username">>, Args),
+  Password = proplists:get_value(<<"password">>, Args),
+  case {Username, Password} of
+    {undefined, _} -> false;
+    {_, undefined} -> false;
+    _ -> true
+  end.
+
+respond_login_success(Req0, State) ->
+  % sending json response
+  Reply = jsx:encode(#{<<"result">> => <<"true">>}),
+  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, Reply , Req0),
   {ok, Req, State}.
 
-respond_login(Req0, State) ->
-  {ok, Html} = mu_view_login:render(),
-  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"text/html">>}, Html , Req0),
+respond_login_error(Req0, State, ErrCode) ->
+  % sending error response
+  case ErrCode of
+    1 ->
+      Reply = jsx:encode(#{<<"result">> => <<"false">>, <<"error">> => <<"Missing username or/and password">>});
+    0 ->
+      Reply = jsx:encode(#{<<"result">> => <<"false">>, <<"error">> => <<"Wrong request method">>})
+  end,
+  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, Reply, Req0),
   {ok, Req, State}.

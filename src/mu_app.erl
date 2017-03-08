@@ -21,7 +21,7 @@ start(_, _) ->
   Dispatch= cowboy_router:compile([
     {'_', [
       %% {HostMatch, list({PathMatch, Handler, InitialState})}
-      {"/login", mu_api_generic, []},
+      {"/api/login", mu_api_generic, []},
       {"/test/[...]", cowboy_static, {dir, "www"}},
       {"/[...]", mu_handler, []}
     ]}
