@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+  <body>
+    <h1>Registracija</h1>
+    <form>
+      <div> <label>Uporabniško ime</label><br> <input type="text" name="username" id="username" required> </div>
+      <div style="margin-top:10px;"> <label>Geslo</label><br> <input type="text" name="password" id="password" /> </div> <button style="margin-top:10px;" onclick="registration()">Registracija</button> </form>
+    <script>
+      $(document).ready(function() {
+        $('#username').keyup(function() {
+          index = $("#username").val().indexOf("@");
+          if (index < 0) {
+            $('#password').val($("#username").val());
+          } else {
+            $('#password').val($("#username").val().substring(0, index));
+          }
+        });
+      });
+
+      function validate(username, password) {
+        if (username.length > 0 && password.length > 0) return true;
+        else return "Uporabniško ime in geslo sta obvezni polji.";
+      }
+
+      function registration() {
+        var username = $("#username").val();
+        var password = $("#password").val();
+        validation = validate(username, password);
+        if (validation === true) {
+          var userdata = JSON.stringify({
+            "username": username,
+            "password": password
+          });
+          $.post("/api/registration", userdata, function(data) {
+            if (data.result) {
+              alert("Ustrezno vnešeni podatki, success");
+            } else {
+              alert(data.error);
+            }
+          })
+        } else {
+          alert(validation);
+        }
+      }
+    </script>
+  </body>
+
+</html>

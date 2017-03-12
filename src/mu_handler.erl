@@ -4,8 +4,7 @@
 -export([init/2]).
 
 init(Req0, State) ->
-  lager:debug("req: ~p",[Req0]),
-    lager:debug("req: ~p",["test1"]),
+  % lager:debug("req: ~p",[Req0]),
   Path = cowboy_req:path(Req0),
   lager:debug("path accessed: ~p",[Path]),
   % Version = cowboy_req:version(Req).
@@ -19,6 +18,12 @@ init(Req0, State) ->
       respond_index(Req0, State);
     <<"/login">> ->
       respond_login(Req0, State);
+    <<"/registration">> ->
+      respond_registration(Req0, State);
+    <<"/questionnaires">> ->
+      respond_questionnaires(Req0, State);
+    <<"/questions">> ->
+      respond_user_questions(Req0, State);
     _ ->
       respond_404(Req0, State)
   end.
@@ -47,5 +52,22 @@ respond_index(Req0, State) ->
 
 respond_login(Req0, State) ->
   {ok, Html} = mu_view_login:render(),
+  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"text/html">>}, Html , Req0),
+  {ok, Req, State}.
+
+respond_registration(Req0, State) ->
+  {ok, Html} = mu_view_registration:render(),
+  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"text/html">>}, Html , Req0),
+  {ok, Req, State}.
+
+respond_questionnaires(Req0, State) ->
+  Context = [{questions, {["question1", [{"answer1", "0.5"}, {"answer2", "0.5"}]],["question1", [{"answer1", "0.5"}, {"answer2", "0.5"}]]}}],
+  {ok, Html} = mu_view_questionnaires:render(Context),
+  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"text/html">>}, Html , Req0),
+  {ok, Req, State}.
+
+respond_user_questions(Req0, State) ->
+  Context = [{questions, {["question1", [{"answer1", "0.5"}, {"answer2", "0.5"}]],["question1", [{"answer1", "0.5"}, {"answer2", "0.5"}]]}}],
+  {ok, Html} = mu_view_user_questions:render(Context),
   Req = cowboy_req:reply(200, #{<<"content-type">> => <<"text/html">>}, Html , Req0),
   {ok, Req, State}.

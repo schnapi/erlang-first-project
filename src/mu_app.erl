@@ -22,6 +22,9 @@ start(_, _) ->
     {'_', [
       %% {HostMatch, list({PathMatch, Handler, InitialState})}
       {"/api/login", mu_api_generic, []},
+      {"/api/registration", mu_api_registration, []},
+      {"/api/questionnaires", mu_api_questionnaires, []},
+      {"/questions", mu_user_questions, []},
       {"/test/[...]", cowboy_static, {dir, "www"}},
       {"/[...]", mu_handler, []}
     ]}

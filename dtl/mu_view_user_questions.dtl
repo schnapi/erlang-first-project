@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+  <body>
+    <section id="questions">
+      {% for question, answers in questions %}
+        {{question}} <br>
+        {% for answer, weight in answers %}
+          {{answer}}: {{weight}}<br>
+        {% endfor %}
+        </br>
+      {% endfor %}
+    </section>
+    <button style="margin-top:10px;" onclick="nextQuestion()">Naslednje vprašanje</button>
+  </body>
+
+</html>
