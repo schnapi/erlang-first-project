@@ -13,7 +13,37 @@
         </br>
       {% endfor %}
     </section>
-    <button style="margin-top:10px;" onclick="nextQuestion()">Naslednje vprašanje</button>
+    <button style="margin-top:10px;" onclick="newWorker()">New worker</button>
+    <button style="margin-top:10px;" onclick="nextQuestion()">Next Question</button>
+    <script>
+    var Pid;
+      function newWorker() {
+        var userdata = JSON.stringify({
+          "child": "new"
+        });
+        $.post("/questions", userdata, function(data) {
+          if (data.result!="false") {
+            Pid=data.result;
+            alert("Proces je bil uspešno ustvarjen!"+data.result);
+          } else {
+            alert(data.error);
+          }
+        })
+      }
+      function nextQuestion() {
+        var userdata = JSON.stringify({
+          "question": "next",
+          "Pid" : Pid
+        });
+        $.post("/questions", userdata, function(data) {
+          if (data.result!="false") {
+            $("#questions").html(data.result);
+          } else {
+            alert(data.error);
+          }
+        })
+      }
+    </script>
   </body>
 
 </html>

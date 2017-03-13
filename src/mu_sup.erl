@@ -29,7 +29,10 @@ start_link() ->
 
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-    {ok, { {one_for_all, 0, 1}, []} }.
+  % if child has terminated more than 10 times in last 60 seconds -> supervisior terminates itself...
+   
+  %  {ok, {RestartStrategy, [Children]}}.
+   {ok, { {one_for_one, 10, 60}, []} }.
 
 %%====================================================================
 %% Internal functions
