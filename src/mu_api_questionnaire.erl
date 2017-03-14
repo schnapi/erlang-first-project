@@ -1,4 +1,4 @@
--module(mu_user_questions).
+-module(mu_api_questionnaire).
 
 -include("../include/mu.hrl").
 
@@ -17,41 +17,33 @@ init(Req0, State) ->
   Method = cowboy_req:method(Req0),
   case Method of
     <<"POST">> ->
-      handle_questionsPost_api(Req0, State);
-    <<"GET">> ->
-      handle_questionsGet_api(Req0, State);
+      handle_questions_api(Req0, State);
     _ ->
-      respond_questions_error(Req0, State, 0)
+      mu_respond:respond_error(Req0, State,0)
   end.
 
-handle_questionsPost_api(Req0, State) ->
+handle_questions_api(Req0, State) ->
   {ok, Body, _} = cowboy_req:read_body(Req0),
   % convert body from json
   Args = bjson:decode(Body),
   % {Ok, Id} = supervisor:start_child(mu_sup, ChildSpec),
   case check_args(Args) of
-    false -> respond_questions_error(Req0, State, 1);
+    false -> mu_respond:respond_error(Req0, State,"Question is empty!");
     % todo: implement gen_server for sessions, call it at this point
     child -> case supervisor:start_child(?SUPERVISIOR, ?CHILDSPEC) of
         {ok, Pid} -> PidS = list_to_binary(pid_to_list(Pid)),
           Reply = jsx:encode(#{<<"result">> => PidS}),
-          respond_questions_success(Req0, State,Reply);
-        {_,_} -> respond_questions_error(Req0, State, 2)
+          mu_respond:respond_success(Req0, State,Reply);
+        {_,_} -> mu_respond:respond_error(Req0, State, "Couldn't start new worker!")
       end;
     {next, Pid} ->
       NewQuestion=mu_questionnaire:getNewQuestion(Pid),
         Reply = jsx:encode(#{<<"result">> => list_to_binary(NewQuestion)}),
-        respond_questions_success(Req0, State, Reply);
+        mu_respond:respond_success(Req0, State, Reply);
     {previous, Pid} -> PreviousQuestion=mu_questionnaire:getNewQuestion(Pid),
       Reply = jsx:encode(#{<<"result">> => <<PreviousQuestion>>}),
-      respond_questions_success(Req0, State, Reply)
+      mu_respond:respond_success(Req0, State, Reply)
   end.
-
-handle_questionsGet_api(Req0, State) ->
-  Context = [{questions, {["question1", [{"answer1", "0.5"}, {"answer2", "0.5"}]],["question1", [{"answer1", "0.5"}, {"answer2", "0.5"}]]}}],
-  {ok, Html} = mu_view_user_questions:render(Context),
-  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"text/html">>}, Html , Req0),
-  {ok, Req, State}.
 
 check_args(Args) ->
   Child = proplists:get_value(<<"child">>, Args),
@@ -65,26 +57,3 @@ check_args(Args) ->
       end;
     _ -> child
   end.
-
-respond_questions_success(Req0, State, Reply) ->
-  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, Reply , Req0),
-  {ok, Req, State}.
-
-respond_questions_success(Req0, State) ->
-  % sending json response
-  Reply = jsx:encode(#{<<"result">> => <<"true">>}),
-  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, Reply , Req0),
-  {ok, Req, State}.
-
-respond_questions_error(Req0, State, ErrCode) ->
-  % sending error response
-  case ErrCode of
-    2 ->
-      Reply = jsx:encode(#{<<"result">> => <<"false">>, <<"error">> => <<"Couldn't start new worker!">>});
-    1 ->
-      Reply = jsx:encode(#{<<"result">> => <<"false">>, <<"error">> => <<"Question is empty!">>});
-    0 ->
-      Reply = jsx:encode(#{<<"result">> => <<"false">>, <<"error">> => <<"Wrong request method">>})
-  end,
-  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, Reply, Req0),
-  {ok, Req, State}.

@@ -29,13 +29,13 @@
         var username = $("#username").val();
         var password = $("#password").val();
         validation = validate(username, password);
-        if (validation === true) {
+        if (validation == true) {
           var userdata = JSON.stringify({
             "username": username,
             "password": password
           });
           $.post("/api/registration", userdata, function(data) {
-            if (data.result) {
+            if (data.result!="false") {
               alert("Ustrezno vnešeni podatki, success");
             } else {
               alert(data.error);

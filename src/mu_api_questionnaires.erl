@@ -10,7 +10,7 @@ init(Req0, State) ->
     <<"POST">> ->
       handle_questionnaires_api(Req0, State);
     _ ->
-      respond_questionnaires_error(Req0, State, 0)
+      mu_respond:respond_error(Req0, State,0)
   end.
 
 handle_questionnaires_api(Req0, State) ->
@@ -20,9 +20,9 @@ handle_questionnaires_api(Req0, State) ->
   % check if question is send
 
   case check_args(Args) of
-    false -> respond_questionnaires_error(Req0, State, 1);
+    false -> mu_respond:respond_error(Req0, State, "Question is empty!");
     % todo: implement gen_server for sessions, call it at this point
-    true -> respond_questionnaires_success(Req0, State)
+    true -> mu_respond:respond_success(Req0, State)
   end.
 
 check_args(Args) ->
@@ -32,20 +32,3 @@ check_args(Args) ->
     <<>> -> false;
     _ -> true
   end.
-
-respond_questionnaires_success(Req0, State) ->
-  % sending json response
-  Reply = jsx:encode(#{<<"result">> => <<"true">>}),
-  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, Reply , Req0),
-  {ok, Req, State}.
-
-respond_questionnaires_error(Req0, State, ErrCode) ->
-  % sending error response
-  case ErrCode of
-    1 ->
-      Reply = jsx:encode(#{<<"result">> => <<"false">>, <<"error">> => <<"Question is empty!">>});
-    0 ->
-      Reply = jsx:encode(#{<<"result">> => <<"false">>, <<"error">> => <<"Wrong request method">>})
-  end,
-  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, Reply, Req0),
-  {ok, Req, State}.
