@@ -1,8 +1,8 @@
 -module(mu_api_generic).
 
--include("../include/mu.hrl").
-
 -export([init/2]).
+
+-include("../include/mu.hrl").
 
 init(Req0, State) ->
   Method = cowboy_req:method(Req0),

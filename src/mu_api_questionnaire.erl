@@ -1,8 +1,8 @@
 -module(mu_api_questionnaire).
 
--include("../include/mu.hrl").
-
 -export([init/2]).
+
+-include("../include/mu.hrl").
 
 -define(SUPERVISIOR, mu_sup).
 -define(GENSERVER, mu_questionnaire).

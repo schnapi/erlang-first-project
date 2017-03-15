@@ -1,7 +1,8 @@
 -module(mu_handler).
--include("../include/mu.hrl").
 
 -export([init/2]).
+
+-include("../include/mu.hrl").
 
 init(Req0, State) ->
   % lager:debug("req: ~p",[Req0]),
@@ -11,4 +12,4 @@ init(Req0, State) ->
   % URI = cowboy_req:uri(Req) %https://ninenines.eu/docs/en/cowboy/2.0/guide/req/
   % URL for bindings, Query parameters parsing,header,peer address and port number
   % HostInfo = cowboy_req:host_info(Req).
-  {ok, Req, State} = http_request_util:cowboy_out(bcs_mod,Path, Req0, State).
+  {ok, Req, State} = http_request_util:cowboy_out(mu_path_handler,Path, Req0, State).

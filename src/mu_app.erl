@@ -4,12 +4,13 @@
 %%%-------------------------------------------------------------------
 
 -module(mu_app).
--include("../include/mu.hrl").
 
 -behaviour(application).
 
 %% Application callbacks
 -export([start/2, stop/1]).
+
+-include("../include/mu.hrl").
 
 %%====================================================================
 %% API

@@ -4,7 +4,6 @@
 %%%-------------------------------------------------------------------
 
 -module(mu_sup).
--include("../include/mu.hrl").
 
 -behaviour(supervisor).
 
@@ -13,6 +12,8 @@
 
 %% Supervisor callbacks
 -export([init/1]).
+
+-include("../include/mu.hrl").
 
 -define(SERVER, ?MODULE).
 
@@ -30,7 +31,7 @@ start_link() ->
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
   % if child has terminated more than 10 times in last 60 seconds -> supervisior terminates itself...
-   
+
   %  {ok, {RestartStrategy, [Children]}}.
    {ok, { {one_for_one, 10, 60}, []} }.
 
