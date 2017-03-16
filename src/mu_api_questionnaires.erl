@@ -14,7 +14,7 @@ init(Req0, State) ->
     <<"POST">> ->
       handle_questionnaires_api(Req0, State);
     _ ->
-      http_request_util:cowboy_out(mu_json_handler,0, Req0, State)
+      http_request_util:cowboy_out(mu_json_error_handler,0, Req0, State)
   end.
 
 handle_questionnaires_api(Req0, State) ->
@@ -24,9 +24,9 @@ handle_questionnaires_api(Req0, State) ->
   % check if question is send
 
   case check_args(Args) of
-    false -> http_request_util:cowboy_out(mu_json_handler,2, Req0, State);
+    false -> http_request_util:cowboy_out(mu_json_error_handler,2, Req0, State);
     % todo: implement gen_server for sessions, call it at this point
-    true -> http_request_util:cowboy_out(mu_json_handler,#{}, Req0, State)
+    true -> http_request_util:cowboy_out(mu_json_success_handler,true, Req0, State)
   end.
 
 check_args(Args) ->

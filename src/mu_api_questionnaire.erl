@@ -24,7 +24,7 @@ init(Req0, State) ->
     <<"POST">> ->
       handle_questions_api(Req0, State);
     _ ->
-      http_request_util:cowboy_out(mu_json_handler,0, Req0, State)
+      http_request_util:cowboy_out(mu_json_error_handler,0, Req0, State)
   end.
 
 handle_questions_api(Req0, State) ->
@@ -33,17 +33,17 @@ handle_questions_api(Req0, State) ->
   Args = bjson:decode(Body),
   % {Ok, Id} = supervisor:start_child(mu_sup, ChildSpec),
   case check_args(Args) of
-    false -> http_request_util:cowboy_out(mu_json_handler,2, Req0, State);
+    false -> http_request_util:cowboy_out(mu_json_error_handler,2, Req0, State);
     % todo: implement gen_server for sessions, call it at this point
     child -> case supervisor:start_child(?SUPERVISIOR, ?CHILDSPEC) of
-        {_, undefined} -> http_request_util:cowboy_out(mu_json_handler,3, Req0, State);
-        {ok, Pid} -> http_request_util:cowboy_out(mu_json_handler,Pid, Req0, State);
-        {_,_} -> http_request_util:cowboy_out(mu_json_handler,3, Req0, State)
+        {_, undefined} -> http_request_util:cowboy_out(mu_json_error_handler,3, Req0, State);
+        {ok, Pid} -> http_request_util:cowboy_out(mu_json_success_handler,Pid, Req0, State);
+        {_,_} -> http_request_util:cowboy_out(mu_json_error_handler,3, Req0, State)
       end;
     {next, Pid} -> NewQuestion=mu_questionnaire:getNewQuestion(Pid),
-      http_request_util:cowboy_out(mu_json_handler,NewQuestion, Req0, State);
+      http_request_util:cowboy_out(mu_json_success_handler,NewQuestion, Req0, State);
     {previous, Pid} -> PreviousQuestion=mu_questionnaire:getNewQuestion(Pid),
-      http_request_util:cowboy_out(mu_json_handler,PreviousQuestion, Req0, State)
+      http_request_util:cowboy_out(mu_json_success_handler,PreviousQuestion, Req0, State)
   end.
 
 check_args(Args) ->

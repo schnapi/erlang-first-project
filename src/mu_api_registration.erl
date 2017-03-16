@@ -14,7 +14,7 @@ init(Req0, State) ->
     % post method, check session, save session etc.
     <<"POST">> ->
       handle_registration_api(Req0, State);
-    _ -> http_request_util:cowboy_out(mu_json_handler,1, Req0, State)
+    _ -> http_request_util:cowboy_out(mu_json_error_handler,1, Req0, State)
   end.
 
 handle_registration_api(Req0, State) ->
@@ -23,9 +23,9 @@ handle_registration_api(Req0, State) ->
   Args = bjson:decode(Body),
   % check if username and password are sent
   case check_args(Args) of
-    false -> http_request_util:cowboy_out(mu_json_handler,1, Req0, State);
+    false -> http_request_util:cowboy_out(mu_json_error_handler,1, Req0, State);
     % todo: implement gen_server for sessions, call it at this point
-    true -> http_request_util:cowboy_out(mu_json_handler,#{}, Req0, State)
+    true -> http_request_util:cowboy_out(mu_json_success_handler,true, Req0, State)
   end.
 
 check_args(Args) ->

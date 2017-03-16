@@ -7,7 +7,7 @@
 -define(HEADERHTML, #{<<"content-type">> => <<"text/html">>}).
 -define(HEADERJSON, #{<<"content-type">> => <<"application/json">>}).
 
--spec cowboy_out(atom(), binary() | integer() | map() | pid(),cowboy_req:req(), atom()) -> {ok,cowboy_req:req(),atom()}.
+-spec cowboy_out(atom(), binary() | integer() | map() | pid()| atom(),cowboy_req:req(), atom()) -> {ok,cowboy_req:req(),atom()}.
 
 cowboy_out(Module,Path, Req0, State) ->
   % if some error comes from dtl page then catch an exception and print to
