@@ -21,6 +21,7 @@
 %% API functions
 %%====================================================================
 
+%http://erlang.org/doc/man/supervisor.html#start_link-3
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 

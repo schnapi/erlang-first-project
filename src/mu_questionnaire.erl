@@ -13,6 +13,7 @@
 
 -include("../include/mu.hrl").
 
+-spec getNewQuestion(pid()) -> term().
 
 start_link() -> gen_server:start_link(?MODULE, [], []).
 stop()  -> gen_server:call(?MODULE, stop).

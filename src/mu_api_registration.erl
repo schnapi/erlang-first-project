@@ -4,14 +4,17 @@
 
 -include("../include/mu.hrl").
 
+-spec init(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
+-spec handle_registration_api(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
+-spec check_args(nonempty_list()) -> boolean().
+
 init(Req0, State) ->
   Method = cowboy_req:method(Req0),
   case Method of
     % post method, check session, save session etc.
     <<"POST">> ->
       handle_registration_api(Req0, State);
-    _ ->
-      mu_respond:respond_error(Req0, State,1)
+    _ -> http_request_util:cowboy_out(mu_json_handler,1, Req0, State)
   end.
 
 handle_registration_api(Req0, State) ->
@@ -20,9 +23,9 @@ handle_registration_api(Req0, State) ->
   Args = bjson:decode(Body),
   % check if username and password are sent
   case check_args(Args) of
-    false -> mu_respond:respond_error(Req0, State, 1);
+    false -> http_request_util:cowboy_out(mu_json_handler,1, Req0, State);
     % todo: implement gen_server for sessions, call it at this point
-    true -> mu_respond:respond_success(Req0, State)
+    true -> http_request_util:cowboy_out(mu_json_handler,#{}, Req0, State)
   end.
 
 check_args(Args) ->

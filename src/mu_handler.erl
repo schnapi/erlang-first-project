@@ -4,8 +4,9 @@
 
 -include("../include/mu.hrl").
 
+-spec init(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
+
 init(Req0, State) ->
-  % lager:debug("req: ~p",[Req0]),
   Path = cowboy_req:path(Req0),
   lager:debug("path accessed: ~p",[Path]),
   % Version = cowboy_req:version(Req).

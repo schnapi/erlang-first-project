@@ -1,10 +1,12 @@
 -module(mu_path_handler).
 
--export([out/2]).
+-export([out/1]).
 
 -include("../include/mu.hrl").
 
-out(Path, Req0) ->
+-spec out(string()) -> map().
+
+out(Path) ->
   % #pgr{ status = (http koda), headers = [ headerji ], body = <<binarni body>> }
   case Path of
     <<"/">> ->
@@ -29,8 +31,8 @@ out(Path, Req0) ->
       #{ view => mu_view_questionnaires, data => Context };
     <<"/jsontest">> ->
       % #{ status => 200, headers=>#{<<"content-type">> => <<"application/json">>}, body => Html};
-      A = 1,
-      A = 2,
+      % A = 1,
+      % A = 2,
       #{ type => json, data => #{ <<"status">> => <<"it's ok">> }  };
     _ ->
       #{ status => 404, headers=>#{<<"content-type">> => <<"text/plain">>}, body => <<"404, not found.">>}

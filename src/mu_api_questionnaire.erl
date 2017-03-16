@@ -13,13 +13,18 @@
              type => worker, % optional
              modules => [?GENSERVER]}). %list with one element
 
+-spec init(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
+-spec handle_questions_api(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
+-spec check_args(nonempty_list()) -> property().
+
+% http://erlang.org/doc/design_principles/sup_princ.html
 init(Req0, State) ->
   Method = cowboy_req:method(Req0),
   case Method of
     <<"POST">> ->
       handle_questions_api(Req0, State);
     _ ->
-      mu_respond:respond_error(Req0, State,0)
+      http_request_util:cowboy_out(mu_json_handler,0, Req0, State)
   end.
 
 handle_questions_api(Req0, State) ->
@@ -28,21 +33,17 @@ handle_questions_api(Req0, State) ->
   Args = bjson:decode(Body),
   % {Ok, Id} = supervisor:start_child(mu_sup, ChildSpec),
   case check_args(Args) of
-    false -> mu_respond:respond_error(Req0, State,"Question is empty!");
+    false -> http_request_util:cowboy_out(mu_json_handler,2, Req0, State);
     % todo: implement gen_server for sessions, call it at this point
     child -> case supervisor:start_child(?SUPERVISIOR, ?CHILDSPEC) of
-        {ok, Pid} -> PidS = list_to_binary(pid_to_list(Pid)),
-          Reply = jsx:encode(#{<<"result">> => PidS}),
-          mu_respond:respond_success(Req0, State,Reply);
-        {_,_} -> mu_respond:respond_error(Req0, State, "Couldn't start new worker!")
+        {_, undefined} -> http_request_util:cowboy_out(mu_json_handler,3, Req0, State);
+        {ok, Pid} -> http_request_util:cowboy_out(mu_json_handler,Pid, Req0, State);
+        {_,_} -> http_request_util:cowboy_out(mu_json_handler,3, Req0, State)
       end;
-    {next, Pid} ->
-      NewQuestion=mu_questionnaire:getNewQuestion(Pid),
-        Reply = jsx:encode(#{<<"result">> => list_to_binary(NewQuestion)}),
-        mu_respond:respond_success(Req0, State, Reply);
+    {next, Pid} -> NewQuestion=mu_questionnaire:getNewQuestion(Pid),
+      http_request_util:cowboy_out(mu_json_handler,NewQuestion, Req0, State);
     {previous, Pid} -> PreviousQuestion=mu_questionnaire:getNewQuestion(Pid),
-      Reply = jsx:encode(#{<<"result">> => <<PreviousQuestion>>}),
-      mu_respond:respond_success(Req0, State, Reply)
+      http_request_util:cowboy_out(mu_json_handler,PreviousQuestion, Req0, State)
   end.
 
 check_args(Args) ->

@@ -4,13 +4,17 @@
 
 -include("../include/mu.hrl").
 
+-spec init(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
+-spec handle_questionnaires_api(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
+-spec check_args(nonempty_list()) -> boolean().
+
 init(Req0, State) ->
   Method = cowboy_req:method(Req0),
   case Method of
     <<"POST">> ->
       handle_questionnaires_api(Req0, State);
     _ ->
-      mu_respond:respond_error(Req0, State,0)
+      http_request_util:cowboy_out(mu_json_handler,0, Req0, State)
   end.
 
 handle_questionnaires_api(Req0, State) ->
@@ -20,9 +24,9 @@ handle_questionnaires_api(Req0, State) ->
   % check if question is send
 
   case check_args(Args) of
-    false -> mu_respond:respond_error(Req0, State, "Question is empty!");
+    false -> http_request_util:cowboy_out(mu_json_handler,2, Req0, State);
     % todo: implement gen_server for sessions, call it at this point
-    true -> mu_respond:respond_success(Req0, State)
+    true -> http_request_util:cowboy_out(mu_json_handler,#{}, Req0, State)
   end.
 
 check_args(Args) ->
