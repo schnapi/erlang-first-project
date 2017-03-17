@@ -12,6 +12,7 @@
       $.post("http://localhost:8080/api/login", userdata, function(data) {
         if(data.result) {
           alert("Ustrezno vnešeni podatki, success");
+          window.location = "http://localhost:8080/questionnaires";
         }
         else {
           alert(data.error);

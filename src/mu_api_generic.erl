@@ -18,11 +18,12 @@ handle_login_api(Req0, State) ->
   {ok, Body, _} = cowboy_req:read_body(Req0),
   % convert body from json
   Args = bjson:decode(Body),
+  Cookies = cowboy_req:parse_cookies(Req0),
   % check if username and password are sent
   case check_args(Args) of
     false -> respond_login_error(Req0, State, 1);
-    % todo: implement gen_server for sessions, call it at this point
-    true -> respond_login_success(Req0, State)
+    % before creating new session check if there already exists one
+    true -> respond_login_success(Req0, State, Args)
   end.
 
 check_args(Args) ->
@@ -35,11 +36,26 @@ check_args(Args) ->
     _ -> true
   end.
 
-respond_login_success(Req0, State) ->
-  % sending json response
-  Reply = jsx:encode(#{<<"result">> => <<"true">>}),
-  Req = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, Reply , Req0),
-  {ok, Req, State}.
+respond_login_success(Req0, State, Args) ->
+  ValidateSession = mu_sessions:check_session_validation(Req0),
+  case ValidateSession of
+    % če ni veljavne seje jo ustvarim
+    {false} ->
+      lager:debug("ni veljavne seje"),
+      #{peer := {Ip, _}} = Req0,
+      Username = proplists:get_value(<<"username">>, Args),
+      {SessionId, Pid} = mu_sessions:create_new_session(Ip, Username),
+      {ok, Req2} = mu_sessions:set_sessionid(Req0, SessionId),
+      Reply = jsx:encode(#{<<"result">> => <<"true">>}),
+      Req = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, Reply , Req2),
+      {ok, Req, State};
+    % če je veljavna seja vrnem true, redirect na pageu
+    {ok} ->
+      lager:debug("je veljavna seja"),
+      Reply = jsx:encode(#{<<"result">> => <<"true">>}),
+      Req = cowboy_req:reply(200, #{<<"content-type">> => <<"application/json">>}, Reply , Req0),
+      {ok, Req, State}
+  end.
 
 respond_login_error(Req0, State, ErrCode) ->
   % sending error response
