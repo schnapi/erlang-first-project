@@ -49,7 +49,7 @@ get_sessionid(Req0) ->
 
 % set sessionid in cookie
 set_sessionid(Req0, SessionId) ->
-  Req = cowboy_req:set_resp_cookie(<<"sessionId">>, SessionId, Req0),
+  Req = cowboy_req:set_resp_cookie(<<"sessionId">>, SessionId, Req0, #{domain=>"localhost", path=>"/"}),
   {ok, Req}.
 
 % vrne ok in pid če je, drugače false
@@ -67,10 +67,10 @@ get_session_pid(SessionId) ->
 % start new session for user
 create_new_session(Ip, Username) ->
   case supervisor:start_child(?SUPERVISIOR, ?CHILDSPEC) of
-   {ok, Pid} ->
-     {SessionId} = generate_sessionid(Ip, Username),
-     ets:insert(mu_sessions, {SessionId, Pid}),
-     {SessionId, Pid}
+    {ok, Pid} ->
+      {SessionId} = generate_sessionid(Ip, Username),
+      ets:insert(mu_sessions, {SessionId, Pid}),
+      {SessionId, Pid}
   end.
 
 % generate token for sessionid
@@ -78,6 +78,6 @@ generate_sessionid(Ip, Username) ->
   {_, TimeStamp, _} = erlang:timestamp(),
   SessionData = tuple_to_list(Ip) ++ binary_to_list(Username) ++ ":" ++ erlang:integer_to_list(TimeStamp, 16),
   Hash = butil:dec2hex(crypto:hash(sha256, SessionData)),
-  RandBytes = butil:dec2hex(crypto:hash(sha256, crypto:rand_bytes(32))),
+  RandBytes = butil:dec2hex(crypto:hash(sha256, crypto:strong_rand_bytes(32))),
   SessionId = list_to_binary(binary_to_list(Hash) ++ binary_to_list(RandBytes)),
   {SessionId}.

@@ -12,7 +12,9 @@ out(Code) when is_integer(Code) ->
     0 -> generateResponse("Wrong request method");
     1 -> generateResponse("Missing username or/and password");
     2 -> generateResponse("Question is empty!");
-    3 -> generateResponse("Couldn't start new worker!")
+    3 -> generateResponse("Couldn't start new worker!");
+    % redirect on login page
+    302 -> #{ status => 302, headers=>#{<<"Location">> => <<"login">>}}
   end.
 
 generateResponse(Message) -> #{ type => json, data => #{<<"result">> => <<"false">>, <<"error">> => list_to_binary(Message)}}.

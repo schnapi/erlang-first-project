@@ -19,14 +19,13 @@ start_link() -> gen_server:start_link(?MODULE, [], []).
 stop() -> gen_server:call(?MODULE, stop).
 
 ping(Pid) ->
-	lager:debug("test: ~p",[Pid]),
 	gen_server:call(Pid, {ping}).
 
 init([]) ->
 	{ok, state}.
 
 handle_call({ping}, _From, Tab) ->
-    Reply = "test",
+  Reply = "test",
     lager:debug("here i am ~p", [Reply]),
 		{reply, Reply, Tab};
 

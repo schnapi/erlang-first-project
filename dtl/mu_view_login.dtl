@@ -34,7 +34,7 @@
     </div>
     <div style="margin-top:10px;">
       <label>Geslo</label><br>
-      <input type="text" name="password" id="password"/>
+      <input type="password" name="password" id="password"/>
     </div>
 
     <button style="margin-top:10px;" onclick="login()">Prijava</button>
