@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="static/css/style.css">
+  <script src="https://unpkg.com/vue"></script>
+  <body>
+    {% verbatim %}
+    <div class = "container">
+      <h1>Uredi vprašalnik</h1>
+      <div class="panel-group">
+        <div id="questions">
+          <p>Ime vprašalnika:
+            <input type="text" v-model="questionnaire.name"></p>
+          <!-- <questionComp v-for="(question, index) in questions" :text="Vprašalnik" class="panel panel-default question"></questionComp> -->
+          <div v-for="(question, index) in questions" class="panel panel-default question">
+            <div class="panel-heading" v-on:click="collapseShow(index)">
+              <h4 class="panel-title accordion-toggle">
+                Vprašanje: <span>{{question.id = index+1}}</span>
+              </h4>
+              <a v-on:click="removeQuestion(index)">Odstrani</a>
+            </div>
+            <section :id="'question' + index" style="display:none" class="panel-collapse collapse in panel-body">
+              <textarea rows="4" cols="50" v-model="question['question']"></textarea>
+              <p><fieldset>
+                <input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
+                <legend>
+                  <label class="btn btn-primary btn-file" onclick="triggerClick()">
+                  Izberi sliko: <input style="display:none" type="file" id="fileupload" name="fileselect[]" multiple="multiple" accept="image/*" @change="onFileChange(index)" />
+                  </label>
+                  <span v-if="question['image'] != ''">{{question['image']}}
+                  <a href="#" @click="change(index,'image','')">
+                    <small><small> <span class="glyphicon glyphicon-remove"></span></small></small>
+                  </a></span>
+                </legend>
+              </fieldset></p>
+              <section>
+                <p>Tip odgovora:
+                  <select v-model="question['answers_type']">
+                    <option value="selectOne">Eden pravilni odgovor</option>
+                    <option value="selectMulti">Več pravilnih odgovorov</option>
+                  </select>
+                </p>
+                <table class="answers table">
+                  <thead><tr><th></th><th>Odgovor</th><th>Točke</th></tr></thead>
+                  <tbody>
+                    <tr v-for="(answer, index1) in question['answers']">
+                      <td>{{answer.id = index1+1}}.</td>
+                      <td><textarea v-model="answer.value"></textarea></td>
+                      <td><input type='text' v-model='answer.weight'><td>
+                      <td><button v-on:click="removeAnswer(question,index1)" class="btn btn-danger" type="button">Odstrani</button><td>
+                    </tr>
+                  </tbody>
+                </table>
+                <button v-on:click="addAnswer(question)">Dodaj odgovor</button>
+              </section>
+            </section>
+          </div>
+          <p><button v-on:click="addQuestion()">Dodaj vprašanje</button></p>
+          <p><button v-on:click="save()">Shrani vprašalnik</button></p>
+        </div>
+      </div>
+    </div>
+    {% endverbatim %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script>
+  let url = new URL(window.location.href);
+  let searchParams = new URLSearchParams(url.search);
+  var name = searchParams.get('name');
+  var id = searchParams.get('id');
+
+  if(name=="null") name="";
+    toggle=true;
+
+    var VueQuestions = new Vue({
+      el: '#questions',
+      data: {
+        questionnaire: { id: id, name: name },
+        questions: []
+      },
+      mounted: function() {
+        var userdata = JSON.stringify({
+          "get": this.questionnaire.id
+        });
+        var self=this
+        $.post("/api/edit_questionnaire", userdata, function(data) {
+          data.forEach(function(question) {
+            if (question['answers'] != "undefined") question['answers'] = JSON.parse(question['answers'])
+            else question['answers']=[]
+            self.questions.push(question)
+          })
+          if (!data) {alert("Napaka pri branju podatkov!");}
+        })
+      },
+      methods: {
+        collapseShow: function (index) {
+          if (!toggle) {
+            toggle=true;
+            return;
+          }
+          // alert(this.$refs.list[index].outerHTML)
+          $("#question"+index).slideToggle();
+          $(event.currentTarget).find(".accordion-toggle").toggleClass("collapsed")
+        },
+        removeQuestion: function (index) {
+          toggle=false;
+          Vue.delete(this.questions, index);
+        },
+        addQuestion: function() {
+          this.questions.push({
+            id: '',
+            question: '',
+            image: '',
+            answers_type: 'selectOne',
+            answers: [{id: "", value: "", weight: ""}]
+          });
+        },
+        addAnswer: function(question) {question.answers.push({});},
+        removeAnswer: function(question, index) {Vue.delete(question.answers, index)},
+        save: function() {
+          var userdata = JSON.stringify({
+            "questionnaire": this.questionnaire,
+            "questions": this.questions
+          });
+          self=this;
+          $.post("/api/edit_questionnaire", userdata, function(data) {
+            if (data.result) {
+              self.questionnaire.id=data.result
+              window.history.replaceState(null, "test", location.protocol + '//' + location.host + location.pathname+"?id="+self.questionnaire.id+"&name="+self.questionnaire.name)
+              alert("Ustrezno vnešeni podatki!");
+            } else
+              alert("Prišlo do je napake, podatki niso vnešeni");
+          })
+        },
+        change(index,object,text) {
+          this.questions[index][object] = text;
+        },
+        onFileChange(index) {
+          var files = event.target.files || event.dataTransfer.files;
+          if (!files.length)
+            return;
+          this.questions[index]['image'] = files[0].name
+          // this.createImage(files[0],index);
+        },
+        // createImage(file,index) {
+        //   var image = new Image();
+        //   var reader = new FileReader();
+        //
+        //   reader.onload = (e) => {
+        //     imageRef = e.target.result;
+        //   };
+        //   reader.readAsDataURL(file);
+        // },
+      }
+    })
+    function removeText() {
+      $(this).prev("input").trigger('click');
+    }
+    function triggerClick() {
+      $(this).children("input").trigger('click');
+    }
+  </script>
+  </body>
+
+</html>

@@ -7,8 +7,9 @@
 -spec out(binary() | pid() | string() | integer() | map() | atom()) -> map().
 
 out(Pid) when is_pid(Pid) -> generateResponse(pid_to_list(Pid));
-out(Message) when is_list(Message) -> generateResponse(Message);
+out(List) when is_list(List) -> #{ type => json, data => List};
 out(Map) when is_map(Map) -> #{ type => json, data => Map};
-out(true) -> #{ type => json, data => #{<<"result">> => <<"true">>}}.
+out(Id) when is_integer(Id) -> #{ type => json, data => #{<<"result">> => Id}};
+out(true) -> generateResponse("true").
 
 generateResponse(Message) -> #{ type => json, data => #{<<"result">> => list_to_binary(Message)}}.

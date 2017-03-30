@@ -18,14 +18,18 @@ cowboy_out(Module,Path, Req0, State) ->
     Pgr ->
       ok
   end,
+
+  lager:debug("dasdas: ~p",[Pgr]),
   %default Reply
 DefReply = #{ status => 200, header => ?HEADERHTML, body => <<>>},
   case Pgr of
     #{ type := json, data := ToSeralize} ->
+      lager:debug("ToSeralize: ~p",[ToSeralize]),
       JsonOut = jsx:encode(ToSeralize),
+        lager:debug("JsonOut: ~p",[JsonOut]),
       Reply = DefReply#{ header => ?HEADERJSON, body => JsonOut };
-    #{ data := Context, view := View} -> % view is dtl file, data is header
-      Reply = DefReply#{ body => render_page(View, Context) }; % render_page function in mu.hrl
+    #{ data := Context, view := View} -> % view is dtl file
+      Reply = DefReply#{ body => render_page(View, Context) }; % render_page function is in mu.hrl
     #{ view := View } ->
       Reply = DefReply#{ body => render_page(View) };
     #{ status := Status, headers := Header, body := Body} ->

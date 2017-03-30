@@ -32,6 +32,7 @@ check_args(Args) ->
   % get username and password
   Username = proplists:get_value(<<"username">>, Args),
   Password = proplists:get_value(<<"password">>, Args),
+  lager:debug(Username),
   case {Username, Password} of
     {undefined, _} -> false;
     {_, undefined} -> false;

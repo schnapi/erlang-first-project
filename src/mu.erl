@@ -6,4 +6,5 @@
 
 start() ->
   application:ensure_all_started(mu),
+  mu_db:connect(),
 ok.

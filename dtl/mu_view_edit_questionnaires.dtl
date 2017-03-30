@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+  <link rel="stylesheet" href="static/css/style.css">
+  <body>
+    <div class = "container">
+      <section class="questionnaires">
+        <h1>Vprašalniki</h1>
+        <table>
+        {% for questionnaire in questionnaires %}
+          <tr>
+            <td><input type="hidden" class='id' value="{{questionnaire.id}}"><input type="text" class='name' value="{{questionnaire.name}}" disabled></td>
+            <td><a class="btn btn-success" href="edit_questionnaire?id={{questionnaire.id}}&name={{questionnaire.name}}">Uredi</a></td>
+            <td><button type="button" class="btn btn-danger" onclick="removeQuestionnaire(this)">Izbriši</button></td>
+          </tr>
+        {% endfor %}
+        </table>
+        <p><button onclick="newQuestionnaire()">Nov vprašalnik</button></p>
+      </section>
+    </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script>
+    // $(document).ready(function() {
+    // })
+    function removeQuestionnaire(cur) {
+      var userdata = JSON.stringify({
+        "remove": $(cur).closest("tr").find(".id").val(),
+      });
+      $.post("/api/edit_questionnaire", userdata, function(data) {
+        if (data.result) {
+          alert("Ustrezno vnešeni podatki, success");
+          $(cur).closest("tr").remove();
+        } else {
+          alert(data.error);
+        }
+      })
+
+    }
+    function newQuestionnaire() {
+      location.href = '/edit_questionnaire';
+    }
+  </script>
+  </body>
+</html>

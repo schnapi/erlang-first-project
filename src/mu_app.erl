@@ -24,7 +24,7 @@ start(_, _) ->
       %% {HostMatch, list({PathMatch, Handler, InitialState})}
       {"/api/login", mu_api_login, []},
       {"/api/registration", mu_api_registration, []},
-      {"/api/questionnaires", mu_api_questionnaires, []},
+      {"/api/edit_questionnaire", mu_api_edit_questionnaire, []},
       {"/api/questionnaire", mu_api_questionnaire, []},
       {"/static/[...]", cowboy_static, {dir, "www"}},
       {"/[...]", mu_handler, []}

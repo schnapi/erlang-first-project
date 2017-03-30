@@ -50,7 +50,34 @@ schema_def() ->
         #adb_field{ name = <<"id">>, type = <<"TEXT">>, opts = [ primary_key ]},
         #adb_field{ name = <<"type">>, type = <<"TEXT">>},
         #adb_field{ name = <<"state">>, type = <<"BLOB">>}
-      ] }
+      ]}
+    ]},
+
+    #adb_actor{ name = <<"questionnaire">>, opts = [without_rowid], tables = [
+      #adb_table{ name = <<"questionnaires">>, opts = [], fields = [
+        #adb_field{ name = <<"id">>, type = <<"INTEGER">>, opts = [ primary_key, autoincrement ]},
+        #adb_field{ name = <<"name">>, type = <<"TEXT">>}
+      ]},
+
+      #adb_table{ name = <<"questions">>, opts = [without_rowid, {foreign_key,[{key,["questionnaires_id"]},
+        {ref_table,"questionnaires"},{ref_id,["id"]},{opts,[on_delete_cascade]}]},
+        {primary_key,[<<"id">>,<<"questionnaires_id">>]}], fields = [
+        #adb_field{ name = <<"id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"questionnaires_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"question">>, type = <<"TEXT">>},
+        #adb_field{ name = <<"image">>, type = <<"TEXT">>},
+        #adb_field{ name = <<"answers_type">>, type = <<"TEXT">>}
+      ]},
+
+      #adb_table{ name = <<"answers">>, opts = [without_rowid, {foreign_key,[{key,["question_id","questionnaires_id"]},
+        {ref_table,"questions"},{ref_id,["id","questionnaires_id"]},{opts,[on_delete_cascade]}]},
+        {primary_key,[<<"answer_id">>,<<"question_id">>,<<"questionnaires_id">>]}], fields = [
+        #adb_field{ name = <<"answer_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"question_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"questionnaires_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"answer">>, type = <<"TEXT">>},
+        #adb_field{ name = <<"weight">>, type = <<"INTEGER">>}
+      ]}
     ]}
   ].
 

@@ -12,4 +12,8 @@ include this in every file
 
 dialyzer:
 first time: make dialyzer_plt
-everytime you want to use dialyzer: make dialyzer 
+everytime you want to use dialyzer: make dialyzer
+
+mu_db:check_schema() or upgrade_schema() ->sometimes doesn't work:
+./resetDatabase.sh
+5) mu_db:upgrade_schema().
