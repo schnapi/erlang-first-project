@@ -36,8 +36,10 @@ schema_def() ->
     #adb_actor{ name = <<"user">>, tables = [
       #adb_table{ name = <<"data">>, opts = [without_rowid, {primary_key,[<<"param">>]}], fields = [
         #adb_field{ name = <<"param">>, type = <<"TEXT">> },
-        #adb_field{ name = <<"value">>, type = <<"TEXT">> }
-        % notri grejo param, role, salt, password,
+        #adb_field{ name = <<"value">>, type = <<"TEXT">> },
+        #adb_field{ name = <<"role">>, type = <<"TEXT">> },
+        #adb_field{ name = <<"password">>, type = <<"TEXT">> },
+        #adb_field{ name = <<"salt">>, type = <<"TEXT">> }
       ]},
 
       #adb_table{ name = <<"session">>, opts = [without_rowid], fields = [

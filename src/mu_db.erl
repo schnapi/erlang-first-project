@@ -60,11 +60,12 @@ get_questionnaire_questions(QuestionnaireId) ->
     LEFT JOIN answers AS an ON an.question_id = q2.id WHERE q2.questionnaires_id=?1 AND an.questionnaires_id=?1) GROUP BY id;">>, [create], [[QuestionnaireId]]).
 
 
-insert_user() ->
+insert_user(Name) ->
   Config = actordb_client:config(data_connection, infinity, binary),
-  actordb_client:exec_single_param(Config, <<"mocenum">>, <<"system">>,
-   <<"INSERT INTO user VALUES(?1);">>, [create], [[<<"matic">>]]).
+  actordb_client:exec_single_param(Config, <<"mocenum">>, <<"user">>,
+   <<"INSERT INTO user VALUES(?1);">>, [create], [[list_to_binary(Name)]]).
 % see: actordb_client:exec_single_param(ConnectionCfg, ActorId, ActorType, Sql, Flags, Binds),
+
 insert_update_questionnaire(Id, Name) ->
   Config = actordb_client:config(data_connection, infinity, binary),
   case actordb_client:exec_single_param(Config, <<"mocenum">>, <<"questionnaire">>,
