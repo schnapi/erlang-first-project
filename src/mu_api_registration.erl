@@ -6,7 +6,6 @@
 
 -spec init(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
 -spec handle_registration_api(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
--spec check_args(nonempty_list()) -> boolean().
 
 init(Req0, State) ->
   Method = cowboy_req:method(Req0),
@@ -18,23 +17,27 @@ init(Req0, State) ->
   end.
 
 handle_registration_api(Req0, State) ->
-  {ok, Body, _} = cowboy_req:read_body(Req0),
-  % convert body from json
-  Args = bjson:decode(Body),
-  % check if username and password are sent
-  case check_args(Args) of
-    false -> http_request_util:cowboy_out(mu_json_error_handler,1, Req0, State);
-    % todo: implement gen_server for sessions, call it at this point
-    true -> http_request_util:cowboy_out(mu_json_success_handler,true, Req0, State)
-  end.
+ {ok, Body, _} = cowboy_req:read_body(Req0),
 
-check_args(Args) ->
-  % get username and password
-  Username = proplists:get_value(<<"username">>, Args),
-  Password = proplists:get_value(<<"password">>, Args),
-  lager:debug(Username),
-  case {Username, Password} of
-    {undefined, _} -> false;
-    {_, undefined} -> false;
-    _ -> true
-  end.
+ % convert to map is also possible: Args = jsx:decode(Body,[{labels, atom}, return_maps])
+ Args = bjson:decode(Body),
+ checkKeys(Args, Req0,State).
+
+% return first match
+checkKeys([], Req0, State) -> http_request_util:cowboy_out(mu_json_error_handler,6, Req0, State);
+checkKeys([KeyValue|T], Req0, State) ->
+   case KeyValue of
+      {<<"get">>, <<"users">>} -> {ok, {false, Users}} = mu_db:get_all_users_id_role(),
+        http_request_util:cowboy_out(mu_json_success_handler,Users, Req0, State);
+      {<<"deleteUser">>, Id} ->  lager:error("~p",[Id]), case mu_db:delete_user(Id) of
+          ok -> http_request_util:cowboy_out(mu_json_success_handler,true, Req0, State);
+          _ -> http_request_util:cowboy_out(mu_json_error_handler,5, Req0, State)
+        end;
+      {<<"registration">>,[{<<"username">>,Id},{<<"password">>,Password},{<<"role">>,Role}]} ->
+        #{peer := {Ip, _}} = Req0,
+        case mu_db:insert_user(Id, Role, Password, Ip) of
+          error -> http_request_util:cowboy_out(mu_json_error_handler,4, Req0, State);
+          _ -> http_request_util:cowboy_out(mu_json_success_handler,true, Req0, State)
+        end;
+      _ -> checkKeys(T, Req0, State)
+   end.

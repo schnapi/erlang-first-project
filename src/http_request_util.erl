@@ -10,6 +10,7 @@
 -spec cowboy_out(atom(), binary() | integer() | map() | pid()| atom(),cowboy_req:req(), atom()) -> {ok,cowboy_req:req(),atom()}.
 
 cowboy_out(Module,Path, Req0, State) ->
+
   % if some error comes from dtl page then catch an exception and print to
   case catch Module:out(Path) of
     {'EXIT', Error} ->
@@ -19,14 +20,11 @@ cowboy_out(Module,Path, Req0, State) ->
       ok
   end,
 
-  lager:debug("dasdas: ~p",[Pgr]),
   %default Reply
 DefReply = #{ status => 200, header => ?HEADERHTML, body => <<>>},
   case Pgr of
     #{ type := json, data := ToSeralize} ->
-      lager:debug("ToSeralize: ~p",[ToSeralize]),
       JsonOut = jsx:encode(ToSeralize),
-        lager:debug("JsonOut: ~p",[JsonOut]),
       Reply = DefReply#{ header => ?HEADERJSON, body => JsonOut };
     #{ data := Context, view := View} -> % view is dtl file
       Reply = DefReply#{ body => render_page(View, Context) }; % render_page function is in mu.hrl

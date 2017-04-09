@@ -13,8 +13,11 @@ out(Code) when is_integer(Code) ->
     1 -> generateResponse("Missing username or/and password");
     2 -> generateResponse("Question is empty!");
     3 -> generateResponse("Couldn't start new worker!");
+    4 -> generateResponse("Vnos uporabnika ni uspel! Vzrok je lahko, da ta uporabnik že obstaja!");
+    5 -> generateResponse("Napaka na spletnem strežniku!");
+    6 -> generateResponse("Nobeden od post parametrov se ne ujema!");
     % redirect on login page
     302 -> #{ status => 302, headers=>#{<<"Location">> => <<"login">>}}
   end.
 
-generateResponse(Message) -> #{ type => json, data => #{<<"result">> => <<"false">>, <<"error">> => list_to_binary(Message)}}.
+generateResponse(Message) -> #{ type => json, data => #{<<"result">> => <<"false">>, <<"error">> => unicode:characters_to_binary(Message)}}.

@@ -2,7 +2,7 @@
 
 -export([check_session_validation/1,
          create_new_session/2,
-         set_sessionid/2]).
+         set_sessionid/2, generate_sessionid/2]).
 
 -include("../include/mu.hrl").
 

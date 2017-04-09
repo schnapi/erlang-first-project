@@ -17,3 +17,6 @@ everytime you want to use dialyzer: make dialyzer
 mu_db:check_schema() or upgrade_schema() ->sometimes doesn't work:
 ./resetDatabase.sh
 5) mu_db:upgrade_schema().
+
+
+https://github.com/logaretm/vee-validate

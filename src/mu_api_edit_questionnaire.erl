@@ -32,6 +32,7 @@ handle_questionnaires_api(Req0, State) ->
       http_request_util:cowboy_out(mu_json_success_handler, Map , Req0, State)
   end.
 
+
 createListOfNumbers(List,Min,Max) ->
   case Min =< Max of
     true -> createListOfNumbers(List ++ [Min], Min+1, Max);

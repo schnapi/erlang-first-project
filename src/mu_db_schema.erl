@@ -34,11 +34,11 @@ schema_def() ->
     ]},
 
     #adb_actor{ name = <<"user">>, tables = [
-      #adb_table{ name = <<"data">>, opts = [without_rowid, {primary_key,[<<"param">>]}], fields = [
+      #adb_table{ name = <<"data">>, opts = [without_rowid, {primary_key,[<<"email">>]}], fields = [
         #adb_field{ name = <<"param">>, type = <<"TEXT">> },
-        #adb_field{ name = <<"value">>, type = <<"TEXT">> },
+        #adb_field{ name = <<"email">>, type = <<"TEXT">> },
         #adb_field{ name = <<"role">>, type = <<"TEXT">> },
-        #adb_field{ name = <<"password">>, type = <<"TEXT">> },
+        #adb_field{ name = <<"passwordHash">>, type = <<"TEXT">> },
         #adb_field{ name = <<"salt">>, type = <<"TEXT">> }
       ]},
 
@@ -55,8 +55,8 @@ schema_def() ->
       ]}
     ]},
 
-    #adb_actor{ name = <<"questionnaire">>, opts = [without_rowid], tables = [
-      #adb_table{ name = <<"questionnaires">>, opts = [], fields = [
+    #adb_actor{ name = <<"questionnaire">>, tables = [
+      #adb_table{ name = <<"questionnaires">>, fields = [
         #adb_field{ name = <<"id">>, type = <<"INTEGER">>, opts = [ primary_key, autoincrement ]},
         #adb_field{ name = <<"name">>, type = <<"TEXT">>}
       ]},
