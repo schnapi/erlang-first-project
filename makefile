@@ -1,8 +1,8 @@
 #
 # Makefile for ...
 #
-APPCFG = ./rel/files/linux/app.config
-VMARGS = ./rel/files/common/vm.args
+# APPCFG = ./rel/files/linux/app.config
+# VMARGS = ./rel/files/common/vm.args
 
 all:
 	./rebar3 get-deps
@@ -14,8 +14,8 @@ shell:
 release:
 	relx --sys_config $(APPCFG) --vm_args $(VMARGS)
 
-dialyzer_plt:
-	dialyzer --output_plt my.plt --build_plt --apps erts kernel stdlib syntax_tools crypto ssl asn1 public_key compiler
+# dialyzer_plt:
+# 	dialyzer --output_plt my.plt --build_plt --apps erts kernel stdlib syntax_tools crypto ssl asn1 public_key compiler
 
 dialyzer:
 	@rm -rf _build/default/lib/mu/ebin/testdir/

@@ -17,6 +17,13 @@ connect() ->
 
 config() -> actordb_client:config(data_connection, infinity, binary).
 
+% insert_node() ->
+%   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+%     <<"INSERT OR REPLACE INTO nodes VALUES(?1,?2);">>, [create], [[Id, Name]]) of
+%     {ok,{_,NewId,_}} -> lager:debug("insert_node: NewId:~p",[NewId]);
+%     {error,Error} -> lager:error("~p",[Error]), error
+%   end.
+
 get_all_users() ->
   actordb_client:exec_single(config(), <<"mocenum">>, <<"user">>,
    <<"SELECT * FROM data;">>, [create]).
@@ -78,13 +85,9 @@ check_user_password(Email, Password) ->
 
 -spec delete_user(binary()) -> any().
 delete_user(Email) ->
-  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
-   <<"DELETE FROM data WHERE email=?1;">>, [], [[Email]]) of
-    {ok,_} -> ok;
-    % {ok,{changes,_,0}} -> error;
-    _ -> error
-  end.
-
+  actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
+   <<"DELETE FROM data WHERE email=?1;">>, [], [[Email]]).
+% out {ok,{changes,_,0}} or {error,Error}
 
 -spec insert_user(binary(), binary(), binary(), tuple()) -> any().
 insert_user(Email, Role, Password, Ip) ->

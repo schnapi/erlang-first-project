@@ -20,3 +20,6 @@ mu_db:check_schema() or upgrade_schema() ->sometimes doesn't work:
 
 
 https://github.com/logaretm/vee-validate
+
+nodejs update ubuntu...
+https://github.com/nodesource/distributions/tree/master/deb

@@ -6,7 +6,7 @@
 
 -spec init(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
 -spec handle_questionnaires_api(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
--spec check_args(nonempty_list()) -> boolean().
+-spec check_args(nonempty_list()) -> any().
 
 init(Req0, State) ->
   Method = cowboy_req:method(Req0),
@@ -28,8 +28,7 @@ handle_questionnaires_api(Req0, State) ->
     ok -> http_request_util:cowboy_out(mu_json_success_handler,  true, Req0, State);
     Id when is_integer(Id) -> http_request_util:cowboy_out(mu_json_success_handler,  Id, Req0, State);
     % todo: implement gen_server for sessions, call it at this point
-    Map ->
-      http_request_util:cowboy_out(mu_json_success_handler, Map , Req0, State)
+    Map -> http_request_util:cowboy_out(mu_json_success_handler, Map , Req0, State)
   end.
 
 

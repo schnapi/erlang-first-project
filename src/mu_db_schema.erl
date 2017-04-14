@@ -79,6 +79,17 @@ schema_def() ->
         #adb_field{ name = <<"questionnaires_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"answer">>, type = <<"TEXT">>},
         #adb_field{ name = <<"weight">>, type = <<"INTEGER">>}
+      ]},
+
+      #adb_table{ name = <<"nodes">>, opts = [without_rowid,
+        {foreign_key,[{key,["answer_id","question_id","questionnaires_id"]},
+        {ref_table,"answers"},{ref_id,["answer_id","question_id","questionnaires_id"]},{opts,[on_delete_cascade]}]},
+        {primary_key,[<<"node_id">>, <<"answer_id">>,<<"question_id">>,<<"questionnaires_id">>]}], fields = [
+        #adb_field{ name = <<"node_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"question_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"questionnaires_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"answer_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"link">>, type = <<"INTEGER">>}
       ]}
     ]}
   ].

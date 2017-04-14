@@ -3,13 +3,62 @@
   <meta charset="utf-8">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <link rel="stylesheet" href="static/css/style.css">
-  <script src="https://unpkg.com/vue"></script>
+  <link rel="stylesheet" href="static/css/modal.css">
+  <!-- <script src="https://unpkg.com/vue"></script> -->
+  <script src="static/js/vue.js"></script>
   <body>
     {% verbatim %}
     <div class = "container">
       <h1>Uredi vprašalnik</h1>
       <div class="panel-group">
         <div id="questions">
+        <modal v-if="showModal" @close="showModal = false">
+          <h3 slot="header">Načrtovanje logike</h3>
+          <div slot="body">
+            Vprašanje {{selected.question+1}} -> če odgovorim z "{{questions[selected.question].answers[selected.answer].value}}"<br> veljajo naslednji pogoji!
+            <p>
+              <button v-on:click="pushRow(logic['qa'+selected.question+selected.answer],logicAdd)" class="btn btn-success" type="button">Dodaj naslednje vprašanje</button>
+              <button v-on:click="popRow(logic['qa'+selected.question+selected.answer])" class="btn btn-danger" type="button">Odstrani vprašanje</button>
+            </p>
+            <div class="row">
+              <div class="col-xs-3">Naslednje vprašanje</div>
+              <div class="col-xs-5">Pogoji</div>
+              <div class="col-xs-3">Logični operator</div>
+              <div class="col-xs-1"></div>
+            </div>
+            <div class="row" v-for="(obj, index) in filterLogic(logic)">
+              <div class="col-xs-3">
+                <select class="custom-select" v-model="obj.toQuestion">
+                  <option v-for="n in questions.length" :value="n">Vprašanje {{n}}</option>
+                </select>
+              </div>
+              <template v-for="(obj1, index1) in obj.questionsAnswers">
+                <template v-if="obj1.op!=undefined">
+                  <div class="col-xs-3">
+                    <select class="custom-select" v-model="obj1.op">
+                      <option value=""></option>
+                      <option value="and">and</option>
+                      <option value="or">or</option>
+                    </select>
+                  </div>
+                  <div class="col-xs-1">
+                    <span v-on:click="addRow(obj.questionsAnswers, index1+1,logicQAadd)" class="add glyphicon glyphicon-plus"></span>
+                    <span v-on:click="removeRow(logic['qa'+selected.question+selected.answer], obj.questionsAnswers, index1)" class="remove glyphicon glyphicon-remove"></span>
+                  </div>
+                </template>
+                <div v-else class="col-xs-5">
+                  <select class="custom-select" v-model="obj1.id">
+                    <option v-for="n in questions.length" :value="n">Vprašanje {{n}}</option>
+                  </select> =
+                  <select class="custom-select" v-model="obj1.answer">
+                    <option v-for="(answer, index2) in questions[obj1.id].answers" :value="index2">{{answer.value.substring(0, 20)}}</option>
+                  </select>
+                </div>
+                <div class="col-xs-3" v-if="(index1+1)%2==0 && index1!=obj.questionsAnswers.length-1 "></div>
+              </template>
+            </div>
+          </div>
+        </modal>
           <p>Ime vprašalnika:
             <input type="text" v-model="questionnaire.name"></p>
           <!-- <questionComp v-for="(question, index) in questions" :text="Vprašalnik" class="panel panel-default question"></questionComp> -->
@@ -42,13 +91,16 @@
                   </select>
                 </p>
                 <table class="answers table">
-                  <thead><tr><th></th><th>Odgovor</th><th>Točke</th></tr></thead>
+                  <thead><tr><th></th><th>Odgovor</th><th>Točke</th><th>Naslednje vprašanje</th><th></th></tr></thead>
                   <tbody>
                     <tr v-for="(answer, index1) in question['answers']">
                       <td>{{answer.id = index1+1}}.</td>
                       <td><textarea v-model="answer.value"></textarea></td>
-                      <td><input type='text' v-model='answer.weight'><td>
-                      <td><button v-on:click="removeAnswer(question,index1)" class="btn btn-danger" type="button">Odstrani</button><td>
+                      <td><input type='text' v-model='answer.weight'></td>
+                      <td>
+                        <button id="show-modal" @click="showModalF(index, index1)">Show Modal</button>
+                      </td>
+                      <td><button v-on:click="removeAnswer(question,index1)" class="btn btn-danger" type="button">Odstrani</button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -63,7 +115,38 @@
     </div>
     {% endverbatim %}
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script type="text/x-template" id="modal-template">
+    <transition name="modal">
+      <div class="modal-mask">
+        <div class="modal-wrapper">
+          <div class="modal-container">
+            <div class="modal-header">
+              <slot name="header">
+                default header
+              </slot>
+            </div>
+            <div class="modal-body">
+              <slot name="body">
+                default body
+              </slot>
+            </div>
+            <div class="modal-footer">
+              <slot name="footer">
+                <button class="modal-default-button" @click="$emit('close')">
+                  OK
+                </button>
+              </slot>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+  </script>
   <script>
+  Vue.component('modal', {
+    template: '#modal-template'
+  })
+
   let url = new URL(window.location.href);
   let searchParams = new URLSearchParams(url.search);
   var name = searchParams.get('name');
@@ -72,93 +155,160 @@
   if(name=="null") name="";
     toggle=true;
 
-    var VueQuestions = new Vue({
-      el: '#questions',
-      data: {
-        questionnaire: { id: id, name: name },
-        questions: []
+  function alertj(obj) {
+    alert(JSON.stringify(obj))
+  }
+  Array.prototype.spliceArray = function(index, n, array) {
+    return Array.prototype.splice.apply(this, [index, n].concat(array));
+  }
+  Array.prototype.clone = function() {
+    return JSON.parse(JSON.stringify(this))
+  }
+  var VueQuestions = new Vue({
+    el: '#questions',
+    data: {
+      questionnaire: { id: id, name: name },
+      questions: [],
+      showModal: false,
+      selected: {question:0, answer: 0},
+      logicQAadd: [{ id: 0, answer: 0 }, { op: "" }],
+      logicAdd:[{ fromQuestion:0, fromAnswer:0, toQuestion: 0, questionsAnswers: [{ id: 0, answer: 0 }, { op: "" }]}],
+      logic: {
+        qa00:[{
+          fromQuestion:0, fromAnswer:0,
+          toQuestion: 3,
+          questionsAnswers: [{
+            id: 1,
+            answer: 0
+          }, {
+            op: "and"
+          }, {
+            id: 3,
+            answer:1
+          }, {
+            op: "and"
+          }, {
+            id: 3,
+            answer: 1
+          }, {
+            op: "and"
+          }]
+        }]
+      }
+    },
+    mounted: function() {
+      var userdata = JSON.stringify({
+        "get": this.questionnaire.id
+      });
+      var self=this
+      $.post("/api/edit_questionnaire", userdata, function(data) {
+        data.forEach(function(question) {
+          if (question['answers'] != "undefined") question['answers'] = JSON.parse(question['answers'])
+          else question['answers']=[]
+          self.questions.push(question)
+        })
+        if (!data) {alert("Napaka pri branju podatkov!");}
+      })
+    },
+    methods: {
+      filterLogic: function(logic) {
+        select = 'qa'+(this.selected.question)+(this.selected.answer)
+        if (logic[select] == undefined) {
+          this.$set(this.logic, select, this.logicAdd.clone())
+        }
+        return logic[select]
       },
-      mounted: function() {
-        var userdata = JSON.stringify({
-          "get": this.questionnaire.id
-        });
-        var self=this
-        $.post("/api/edit_questionnaire", userdata, function(data) {
-          data.forEach(function(question) {
-            if (question['answers'] != "undefined") question['answers'] = JSON.parse(question['answers'])
-            else question['answers']=[]
-            self.questions.push(question)
-          })
-          if (!data) {alert("Napaka pri branju podatkov!");}
+      alertj: function(obj) {
+        alert(JSON.stringify(obj))
+      },
+      showModalF: function(i1,i2) {
+        this.selected = {question:i1, answer: i2}
+        this.showModal=true
+      },
+      addRow: function(obj, index, listToAdd) {
+        listToAdd.clone().forEach(function(val, i) {
+          // obj.splice( index+i, 0, val);
+          obj.push(val)
         })
       },
-      methods: {
-        collapseShow: function (index) {
-          if (!toggle) {
-            toggle=true;
-            return;
-          }
-          // alert(this.$refs.list[index].outerHTML)
-          $("#question"+index).slideToggle();
-          $(event.currentTarget).find(".accordion-toggle").toggleClass("collapsed")
-        },
-        removeQuestion: function (index) {
-          toggle=false;
-          Vue.delete(this.questions, index);
-        },
-        addQuestion: function() {
-          this.questions.push({
-            id: '',
-            question: '',
-            image: '',
-            answers_type: 'selectOne',
-            answers: [{id: "", value: "", weight: ""}]
-          });
-        },
-        addAnswer: function(question) {question.answers.push({});},
-        removeAnswer: function(question, index) {Vue.delete(question.answers, index)},
-        save: function() {
-          var userdata = JSON.stringify({
-            "questionnaire": this.questionnaire,
-            "questions": this.questions
-          });
-          self=this;
-          $.post("/api/edit_questionnaire", userdata, function(data) {
-            if (data.result) {
-              self.questionnaire.id=data.result
-              window.history.replaceState(null, "test", location.protocol + '//' + location.host + location.pathname+"?id="+self.questionnaire.id+"&name="+self.questionnaire.name)
-              alert("Ustrezno vnešeni podatki!");
-            } else
-              alert("Prišlo do je napake, podatki niso vnešeni");
-          })
-        },
-        change(index,object,text) {
-          this.questions[index][object] = text;
-        },
-        onFileChange(index) {
-          var files = event.target.files || event.dataTransfer.files;
-          if (!files.length)
-            return;
-          this.questions[index]['image'] = files[0].name
-          // this.createImage(files[0],index);
-        },
-        // createImage(file,index) {
-        //   var image = new Image();
-        //   var reader = new FileReader();
-        //
-        //   reader.onload = (e) => {
-        //     imageRef = e.target.result;
-        //   };
-        //   reader.readAsDataURL(file);
-        // },
-      }
-    })
-    function removeText() {
-      $(this).prev("input").trigger('click');
+      pushRow: function(obj, listToAdd) {
+        alert(1)
+        this.addRow(obj, obj.length, listToAdd.clone())
+      },
+      removeRow: function(logic, obj, index) {
+        if(obj.length==2) logic.pop()
+        else obj.splice( index-1, 2 );
+      },
+      popRow: function(obj) {
+        obj.pop()
+      },
+      collapseShow: function (index) {
+        if (!toggle) {
+          toggle=true;
+          return;
+        }
+        // alert(this.$refs.list[index].outerHTML)
+        $("#question"+index).slideToggle();
+        $(event.currentTarget).find(".accordion-toggle").toggleClass("collapsed")
+      },
+      removeQuestion: function (index) {
+        toggle=false;
+        Vue.delete(this.questions, index);
+      },
+      addQuestion: function() {
+        this.questions.push({
+          id: '',
+          question: '',
+          image: '',
+          answers_type: 'selectOne',
+          answers: [{id: "", value: "", weight: ""}]
+        });
+      },
+      addAnswer: function(question) {question.answers.push({});},
+      removeAnswer: function(question, index) {Vue.delete(question.answers, index)},
+      save: function() {
+        var userdata = JSON.stringify({
+          "questionnaire": this.questionnaire,
+          "questions": this.questions
+        });
+        self=this;
+        $.post("/api/edit_questionnaire", userdata, function(data) {
+          if (data.result) {
+            self.questionnaire.id=data.result
+            window.history.replaceState(null, "test", location.protocol + '//' + location.host + location.pathname+"?id="+self.questionnaire.id+"&name="+self.questionnaire.name)
+            alert("Ustrezno vnešeni podatki!");
+          } else
+            alert("Prišlo do je napake, podatki niso vnešeni");
+        })
+      },
+      change(index,object,text) {
+        this.questions[index][object] = text;
+      },
+      onFileChange(index) {
+        var files = event.target.files || event.dataTransfer.files;
+        if (!files.length)
+          return;
+        this.questions[index]['image'] = files[0].name
+        // this.createImage(files[0],index);
+      },
+      // createImage(file,index) {
+      //   var image = new Image();
+      //   var reader = new FileReader();
+      //
+      //   reader.onload = (e) => {
+      //     imageRef = e.target.result;
+      //   };
+      //   reader.readAsDataURL(file);
+      // },
     }
-    function triggerClick() {
-      $(this).children("input").trigger('click');
-    }
+  })
+
+  function removeText() {
+    $(this).prev("input").trigger('click');
+  }
+  function triggerClick() {
+    $(this).children("input").trigger('click');
+  }
   </script>
   </body>
 
