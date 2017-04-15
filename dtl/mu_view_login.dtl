@@ -1,44 +1,66 @@
 <!DOCTYPE html>
 <html>
 <meta charset="utf-8">
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<script>
-  function login() {
-    var username = $("#username").val();
-    var password = $("#password").val();
-    if(username.length > 0 && password.length > 0) {
-      var userdata = JSON.stringify({"username":username, "password": password});
-      $.post("http://localhost:8080/api/login", userdata, function(data) {
-        if(data.result) {
-          alert("Ustrezno vnešeni podatki, success");
-          window.location = "http://localhost:8080/";
-        }
-        else {
-          alert(data.error);
-        }
-      })
-    }
-    else {
-      alert("Uporabniško ime in geslo sta obvezni polji.");
-    }
-  }
-</script>
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="static/css/style.css">
+  <script src="https://unpkg.com/vue"></script>
+</head>
 
 <body>
-  <h1>Prijava</h1>
-  <div>
-    <div>
-      <label>Uporabniško ime</label><br>
-      <input type="text" name="username" id="username"/>
-    </div>
-    <div style="margin-top:10px;">
-      <label>Geslo</label><br>
-      <input type="password" name="password" id="password"/>
-    </div>
-
-    <button style="margin-top:10px;" onclick="login()">Prijava</button>
+  {% verbatim %}
+  <div class="container-login-form">
+    <header class="login-header">
+      <h2 class="login-header-h2">Prijava</h2>
+    </header>
+    <form id="login" class="form-horizontal">
+      <div>
+        <label class="control-label col-sm-2" for="email">Email:</label>
+        <input id="email" name="email" type="email" class="form-control" placeholder="Your email address" v-model="email">
+      </div>
+      <div>
+        <label class="control-label col-sm-2" for="password">Geslo:</label>
+        <input id="password" name="password" type="password" class="form-control" placeholder="Choose a password" v-model="password">
+      </div>
+      <div style="margin-top:15px;">
+          <button class="btn btn-primary" type="button" v-on:click="login">Prijava</button>
+      </div>
+    </form>
   </div>
+  {% endverbatim %}
 </body>
+
+<script>
+var login = new Vue({
+  el: '#login',
+    data: {
+      email: "",
+      password: ""
+    },
+    methods: {
+      login: function(e) {
+        var userdata = JSON.stringify({
+          "email": this.$data.email,
+          "password": this.$data.password
+        });
+        self=this
+        if(this.$data.email != "" && this.$data.password != "") {
+          $.post("/api/login", userdata, function(data) {
+            if (data.result == "true") {
+              window.location = "http://localhost:8080/";
+            }
+            else {
+              alert(data.error);
+            }
+          })
+        }
+        else {
+          alert("Email in geslo sta obvezni polji.");
+        }
+      }
+    }
+});
+</script>
 
 </html>

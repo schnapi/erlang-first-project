@@ -16,6 +16,7 @@ out(Code) when is_integer(Code) ->
     4 -> generateResponse("Vnos uporabnika ni uspel! Vzrok je lahko, da ta uporabnik že obstaja!");
     5 -> generateResponse("Napaka na spletnem strežniku!");
     6 -> generateResponse("Nobeden od post parametrov se ne ujema!");
+    7 -> generateResponse("Neujemanje emaila in gesla.");
     % redirect on login page
     302 -> #{ status => 302, headers=>#{<<"Location">> => <<"login">>}}
   end.

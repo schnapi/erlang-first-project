@@ -10,8 +10,8 @@
 -define(GENSERVER, mu_session).
 -define(CHILDSPEC, #{id => erlang:now(),
              start => { ?GENSERVER, start_link, []},
-             restart => permanent,
-             shutdown => 7200, % Shutdown=after 2000 seconds if no response from child
+             restart => temporary,
+             shutdown => 2000, % Shutdown=after 2000 seconds if no response from child
              modules => [?GENSERVER]}).
 
 % validate session
@@ -30,7 +30,7 @@ check_session_validation(Req) ->
             undefined ->
               {false};
             _ ->
-              mu_session:ping(Pid),
+              mu_session:update_session_expiry_time(Pid),
               {ok}
           end
       end
