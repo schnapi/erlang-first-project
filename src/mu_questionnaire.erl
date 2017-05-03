@@ -1,4 +1,3 @@
-
 -module(mu_questionnaire).
 
 -behaviour(gen_server).
@@ -9,33 +8,86 @@
 	 terminate/2, code_change/3, stop/0]).
 
 % user-defined interface functions
--export([start_link/0, getNewQuestion/1]).
+-export([start_link/0, getNewQuestion/2]).
 
 -include("../include/mu.hrl").
 
--spec getNewQuestion(pid()) -> term().
 
 start_link() -> gen_server:start_link(?MODULE, [], []).
 stop()  -> gen_server:call(?MODULE, stop).
 
 %gen_server:call = remote procedure call to the server.
-getNewQuestion(Pid) ->
-		lager:debug("test: ~p",[Pid]),
-		gen_server:call(Pid, {new, "How are you?"}).
+-spec getNewQuestion(pid(), integer()) -> term().
+getNewQuestion(Pid,Response) ->
+		gen_server:call(Pid, {next, Response}).
 % getAnswers(State)  -> gen_server:call(?MODULE, {new, State}).
 % withdraw(Who, Amount) -> gen_server:call(?MODULE, {remove, Who, Amount}).
 
-init([]) ->	% io:format("ch1 has started (~w)~n", [self()]),
-		{ok, questionnaireState}. %State, never changes
+init([]) ->
+		% lager:error("ch1 has started (~w)~n   - ~p", [self(), ?MODULE]),
+		{ok, []}. %1 - start with first question
+		% {ok, ets:new(?MODULE,[])}. % local pid storage
 
-handle_call({new,Reply}, _From, Tab) ->
-		% lager:debug("req: ~p -- ~p",[Tab, Reply]),
+checkConditionQA(#{<<"id">> := Qid, <<"answer">> := AnswerId},Tab) ->
+	atom_to_list(lists:any(fun(X) -> case X of {Qid, AnswerId} -> true; _ -> false end end, Tab));
+checkConditionQA(#{<<"op">> := Op},Tab) -> binary_to_list(Op).
+
+createLogicTokens([],Tab, BooleanList) -> BooleanList;
+createLogicTokens([H|T],Tab, BooleanList) -> createLogicTokens(T,Tab, BooleanList ++ [checkConditionQA(H,Tab)]).
+
+testCheckCondition() ->
+	Tab = [{1,1}, {3,2}, {2,2}],
+	QA1 = [#{<<"answer">> => 1,<<"id">> => 1},#{<<"op">> => <<"and">>},
+	#{<<"op">> => <<"(">>},#{<<"answer">> => 2,<<"id">> => 3},#{<<"op">> => <<"or">>},
+	#{<<"answer">> => 1,<<"id">> => 2},#{<<"op">> => <<")">>}],
+	["true","and","(","true","or","false",")"]  = createLogicTokens(QA1,Tab, []),
+
+	QA2 = [#{<<"answer">> => 1,<<"id">> => 1},#{<<"op">> => <<"and">>},
+	#{<<"answer">> => 2,<<"id">> => 3},#{<<"op">> => <<"or">>},
+	#{<<"answer">> => 1,<<"id">> => 2}],
+	["true","and","true","or","false"]  = createLogicTokens(QA2,Tab, []),
+	ok.
+
+getNextQuestion([Condition|T],DefaultNextQuestion,Tab) ->
+	#{<<"nextQuestion">> := NextQuestion, <<"questionsAnswers">> := QuestionsAnswers} = Condition,
+	InfixLogic = createLogicTokens(QuestionsAnswers,Tab, []),
+	PostFix = logic:infixToPostfix(InfixLogic),
+	case logic:rpn(PostFix) of
+		"false" -> getNextQuestion(T,DefaultNextQuestion,Tab);
+	%!!!!! problem with multiple conditions
+		_ -> NextQuestion
+	end;
+getNextQuestion([], DefaultNextQuestion,_) -> DefaultNextQuestion.
+
+nextQuestion(QuestionnaireId, QuestionId, AnswerId, Tab) ->
+% lager:error("QuestionId: ~p",[QuestionId]),
+% lager:error("AnswerId: ~p",[AnswerId]),
+	case mu_db:get_logic(QuestionnaireId, QuestionId, AnswerId) of
+		[] -> NextQuestion = QuestionId +1; %if logic is not defined next question is current +1
+		Logic -> Log = maps:get(<<"logic">>, Logic), lager:error("~p",[jsx:decode(Log, [return_maps])]), #{<<"defaultNextQuestion">> := DefaultNextQuestion, <<"conditions">> := Conditions} = jsx:decode(Log, [return_maps]),
+			NextQuestion = getNextQuestion(Conditions,DefaultNextQuestion,Tab)
+	end,
+	%we add current state to Tab - where we have been {Question, Answer}, and get next question from database
+	{Tab, mu_db:get_questionnaire_question(QuestionnaireId, NextQuestion)}.
+
+handle_call({next, {QuestionnaireId, QuestionId, AnswerId}}, _From, Tab) ->
+% lager:error("Tab: ~p",[Tab]),
+	case {Tab, AnswerId} of
+		{[], 0} -> lager:error("[] 0: ~p",[Tab]),{Tab1, Reply} = {[], mu_db:get_questionnaire_question(QuestionnaireId, 1)};%if no answer and empty state, return question 1
+		{L, 0} -> lager:error("L 0: ~p",[Tab]),{Tab1, Reply} = {Tab, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId)}; % if no answer send same question
+		_ -> lager:error("all: ~p",[Tab]),{Tab1, Reply} = nextQuestion(QuestionnaireId,QuestionId, AnswerId, Tab ++ [{QuestionId, AnswerId}])
+	end,
+		lager:error("Current user questionnaire state: ~p",[Tab1]),
+		% lager:error("req: ~p -- ~p",[Tab, ets:lookup(Tab, who)]),
+		% ets:insert(Tab, {who,QuestionnaireId}),
+		% lager:error("req: ~p -- ~p",[Tab, ets:lookup(Tab, who)]),
+		% ets:insert(mu_questionnaire_state, {self(), QuestionnaireId}),
 		%  Reply = case ets:lookup(Tab, Who) of
 		% 		[]  -> ets:insert(Tab, {Who,0}), % if is empty then insert
 		% 		       {welcome, Who}; %return
 		% 		[_] -> {Who, you_already_are_a_customer}
 		%  end,
-		{reply, Reply, Tab};
+		{reply, Reply, Tab1};
 
 %function is called from terminate(...)
 %{stop, Reason, NewState}

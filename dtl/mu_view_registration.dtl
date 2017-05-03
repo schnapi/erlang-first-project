@@ -134,7 +134,7 @@
           })
           var self=this
           $.post("/api/registration", userdata, function(data) {
-            if (!data) {alert("Napaka pri brisanju uporabnika!")}
+            if (data.error) {alert("Napaka pri brisanju uporabnika!")}
             else {
               self.data.splice(index, 1)
               alert("Uporabnik uspešno odstranjen")
@@ -157,11 +157,11 @@
             });
             self=this
             $.post("/api/registration", userdata, function(data) {
-              if (data.result == "true") {
+              if(data.error)
+                alert(data.error);
+              else {
                 alert("Registracija uspela");
                 users.gridData.push(self.$data)
-              } else {
-                alert(data.error);
               }
             })
           }

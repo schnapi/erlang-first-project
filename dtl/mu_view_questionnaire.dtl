@@ -1,48 +1,95 @@
 <!DOCTYPE html>
 <html>
   <meta charset="utf-8">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+  <link rel="stylesheet" href="static/css/style.css">
+  <script src="static/js/vue.js"></script>
+  <script src="static/js/utility.js"></script>
   <body>
-    <section id="questions">
-      {% for question, answers in questions %}
-        {{question}} <br>
-        {% for answer, weight in answers %}
-          {{answer}}: {{weight}}<br>
-        {% endfor %}
-        </br>
-      {% endfor %}
-    </section>
-    <button style="margin-top:10px;" onclick="newWorker()">New worker</button>
-    <button style="margin-top:10px;" onclick="nextQuestion()">Next Question</button>
-    <script>
-      var Pid;
-      function newWorker() {
-        var userdata = JSON.stringify({
-          "child": "new"
-        });
-        $.post("/api/questionnaire", userdata, function(data) {
-          if (data.result!="false") {
-            Pid=data.result;
-            alert("Proces je bil uspešno ustvarjen!"+data.result);
-          } else {
-            alert(data.error);
-          }
-        })
+    {% verbatim %}
+    <div class = "container">
+      <section id="question">
+        <p> Pid: {{pid}} </p>
+        <h3>{{question.question}}</h3>
+        <p v-if="question['image'] != ''">Slika: <fieldset>
+            <!-- <template v-if="question['image'] != ''"><img src= -->
+            {{question.image}}
+        </fieldset></p>
+        <section>
+          <template v-if="question.answers_type == 'selectOne'"></template>
+          <!-- <template v-else></template> -->
+          <form>
+            <p v-for="(answer, index) in question.answers">
+              <label class="radio-inline">
+                <input type="radio" :value="index+1" v-model="answerId">{{answer.value}}
+              </label>
+            </p>
+          </form>
+        </section>
+        <button style="margin-top:10px;" v-on:click="nextQuestion()">Naprej</button>
+      </section>
+
+    </div>
+    {% endverbatim %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script>
+
+    questionnaireId = getUrlParam('id');
+
+    function alertj(obj) {
+      alert(JSON.stringify(obj))
+    }
+    new Vue({
+      el: '#question',
+      data: {
+        question: "",
+        pid: 0,
+        questionId: 0,
+        answerId: 0
+      },
+      mounted: function() {
+          var userdata = JSON.stringify({
+            "child": "new"
+          }); self=this
+          $.post("/api/questionnaire", userdata, function(data) {
+            if(data.error) alert(data.error);
+            else {
+              self.pid=data; self.nextQuestion()
+            }
+          })
+      },
+      methods: {
+        alertj: function(obj) {
+          alert(JSON.stringify(obj))
+        },
+        nextQuestion: function() {
+          var data = JSON.stringify({
+            "question": "next",
+            "questionnaireId": questionnaireId,
+            "questionId": this.questionId,
+            "answerId": this.answerId,
+            "pid" : this.pid
+          });
+          self=this
+          $.post("/api/questionnaire", data, function(data) {
+            if(data.error) alert(data.error);
+            else {
+              if(data.question==undefined) {
+                alert("Vprašalnik končan!")
+                window.history.replaceState(null, "test", location.protocol + '//' + location.host + "/")
+                window.location.href = "/questionnaires"
+              }
+              else {
+                data.answers = JSON.parse(data.answers)
+                self.question=data
+                self.questionId= data.id
+                self.answerId = 0
+              }
+            }
+          })
+        }
       }
-      function nextQuestion() {
-        var userdata = JSON.stringify({
-          "question": "next",
-          "Pid" : Pid
-        });
-        $.post("/api/questionnaire", userdata, function(data) {
-          if (data.result!="false") {
-            $("#questions").html(data.result);
-          } else {
-            alert(data.error);
-          }
-        })
-      }
+    })
     </script>
   </body>
 

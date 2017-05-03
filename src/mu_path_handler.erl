@@ -13,7 +13,7 @@ out(Path) ->
       #{ status => 302, headers=>#{<<"Location">> => <<"index">>}};
     <<"/index">> ->
       Context = [{pagetitle, "Home"},
-        {navMenu, [{"Login","login"}, {"Registration", "registration"},{"Questionnaire", "questionnaire"}, {"Admin questionnaires","edit_questionnaires"}]},
+        {navMenu, [{"Login","login"}, {"Registration", "registration"},{"Questionnaires", "questionnaires"}, {"Admin questionnaires","edit_questionnaires"}]},
         {posts, [#{"name" => "PostName1", "content" => "Content1"},
         #{"name" => "PostName2", "content" => "Content2"}]}],
       #{ view => mu_view_index, data => Context };
@@ -22,8 +22,9 @@ out(Path) ->
     <<"/registration">> ->
       #{ view => mu_view_registration } ;
     <<"/questionnaire">> ->
-      Context = [{questions, {["question1", [{"answer1", "0.5"}, {"answer2", "0.5"}]],["question1", [{"answer1", "0.5"}, {"answer2", "0.5"}]]}}],
-      #{ view => mu_view_questionnaire, data => Context };
+      #{ view => mu_view_questionnaire };
+    <<"/questionnaires">> ->
+      #{ view => mu_view_questionnaires };
     <<"/edit_questionnaires">> ->
       {ok, {false, Questionnaires}} = mu_db:get_questionnaires(),
       Context = [{questionnaires, Questionnaires}],

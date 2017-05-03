@@ -35,8 +35,8 @@
 var login = new Vue({
   el: '#login',
     data: {
-      email: "",
-      password: ""
+      email: "mocenum",
+      password: "mocenum"
     },
     methods: {
       login: function(e) {
@@ -47,11 +47,10 @@ var login = new Vue({
         self=this
         if(this.$data.email != "" && this.$data.password != "") {
           $.post("/api/login", userdata, function(data) {
-            if (data.result == "true") {
-              window.location = "http://localhost:8080/";
-            }
-            else {
+            if(data.error)
               alert(data.error);
+            else {
+              window.location = "http://localhost:8080/";
             }
           })
         }

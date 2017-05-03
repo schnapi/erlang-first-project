@@ -73,24 +73,36 @@ schema_def() ->
 
       #adb_table{ name = <<"answers">>, opts = [without_rowid, {foreign_key,[{key,["question_id","questionnaires_id"]},
         {ref_table,"questions"},{ref_id,["id","questionnaires_id"]},{opts,[on_delete_cascade]}]},
-        {primary_key,[<<"answer_id">>,<<"question_id">>,<<"questionnaires_id">>]}], fields = [
-        #adb_field{ name = <<"answer_id">>, type = <<"INTEGER">>},
+        {primary_key,[<<"id">>,<<"question_id">>,<<"questionnaires_id">>]}], fields = [
+        #adb_field{ name = <<"id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"question_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"questionnaires_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"answer">>, type = <<"TEXT">>},
         #adb_field{ name = <<"weight">>, type = <<"INTEGER">>}
+        % #adb_field{ name = <<"default_next_question">>, type = <<"INTEGER">>}
+
       ]},
 
-      #adb_table{ name = <<"nodes">>, opts = [without_rowid,
-        {foreign_key,[{key,["answer_id","question_id","questionnaires_id"]},
-        {ref_table,"answers"},{ref_id,["answer_id","question_id","questionnaires_id"]},{opts,[on_delete_cascade]}]},
-        {primary_key,[<<"node_id">>, <<"answer_id">>,<<"question_id">>,<<"questionnaires_id">>]}], fields = [
-        #adb_field{ name = <<"node_id">>, type = <<"INTEGER">>},
+      #adb_table{ name = <<"logic">>, opts = [without_rowid, {foreign_key,[{key,["answer_id","question_id","questionnaires_id"]},
+        {ref_table,"answers"},{ref_id,["id","question_id","questionnaires_id"]},{opts,[on_delete_cascade]}]},
+        {primary_key,[<<"id">>, <<"answer_id">>,<<"question_id">>,<<"questionnaires_id">>]}], fields = [
+        #adb_field{ name = <<"id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"answer_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"question_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"questionnaires_id">>, type = <<"INTEGER">>},
-        #adb_field{ name = <<"answer_id">>, type = <<"INTEGER">>},
-        #adb_field{ name = <<"link">>, type = <<"INTEGER">>}
+        #adb_field{ name = <<"logic">>, type = <<"TEXT">>}
       ]}
+
+      % #adb_table{ name = <<"logic_conditions">>, opts = [without_rowid, {foreign_key,[{key,["answer_id","question_id","questionnaires_id"]},
+      %   {ref_table,"answers"},{ref_id,["id","question_id","questionnaires_id"]},{opts,[on_delete_cascade]}]},
+      %   {primary_key,[<<"id">>, <<"answer_id">>,<<"question_id">>,<<"questionnaires_id">>]}], fields = [
+      %   #adb_field{ name = <<"id">>, type = <<"INTEGER">>},
+      %   #adb_field{ name = <<"answer_id">>, type = <<"INTEGER">>},
+      %   #adb_field{ name = <<"question_id">>, type = <<"INTEGER">>},
+      %   #adb_field{ name = <<"questionnaires_id">>, type = <<"INTEGER">>},
+      %   #adb_field{ name = <<"next_question">>, type = <<"INTEGER">>}
+      %   #adb_field{ name = <<"condition">>, type = <<"TEXT">>}
+      % ]}
     ]}
   ].
 

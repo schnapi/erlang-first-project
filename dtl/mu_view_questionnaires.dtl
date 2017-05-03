@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+  <link rel="stylesheet" href="static/css/style.css">
+  <script src="static/js/vue.js"></script>
+  <body>
+    {% verbatim %}
+    <div class = "container">
+      <section id="questionnaires">
+        <h1>Vprašalniki</h1>
+        <table>
+          <tr v-for="item in questionnaires" class="panel panel-default question">
+            <td><input type="hidden" class='id' :value="item.id">{{ item.name }}</td>
+            <td><a class="btn btn-success" :href="'questionnaire?id='+item.id+'&name='+item.name">Začni</a></td>
+          </tr>
+        </table>
+      </section>
+    </div>
+    {% endverbatim %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script>
+
+    function alertj(obj) {
+      alert(JSON.stringify(obj))
+    }
+    new Vue({
+      el: '#questionnaires',
+      data: {
+        questionnaires: []
+      },
+      mounted: function() {
+        var userdata = JSON.stringify({
+          "get": "all",
+        });
+        var self=this
+        $.post("/api/view_questionnaires", userdata, function(data) {
+          if (data) {
+            self.questionnaires= data
+          } else {
+            alert(data.error);
+            alert("Napaka pri branju podatkov!");
+          }
+        })
+      },
+      methods: {
+        alertj: function(obj) {
+          alert(JSON.stringify(obj))
+        }
+      }
+    })
+    </script>
+  </body>
+
+</html>

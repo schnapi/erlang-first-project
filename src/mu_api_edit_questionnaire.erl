@@ -21,7 +21,8 @@ init(Req0, State) ->
 handle_questionnaires_api(Req0, State) ->
   {ok, Body, _} = cowboy_req:read_body(Req0),
   % convert body from json
-  Args = jsx:decode(Body,[{labels, atom}, return_maps]),
+  % Args = jsx:decode(Body,[{labels, atom}, return_maps]),
+  Args = jsx:decode(Body,[return_maps]),
 
   case check_args(Args) of
     error -> http_request_util:cowboy_out(mu_json_error_handler,2, Req0, State);
@@ -40,15 +41,21 @@ createListOfNumbers(List,Min,Max) ->
 createListOfNumbers(Min, Max) ->
   createListOfNumbers([],Min,Max).
 
+createLogicJson([Map|T],JsonMap) ->
+  #{<<"question_id">> := QuestionId, <<"answer_id">> := AnswerId, <<"logic">> := Logic} = Map,
+  QA = "qa_"++integer_to_list(QuestionId)++"_"++integer_to_list(AnswerId),
+  createLogicJson(T,maps:put(list_to_binary(QA), jsx:decode(Logic,[return_maps]), JsonMap));
+createLogicJson([],JsonMap) -> JsonMap.
+
 check_args(Args) ->
   case Args of
-    #{ remove := Id } -> mu_db:remove_questionnaire(Id);
-    #{ questionnaire := Questionnaire } ->
-      #{ name := Name, id := QuestionnaireId } = Questionnaire,
+    #{ <<"remove">> := Id } -> mu_db:remove_questionnaire(Id);
+    #{ <<"questionnaire">> := Questionnaire } ->
+      #{ <<"name">> := Name, <<"id">> := QuestionnaireId } = Questionnaire,
       case mu_db:insert_update_questionnaire(QuestionnaireId, Name) of
         error -> error;
         NewQuestionnaireId ->
-          QuestionMap = maps:get(questions,Args),
+          QuestionMap = maps:get(<<"questions">>,Args),
           LenOld = length(mu_db:get_questions(NewQuestionnaireId)),
           LenNew = length(QuestionMap),
           case LenOld > LenNew of
@@ -56,11 +63,19 @@ check_args(Args) ->
               [mu_db:remove_question(NewQuestionnaireId, QuestionId) || QuestionId <- IdList ];
             _ -> false
           end,
-          [mu_db:insert_update_question_answers(NewQuestionnaireId,X) || X <- QuestionMap ],
-          lager:debug("NewId: ~p",[NewQuestionnaireId]), NewQuestionnaireId
+          Logic = maps:get(<<"logic">>,Args,false),
+          [mu_db:insert_update_question_answers(NewQuestionnaireId,Question,Logic) || Question <- QuestionMap ],
+
+          lager:debug("NewId: ~p",[NewQuestionnaireId]),
+          NewQuestionnaireId
       end;
-    #{ get := Id } ->
-      {ok, {false, Questionnaire_questions}} = mu_db:get_questionnaire_questions(Id),
-      Questionnaire_questions;
+    #{ <<"get">> := <<"all">> } ->
+      {ok, {false, Questionnaires}} = mu_db:get_questionnaires(),
+      Questionnaires;
+    #{ <<"get">> := Id } ->
+      {ok, {false, Questions}} = mu_db:get_questionnaire_questions(Id),
+      Log = mu_db:get_logic(Id),
+      Logic = createLogicJson(Log,#{}),
+      #{logic => Logic, questions => Questions};
     _ -> error
   end.

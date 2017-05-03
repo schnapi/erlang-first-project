@@ -25,6 +25,8 @@ start(_, _) ->
       {"/api/login", mu_api_login, []},
       {"/api/registration", mu_api_registration, []},
       {"/api/edit_questionnaire", mu_api_edit_questionnaire, []},
+      {"/api/view_questionnaires", mu_api_edit_questionnaire, []},
+      {"/api/view_questionnaire", mu_questionnaire, []},
       {"/api/questionnaire", mu_api_questionnaire, []},
       {"/static/[...]", cowboy_static, {dir, "www"}},
       {"/[...]", mu_handler, []}

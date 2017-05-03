@@ -29,9 +29,9 @@ checkKeys([KeyValue|T], Req0, State) ->
    case KeyValue of
       {<<"get">>, <<"users">>} -> {ok, {false, Users}} = mu_db:get_all_users_id_role(),
         http_request_util:cowboy_out(mu_json_success_handler,Users, Req0, State);
-      {<<"deleteUser">>, Id} ->  lager:error("~p",[Id]), case mu_db:delete_user(Id) of
+      {<<"deleteUser">>, Id} ->  case mu_db:delete_user(Id) of
          {ok,_} -> http_request_util:cowboy_out(mu_json_success_handler,true, Req0, State);
-          _ -> http_request_util:cowboy_out(mu_json_error_handler,5, Req0, State)
+          Error -> lager:error("~p",[Error]), http_request_util:cowboy_out(mu_json_error_handler,5, Req0, State)
         end;
       {<<"registration">>,[{<<"username">>,Id},{<<"password">>,Password},{<<"role">>,Role}]} ->
         #{peer := {Ip, _}} = Req0,

@@ -32,6 +32,7 @@ start_link() ->
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
    ets:new(mu_sessions, [named_table, public, {heir, self(), <<>>}]),
+  %  ets:new(mu_questionnaire_state, [named_table, public, {heir, self(), <<>>}]),
   % if child has terminated more than 10 times in last 60 seconds -> supervisior terminates itself...
 
   %  {ok, {RestartStrategy, [Children]}}.

@@ -40,19 +40,23 @@ handle_questions_api(Req0, State) ->
         {ok, Pid} -> http_request_util:cowboy_out(mu_json_success_handler,Pid, Req0, State);
         {_,_} -> http_request_util:cowboy_out(mu_json_error_handler,3, Req0, State)
       end;
-    {next, Pid} -> NewQuestion=mu_questionnaire:getNewQuestion(Pid),
+    {next, Pid, Response} -> NewQuestion=mu_questionnaire:getNewQuestion(Pid,Response),
       http_request_util:cowboy_out(mu_json_success_handler,NewQuestion, Req0, State);
-    {previous, Pid} -> PreviousQuestion=mu_questionnaire:getNewQuestion(Pid),
+    {previous, Pid, QuestionnaireId} -> PreviousQuestion=mu_questionnaire:getNewQuestion(Pid,QuestionnaireId),
       http_request_util:cowboy_out(mu_json_success_handler,PreviousQuestion, Req0, State)
   end.
 
 check_args(Args) ->
   Child = proplists:get_value(<<"child">>, Args),
   Question = proplists:get_value(<<"question">>, Args),
-  Pid = proplists:get_value(<<"Pid">>, Args), %convert binary string to Pid
+  Pid = proplists:get_value(<<"pid">>, Args), %convert binary string to Pid
+  QuestionnaireId = proplists:get_value(<<"questionnaireId">>, Args),
+  QuestionId = proplists:get_value(<<"questionId">>, Args),
+  AnswerId = proplists:get_value(<<"answerId">>, Args),
+  		lager:debug("test: ~p",[Args]),
   case Child of
     undefined -> case Question of
-        <<"next">> -> {next,list_to_pid(binary_to_list(Pid))};
+        <<"next">> -> {next,list_to_pid(binary_to_list(Pid)),{QuestionnaireId, QuestionId, AnswerId}};
         <<"previous">> -> {previous,Pid};
         undefined -> false
       end;

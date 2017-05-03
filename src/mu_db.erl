@@ -66,7 +66,19 @@ get_questionnaire_questions(QuestionnaireId) ->
     INNER JOIN questions AS q2 on q1.id=q2.questionnaires_id
     LEFT JOIN answers AS an ON an.question_id = q2.id WHERE q2.questionnaires_id=?1 AND an.questionnaires_id=?1) GROUP BY id;">>, [create], [[QuestionnaireId]]).
 
+get_questionnaire_question(QuestionnaireId, QuestionId) ->
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+   <<"SELECT id,answers_type,image,question,'[' || group_concat(answers) || ']' AS answers FROM
+   (SELECT q2.*, '{\"value\":' || '\"' || an.answer || '\",\"weight\":' || '\"' || an.weight || '\"}' AS answers FROM questionnaires AS q1
+    INNER JOIN questions AS q2 on q1.id=q2.questionnaires_id AND q2.id=?2
+    LEFT JOIN answers AS an ON an.question_id = q2.id WHERE q2.questionnaires_id=?1 AND an.questionnaires_id=?1) GROUP BY id;">>, [create], [[QuestionnaireId, QuestionId]]) of
+    {ok,{false,[]}} -> [];
+    {ok, {false, [H | _]}} -> H;
+    {error,Error} -> lager:debug("~p",[Error]), error
+  end.
+
 get_user(Email) ->
+  lager:debug("~p",[Email]),
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
     <<"SELECT * FROM data WHERE email=?1;">>, [create], [[Email]]) of
     {ok, {false, [Res]}} -> Res;
@@ -106,17 +118,17 @@ insert_update_questionnaire(Id, Name) ->
     {error,Error} -> lager:error("~p",[Error]), error
   end.
 
-insert_update_question_answers(QuestionnaireId, QuestionMap) ->
-  lager:debug("REQ: ~p",[QuestionMap]),
-  #{ id := QuestionId, answers := Answers, answers_type := Answers_type, image := Image, question := Question} = QuestionMap,
+insert_update_question_answers(QuestionnaireId, QuestionMap,Logic) ->
+  #{ <<"id">> := QuestionId, <<"answers">> := Answers, <<"answers_type">> := Answers_type, <<"image">> := Image, <<"question">> := Question} = QuestionMap,
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"INSERT OR REPLACE INTO questions VALUES(?1, ?2, ?3, ?4, ?5);">>, [create],
     [[QuestionId,QuestionnaireId,Question,Image,Answers_type]]) of
    {ok,Va} -> lager:debug("~p",[Va]), ok;
    {error,Error} -> lager:error("~p ~p ~p ~p ~p",[QuestionId,QuestionnaireId,Question,Image,Answers_type]), error
   end,
-  % be careful, same QuestionId and answerId because it's not include QuestionnaireId
-  [mu_db:insert_update_answer(AnswerMap,QuestionId, QuestionnaireId) || AnswerMap <- Answers ].
+  % % be careful, same QuestionId and answerId because it not include QuestionnaireId
+  [mu_db:insert_update_answer(AnswerMap,QuestionId, QuestionnaireId,Logic) || AnswerMap <- Answers ],
+  ok.
 
 insert_question(QuestionnaireId, Id, Question, Image, Answers_type) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
@@ -132,13 +144,46 @@ update_question(Id, Question, Image, Answers_type) ->
     {_,Error} -> lager:debug("~p",[Error]), error
   end.
 
-insert_update_answer(AnswerMap, QuestionId, QuestionnaireId) ->
-  #{ id := AnswerId, value := Answer, weight := Weight} = AnswerMap,
+insert_update_answer(AnswerMap, QuestionId, QuestionnaireId,Logic) ->
+  #{ <<"id">> := AnswerId, <<"value">> := Answer, <<"weight">> := Weight} = AnswerMap,
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"INSERT OR REPLACE INTO answers VALUES(?1,?2,?3,?4,?5);">>, [create], [[AnswerId, QuestionId,QuestionnaireId,Answer,Weight]]) of
    {ok,Va} -> lager:debug("Inserting updating answer ~p",[Va]), ok;
    {error,Error} -> lager:debug("~p",[Error]), error
+  end,
+  QA = "qa_"++integer_to_list(QuestionId)++"_"++integer_to_list(AnswerId),
+  case maps:get(list_to_binary(QA), Logic, false) of
+    false -> ok;
+    Log -> insert_update_logic(QuestionnaireId, QuestionId, AnswerId, Log)
+  end,
+  ok.
+
+insert_update_logic(QuestionnaireId, QuestionId, AnswerId, Logic) ->
+  Id = 1, % just for fun , we don't need id, for now
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+   <<"INSERT OR REPLACE INTO logic VALUES(?1,?2,?3,?4,?5);">>, [create], [[Id, AnswerId, QuestionId,QuestionnaireId,jsx:encode(Logic)]]) of
+   {ok,Va} -> lager:debug("Inserting updating logic ~p",[Va]), ok;
+   {error,Error} -> lager:error("~p",[Error]), error
+  end,
+ok.
+
+get_logic() ->
+  actordb_client:exec_single(config(), <<"mocenum">>, <<"questionnaire">>,
+   <<"SELECT * FROM logic;">>, [create]).
+get_logic(QuestionnaireId) ->
+ case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+   <<"SELECT * FROM logic WHERE questionnaires_id=?1;">>, [create], [[QuestionnaireId]]) of
+   {ok,{false,Res}} -> Res;
+   Error -> lager:error("~p",[Error]), error
  end.
+get_logic(QuestionnaireId, QuestionId, AnswerId) ->
+ case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+   <<"SELECT * FROM logic WHERE questionnaires_id=?1 AND question_id=?2 AND answer_id=?3;">>, [create], [[QuestionnaireId, QuestionId, AnswerId]]) of
+   {ok, {false, [Res]}} -> Res;
+   {ok,{false,[]}} -> [];
+   Error -> lager:error("~p",[Error]), error
+ end.
+
 insert_answer(AnswerId, QuestionId) ->
   actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"INSERT INTO answers VALUES(?1,?2,?3,?4);">>, [create], [[AnswerId, QuestionId,"answer1",1]]).

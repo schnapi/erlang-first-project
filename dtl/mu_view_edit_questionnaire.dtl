@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="static/css/modal.css">
   <!-- <script src="https://unpkg.com/vue"></script> -->
   <script src="static/js/vue.js"></script>
+  <script src="static/js/utility.js"></script>
   <body>
     {% verbatim %}
     <div class = "container">
@@ -15,10 +16,33 @@
         <modal v-if="showModal" @close="showModal = false">
           <h3 slot="header">Načrtovanje logike</h3>
           <div slot="body">
-            Vprašanje {{selected.question+1}} -> če odgovorim z "{{questions[selected.question].answers[selected.answer].value}}"<br> veljajo naslednji pogoji!
+            <!-- show logic just for testing purposes -->
+            {{logic}}
+            {{setLogic()}}
+            <table class="table">
+            <tbody>
+              <tr>
+                <th>Vprašanje</th>
+                <td>Vprašanje {{selected.question}}</td>
+              </tr>
+              <tr>
+                <th>Odgovor</th>
+                <td>{{questions[selected.question-1].answers[selected.answer-1].value}}</td>
+              </tr>
+              <tr>
+                <th>Privzeto naslednje vprašanje</th>
+                <td>
+                  <select class="custom-select" v-model="getSelectedLogic().defaultNextQuestion">
+                    <option value=""></option>
+                    <option v-for="n in questions.length" :value="n" :selected="n == getSelectedLogic().defaultNextQuestion ? 'true' : ''">Vprašanje {{n}}</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+            </table>
             <p>
-              <button v-on:click="pushRow(logic['qa'+selected.question+selected.answer],logicAdd)" class="btn btn-success" type="button">Dodaj naslednje vprašanje</button>
-              <button v-on:click="popRow(logic['qa'+selected.question+selected.answer])" class="btn btn-danger" type="button">Odstrani vprašanje</button>
+              <button v-on:click="pushRow(getSelectedLogic().conditions,conditionAdd)" class="btn btn-success" type="button">Dodaj naslednje vprašanje</button>
+              <button v-on:click="popRow(getSelectedLogic().conditions)" class="btn btn-danger" type="button">Odstrani vprašanje</button>
             </p>
             <div class="row">
               <div class="col-xs-3">Naslednje vprašanje</div>
@@ -26,9 +50,10 @@
               <div class="col-xs-3">Logični operator</div>
               <div class="col-xs-1"></div>
             </div>
-            <div class="row" v-for="(obj, index) in filterLogic(logic)">
+            <div class="row" v-for="(obj, index) in getSelectedLogic().conditions">
               <div class="col-xs-3">
-                <select class="custom-select" v-model="obj.toQuestion">
+                <select class="custom-select" v-model="obj.nextQuestion">
+                  <option value=""></option>
                   <option v-for="n in questions.length" :value="n">Vprašanje {{n}}</option>
                 </select>
               </div>
@@ -42,8 +67,8 @@
                     </select>
                   </div>
                   <div class="col-xs-1">
-                    <span v-on:click="addRow(obj.questionsAnswers, index1+1,logicQAadd)" class="add glyphicon glyphicon-plus"></span>
-                    <span v-on:click="removeRow(logic['qa'+selected.question+selected.answer], obj.questionsAnswers, index1)" class="remove glyphicon glyphicon-remove"></span>
+                    <span v-on:click="addRowList(obj.questionsAnswers, index1+1,logicQAadd)" class="add glyphicon glyphicon-plus"></span>
+                    <span v-on:click="removeRow(getSelectedLogic().conditions, obj.questionsAnswers, index1)" class="remove glyphicon glyphicon-remove"></span>
                   </div>
                 </template>
                 <div v-else class="col-xs-5">
@@ -51,7 +76,7 @@
                     <option v-for="n in questions.length" :value="n">Vprašanje {{n}}</option>
                   </select> =
                   <select class="custom-select" v-model="obj1.answer">
-                    <option v-for="(answer, index2) in questions[obj1.id].answers" :value="index2">{{answer.value.substring(0, 20)}}</option>
+                    <option v-for="(answer, index2) in questions[obj1.id-1].answers" :value="index2+1">{{answer.value.substring(0, 20)}}</option>
                   </select>
                 </div>
                 <div class="col-xs-3" v-if="(index1+1)%2==0 && index1!=obj.questionsAnswers.length-1 "></div>
@@ -59,8 +84,8 @@
             </div>
           </div>
         </modal>
-          <p>Ime vprašalnika:
-            <input type="text" v-model="questionnaire.name"></p>
+
+          <p>Ime vprašalnika:  <input type="text" v-model="questionnaire.name"></p>
           <!-- <questionComp v-for="(question, index) in questions" :text="Vprašalnik" class="panel panel-default question"></questionComp> -->
           <div v-for="(question, index) in questions" class="panel panel-default question">
             <div class="panel-heading" v-on:click="collapseShow(index)">
@@ -98,7 +123,7 @@
                       <td><textarea v-model="answer.value"></textarea></td>
                       <td><input type='text' v-model='answer.weight'></td>
                       <td>
-                        <button id="show-modal" @click="showModalF(index, index1)">Show Modal</button>
+                        <button id="show-modal" @click="showModalF(index+1, index1+1)">Logika</button>
                       </td>
                       <td><button v-on:click="removeAnswer(question,index1)" class="btn btn-danger" type="button">Odstrani</button></td>
                     </tr>
@@ -132,7 +157,7 @@
             </div>
             <div class="modal-footer">
               <slot name="footer">
-                <button class="modal-default-button" @click="$emit('close')">
+                <button class="modal-default-button" v-on:click="close()">
                   OK
                 </button>
               </slot>
@@ -144,13 +169,17 @@
   </script>
   <script>
   Vue.component('modal', {
-    template: '#modal-template'
+    template: '#modal-template',
+    methods: {
+      close: function () {
+        this.$emit('close');
+        this.$parent.removeEmptyLogic()
+      }
+    }
   })
 
-  let url = new URL(window.location.href);
-  let searchParams = new URLSearchParams(url.search);
-  var name = searchParams.get('name');
-  var id = searchParams.get('id');
+  var name = getUrlParam('name');
+  var id = getUrlParam('id');
 
   if(name=="null") name="";
     toggle=true;
@@ -161,40 +190,34 @@
   Array.prototype.spliceArray = function(index, n, array) {
     return Array.prototype.splice.apply(this, [index, n].concat(array));
   }
+
   Array.prototype.clone = function() {
     return JSON.parse(JSON.stringify(this))
   }
+  Array.prototype.peekBack = function() {
+    return this[this.length-1]
+  }
+  function clone(obj) {
+    return JSON.parse(JSON.stringify(obj))
+  }
+
   var VueQuestions = new Vue({
     el: '#questions',
     data: {
       questionnaire: { id: id, name: name },
       questions: [],
       showModal: false,
-      selected: {question:0, answer: 0},
-      logicQAadd: [{ id: 0, answer: 0 }, { op: "" }],
-      logicAdd:[{ fromQuestion:0, fromAnswer:0, toQuestion: 0, questionsAnswers: [{ id: 0, answer: 0 }, { op: "" }]}],
-      logic: {
-        qa00:[{
-          fromQuestion:0, fromAnswer:0,
-          toQuestion: 3,
-          questionsAnswers: [{
-            id: 1,
-            answer: 0
-          }, {
-            op: "and"
-          }, {
-            id: 3,
-            answer:1
-          }, {
-            op: "and"
-          }, {
-            id: 3,
-            answer: 1
-          }, {
-            op: "and"
-          }]
-        }]
-      }
+      selected: {question:1, answer: 1},
+      logicQAadd: [{ id: 1, answer: 1 }, { op: "" }],
+      conditionAdd:{
+        nextQuestion: 3,
+        questionsAnswers: [{ id: 1, answer: 1 }, { op: "" }]
+      },
+      logicAdd: {
+        defaultNextQuestion: 2,
+        conditions: []
+      },
+      logic: {}
     },
     mounted: function() {
       var userdata = JSON.stringify({
@@ -202,41 +225,59 @@
       });
       var self=this
       $.post("/api/edit_questionnaire", userdata, function(data) {
-        data.forEach(function(question) {
-          if (question['answers'] != "undefined") question['answers'] = JSON.parse(question['answers'])
-          else question['answers']=[]
-          self.questions.push(question)
-        })
+        // alert(JSON.stringify(data))
         if (!data) {alert("Napaka pri branju podatkov!");}
+        else {
+          data.questions.forEach(function(question) {
+            if (question['answers'] != "undefined") question['answers'] = JSON.parse(question['answers'])
+            else question['answers']=[]
+            self.questions.push(question)
+          })
+          self.logic = data.logic
+        }
       })
     },
     methods: {
-      filterLogic: function(logic) {
-        select = 'qa'+(this.selected.question)+(this.selected.answer)
-        if (logic[select] == undefined) {
-          this.$set(this.logic, select, this.logicAdd.clone())
-        }
-        return logic[select]
-      },
       alertj: function(obj) {
         alert(JSON.stringify(obj))
+      },
+      removeLogic(selector) {
+        delete this.logic[selector]
+      },
+      removeEmptyLogic: function() {
+        selectedLogic = this.getSelectedLogic()
+        // alert(selectedLogic.defaultNextQuestion == this.selected.question+1 )
+        if(selectedLogic.defaultNextQuestion == this.selected.question+1 && selectedLogic.conditions[0] == undefined)
+          this.removeLogic('qa_'+(this.selected.question)+'_'+(this.selected.answer))
+      },
+      getSelectedLogic: function() {
+        return this.logic['qa_'+(this.selected.question)+'_'+(this.selected.answer)]
+      },
+      setLogic: function() {
+        if (this.getSelectedLogic() == undefined) {
+          copy = clone(this.logicAdd); copy.defaultNextQuestion = this.selected.question+1;
+          this.$set(this.logic,  'qa_'+(this.selected.question)+"_"+(this.selected.answer), copy)
+        }
       },
       showModalF: function(i1,i2) {
         this.selected = {question:i1, answer: i2}
         this.showModal=true
       },
-      addRow: function(obj, index, listToAdd) {
+      addRowList: function(obj, index, listToAdd) {
         listToAdd.clone().forEach(function(val, i) {
-          // obj.splice( index+i, 0, val);
-          obj.push(val)
+          obj.splice( index+i, 0, val);
+          // obj.push(val)
         })
       },
-      pushRow: function(obj, listToAdd) {
-        alert(1)
-        this.addRow(obj, obj.length, listToAdd.clone())
+      addRow: function(obj, index, item) {
+        obj.splice( index, 0, clone(item));
       },
-      removeRow: function(logic, obj, index) {
-        if(obj.length==2) logic.pop()
+      pushRow: function(obj, item) {
+        this.addRow(obj, obj.length, item)
+      },
+      removeRow: function(conditions, obj, index) {
+        if(obj.length==2) {
+          conditions.pop()}
         else obj.splice( index-1, 2 );
       },
       popRow: function(obj) {
@@ -269,16 +310,17 @@
       save: function() {
         var userdata = JSON.stringify({
           "questionnaire": this.questionnaire,
-          "questions": this.questions
+          "questions": this.questions,
+          "logic": this.logic
         });
         self=this;
         $.post("/api/edit_questionnaire", userdata, function(data) {
-          if (data.result) {
-            self.questionnaire.id=data.result
+          if(data.error) alert("Prišlo do je napake, podatki niso vnešeni");
+          else {
+            self.questionnaire.id=data
             window.history.replaceState(null, "test", location.protocol + '//' + location.host + location.pathname+"?id="+self.questionnaire.id+"&name="+self.questionnaire.name)
             alert("Ustrezno vnešeni podatki!");
-          } else
-            alert("Prišlo do je napake, podatki niso vnešeni");
+          }
         })
       },
       change(index,object,text) {
