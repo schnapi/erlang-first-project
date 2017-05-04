@@ -10,6 +10,9 @@ start() ->
   % mu_db:check_schema(),
   mu_db:upgrade_schema(),
   mu_db:insert_user(<<"mocenum">>, <<"admin">>, <<"mocenum">>, {127,0,0,1}),
-  % mu_tests:insert_questionnaire(),
-  % mu_tests:insert_logic(),
+  case mu_db:get_questionnaires() of
+    {ok,{false,[]}} -> mu_tests:insert_questionnaire1(),
+      mu_tests:insert_questionnaire2();
+    _ -> ok
+  end,
 ok.

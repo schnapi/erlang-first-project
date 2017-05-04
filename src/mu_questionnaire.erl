@@ -49,8 +49,9 @@ testCheckCondition() ->
 	ok.
 
 getNextQuestion([Condition|T],DefaultNextQuestion,Tab) ->
-	#{<<"nextQuestion">> := NextQuestion, <<"questionsAnswers">> := QuestionsAnswers} = Condition,
-	InfixLogic = createLogicTokens(QuestionsAnswers,Tab, []),
+	lager:error("getNextQuestion: ~p",[Condition]),
+	#{<<"next_question">> := NextQuestion, <<"condition">> := QuestionsAnswers} = Condition,
+	InfixLogic = createLogicTokens(jsx:decode(QuestionsAnswers,[return_maps]),Tab, []),
 	PostFix = logic:infixToPostfix(InfixLogic),
 	case logic:rpn(PostFix) of
 		"false" -> getNextQuestion(T,DefaultNextQuestion,Tab);
@@ -60,13 +61,13 @@ getNextQuestion([Condition|T],DefaultNextQuestion,Tab) ->
 getNextQuestion([], DefaultNextQuestion,_) -> DefaultNextQuestion.
 
 nextQuestion(QuestionnaireId, QuestionId, AnswerId, Tab) ->
-% lager:error("QuestionId: ~p",[QuestionId]),
-% lager:error("AnswerId: ~p",[AnswerId]),
-	case mu_db:get_logic(QuestionnaireId, QuestionId, AnswerId) of
-		[] -> NextQuestion = QuestionId +1; %if logic is not defined next question is current +1
-		Logic -> Log = maps:get(<<"logic">>, Logic), lager:error("~p",[jsx:decode(Log, [return_maps])]), #{<<"defaultNextQuestion">> := DefaultNextQuestion, <<"conditions">> := Conditions} = jsx:decode(Log, [return_maps]),
-			NextQuestion = getNextQuestion(Conditions,DefaultNextQuestion,Tab)
-	end,
+lager:error("QuestionId: ~p",[QuestionId]),
+lager:error("AnswerId: ~p",[AnswerId]),
+  QQ = mu_db:get_questionnaire_question(QuestionnaireId, QuestionId,AnswerId),
+	DefaultNextQuestion = maps:get(<<"default_next_question">>, QQ),
+		lager:error("DefaultNextQuestion: ~p",[DefaultNextQuestion]),
+	NextQuestion = getNextQuestion( mu_db:get_logic(QuestionnaireId, QuestionId, AnswerId),DefaultNextQuestion,Tab),
+		lager:error("NextQuestion: ~p",[NextQuestion]),
 	%we add current state to Tab - where we have been {Question, Answer}, and get next question from database
 	{Tab, mu_db:get_questionnaire_question(QuestionnaireId, NextQuestion)}.
 
@@ -75,6 +76,7 @@ handle_call({next, {QuestionnaireId, QuestionId, AnswerId}}, _From, Tab) ->
 	case {Tab, AnswerId} of
 		{[], 0} -> lager:error("[] 0: ~p",[Tab]),{Tab1, Reply} = {[], mu_db:get_questionnaire_question(QuestionnaireId, 1)};%if no answer and empty state, return question 1
 		{L, 0} -> lager:error("L 0: ~p",[Tab]),{Tab1, Reply} = {Tab, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId)}; % if no answer send same question
+		{L, -1} -> {Tab1, Reply} = {Tab, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId+1)};
 		_ -> lager:error("all: ~p",[Tab]),{Tab1, Reply} = nextQuestion(QuestionnaireId,QuestionId, AnswerId, Tab ++ [{QuestionId, AnswerId}])
 	end,
 		lager:error("Current user questionnaire state: ~p",[Tab1]),

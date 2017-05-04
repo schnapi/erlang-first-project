@@ -63,10 +63,10 @@ check_args(Args) ->
               [mu_db:remove_question(NewQuestionnaireId, QuestionId) || QuestionId <- IdList ];
             _ -> false
           end,
-          Logic = maps:get(<<"logic">>,Args,false),
-          [mu_db:insert_update_question_answers(NewQuestionnaireId,Question,Logic) || Question <- QuestionMap ],
+          [mu_db:insert_update_question_answers(NewQuestionnaireId,Question) || Question <- QuestionMap ],
 
-          lager:debug("NewId: ~p",[NewQuestionnaireId]),
+          lager:debug("QuestionMap: ~p",[QuestionMap]),
+          file:write_file("/home/sandik/Desktop/test1", io_lib:fwrite("~p.\n", [QuestionMap])),
           NewQuestionnaireId
       end;
     #{ <<"get">> := <<"all">> } ->
@@ -74,8 +74,8 @@ check_args(Args) ->
       Questionnaires;
     #{ <<"get">> := Id } ->
       {ok, {false, Questions}} = mu_db:get_questionnaire_questions(Id),
-      Log = mu_db:get_logic(Id),
-      Logic = createLogicJson(Log,#{}),
-      #{logic => Logic, questions => Questions};
+      % Log = mu_db:get_logic(Id),
+      % Logic = createLogicJson(Log,#{}),
+      Questions;
     _ -> error
   end.

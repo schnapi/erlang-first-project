@@ -152,18 +152,21 @@
         },
         methods: {
         	registration: function(e) {
-            var userdata = JSON.stringify({
-              "registration": this.$data
-            });
-            self=this
-            $.post("/api/registration", userdata, function(data) {
-              if(data.error)
-                alert(data.error);
-              else {
-                alert("Registracija uspela");
-                users.gridData.push(self.$data)
-              }
-            })
+            this.$validator.validateAll();
+            if (!this.errors.any()) {
+              var userdata = JSON.stringify({
+                "registration": this.$data
+              });
+              self=this
+              $.post("/api/registration", userdata, function(data) {
+                if(data.error)
+                  alert(data.error);
+                else {
+                  alert("Registracija uspela");
+                  users.gridData.push(self.$data)
+                }
+              })
+            }
           }
         }
     });

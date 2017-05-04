@@ -10,6 +10,7 @@
     <div class = "container">
       <section id="question">
         <p> Pid: {{pid}} </p>
+        <p> Vprašanje: {{questionId}} </p>
         <h3>{{question.question}}</h3>
         <p v-if="question['image'] != ''">Slika: <fieldset>
             <!-- <template v-if="question['image'] != ''"><img src= -->
@@ -80,10 +81,20 @@
                 window.location.href = "/questionnaires"
               }
               else {
-                data.answers = JSON.parse(data.answers)
-                self.question=data
-                self.questionId= data.id
-                self.answerId = 0
+                try {
+                  if(data.answers != "undefined") {
+                    data.answers = JSON.parse(data.answers)
+                    self.answerId = 0
+                  }
+                  else {
+                    data["answers"] = []
+                    self.answerId = -1
+                  }
+                  self.question=data
+                  self.questionId= data.id
+                } catch(ex) {
+                  alert("Napaka: "+data.answers)
+                }
               }
             }
           })

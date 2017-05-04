@@ -17,8 +17,7 @@
           <h3 slot="header">Načrtovanje logike</h3>
           <div slot="body">
             <!-- show logic just for testing purposes -->
-            {{logic}}
-            {{setLogic()}}
+            {{loadtest()}}
             <table class="table">
             <tbody>
               <tr>
@@ -41,7 +40,7 @@
             </tbody>
             </table>
             <p>
-              <button v-on:click="pushRow(getSelectedLogic().conditions,conditionAdd)" class="btn btn-success" type="button">Dodaj naslednje vprašanje</button>
+              <button v-on:click="pushRow(conditionAdd[0])" class="btn btn-success" type="button">Dodaj naslednje vprašanje</button>
               <button v-on:click="popRow(getSelectedLogic().conditions)" class="btn btn-danger" type="button">Odstrani vprašanje</button>
             </p>
             <div class="row">
@@ -57,7 +56,7 @@
                   <option v-for="n in questions.length" :value="n">Vprašanje {{n}}</option>
                 </select>
               </div>
-              <template v-for="(obj1, index1) in obj.questionsAnswers">
+              <template v-for="(obj1, index1) in obj.condition">
                 <template v-if="obj1.op!=undefined">
                   <div class="col-xs-3">
                     <select class="custom-select" v-model="obj1.op">
@@ -67,8 +66,8 @@
                     </select>
                   </div>
                   <div class="col-xs-1">
-                    <span v-on:click="addRowList(obj.questionsAnswers, index1+1,logicQAadd)" class="add glyphicon glyphicon-plus"></span>
-                    <span v-on:click="removeRow(getSelectedLogic().conditions, obj.questionsAnswers, index1)" class="remove glyphicon glyphicon-remove"></span>
+                    <span v-on:click="addRowList(obj.condition, index1+1,logicQAadd)" class="add glyphicon glyphicon-plus"></span>
+                    <span v-on:click="removeRow(getSelectedLogic().conditions, obj.condition, index1)" class="remove glyphicon glyphicon-remove"></span>
                   </div>
                 </template>
                 <div v-else class="col-xs-5">
@@ -79,7 +78,7 @@
                     <option v-for="(answer, index2) in questions[obj1.id-1].answers" :value="index2+1">{{answer.value.substring(0, 20)}}</option>
                   </select>
                 </div>
-                <div class="col-xs-3" v-if="(index1+1)%2==0 && index1!=obj.questionsAnswers.length-1 "></div>
+                <div class="col-xs-3" v-if="(index1+1)%2==0 && index1!=obj.condition.length-1 "></div>
               </template>
             </div>
           </div>
@@ -108,6 +107,10 @@
                   </a></span>
                 </legend>
               </fieldset></p>
+              <!-- <select v-model="question['nextQuestionIfNoAnswer']">
+                <option value="selectOne">Eden pravilni odgovor</option>
+                <option value="selectMulti">Več pravilnih odgovorov</option>
+              </select> -->
               <section>
                 <p>Tip odgovora:
                   <select v-model="question['answers_type']">
@@ -157,7 +160,7 @@
             </div>
             <div class="modal-footer">
               <slot name="footer">
-                <button class="modal-default-button" v-on:click="close()">
+                <button class="modal-default-button" v-on:click="$emit('close')">
                   OK
                 </button>
               </slot>
@@ -169,13 +172,7 @@
   </script>
   <script>
   Vue.component('modal', {
-    template: '#modal-template',
-    methods: {
-      close: function () {
-        this.$emit('close');
-        this.$parent.removeEmptyLogic()
-      }
-    }
+    template: '#modal-template'
   })
 
   var name = getUrlParam('name');
@@ -205,19 +202,15 @@
     el: '#questions',
     data: {
       questionnaire: { id: id, name: name },
-      questions: [],
+      questions:  [], //[{"answers":[{"value":"Odgovoril z da ker bi rad dasdasdsadasd d ad asd asdasdas","weight":"1","id":1,"defaultNextQuestion":2,"conditions":[]},{"value":"Ne","weight":"2","id":2,"defaultNextQuestion":2,"conditions":[]}],"answers_type":"selectOne","id":1,"image":"","question":"Vprašanje 1"},{"answers":[{"value":"Test","weight":"3","id":1,"defaultNextQuestion":3,"conditions":[]},{"value":"Ne","weight":"2","id":2,"defaultNextQuestion":3,"conditions":[]}],"answers_type":"selectOne","id":2,"image":"","question":"Vprašanje 2"},{"answers":[{"value":"Test1234","weight":"1","id":1,"defaultNextQuestion":4,"conditions":[{"nextQuestion":1,"questionsAnswers":[{"answer":1,"id":1},{"op":"and"},{"answer":1,"id":2},{"op":""}]}]},{"value":"Ne","weight":"1","id":2,"defaultNextQuestion":4,"conditions":[]}],"answers_type":"selectOne","id":3,"image":"","question":"Vprašanje 32"},{"answers":[{"value":"Da","weight":"1","id":1,"defaultNextQuestion":5,"conditions":[]},{"value":"Ne","weight":"4","id":2,"defaultNextQuestion":5,"conditions":[]}],"answers_type":"selectOne","id":4,"image":"","question":"vprašanje 4"}],
+
       showModal: false,
       selected: {question:1, answer: 1},
       logicQAadd: [{ id: 1, answer: 1 }, { op: "" }],
-      conditionAdd:{
+      conditionAdd:[{
         nextQuestion: 3,
-        questionsAnswers: [{ id: 1, answer: 1 }, { op: "" }]
-      },
-      logicAdd: {
-        defaultNextQuestion: 2,
-        conditions: []
-      },
-      logic: {}
+        condition: [{ id: 1, answer: 1 }, { op: "" }]
+      }],
     },
     mounted: function() {
       var userdata = JSON.stringify({
@@ -226,14 +219,19 @@
       var self=this
       $.post("/api/edit_questionnaire", userdata, function(data) {
         // alert(JSON.stringify(data))
-        if (!data) {alert("Napaka pri branju podatkov!");}
+        if (data.error) {alert("Napaka pri branju podatkov!");}
         else {
-          data.questions.forEach(function(question) {
-            if (question['answers'] != "undefined") question['answers'] = JSON.parse(question['answers'])
+          data.forEach(function(question) {
+            if (question['answers'] != "undefined") {
+              try{
+                question['answers'] = JSON.parse(question['answers'])
+              } catch(exx) {
+                alertj("Napaka: "+ question['answers'])
+              }
+            }
             else question['answers']=[]
             self.questions.push(question)
           })
-          self.logic = data.logic
         }
       })
     },
@@ -241,23 +239,8 @@
       alertj: function(obj) {
         alert(JSON.stringify(obj))
       },
-      removeLogic(selector) {
-        delete this.logic[selector]
-      },
-      removeEmptyLogic: function() {
-        selectedLogic = this.getSelectedLogic()
-        // alert(selectedLogic.defaultNextQuestion == this.selected.question+1 )
-        if(selectedLogic.defaultNextQuestion == this.selected.question+1 && selectedLogic.conditions[0] == undefined)
-          this.removeLogic('qa_'+(this.selected.question)+'_'+(this.selected.answer))
-      },
       getSelectedLogic: function() {
-        return this.logic['qa_'+(this.selected.question)+'_'+(this.selected.answer)]
-      },
-      setLogic: function() {
-        if (this.getSelectedLogic() == undefined) {
-          copy = clone(this.logicAdd); copy.defaultNextQuestion = this.selected.question+1;
-          this.$set(this.logic,  'qa_'+(this.selected.question)+"_"+(this.selected.answer), copy)
-        }
+        return this.questions[this.selected.question-1].answers[this.selected.answer-1]
       },
       showModalF: function(i1,i2) {
         this.selected = {question:i1, answer: i2}
@@ -272,8 +255,20 @@
       addRow: function(obj, index, item) {
         obj.splice( index, 0, clone(item));
       },
-      pushRow: function(obj, item) {
-        this.addRow(obj, obj.length, item)
+      loadtest() {
+        obj = this.getSelectedLogic().defaultNextQuestion;
+        if (obj == undefined) {
+          this.$set(this.getSelectedLogic(), "defaultNextQuestion", this.selected.question+1)
+        }
+      },
+      pushRow: function(item) {
+        obj = this.getSelectedLogic().conditions;
+        if (obj == undefined) {
+          copy = clone(this.conditionAdd);
+          this.$set(this.getSelectedLogic(), "conditions", copy)
+        } else {
+          this.addRow(obj, obj.length, item)
+        }
       },
       removeRow: function(conditions, obj, index) {
         if(obj.length==2) {
@@ -308,10 +303,10 @@
       addAnswer: function(question) {question.answers.push({});},
       removeAnswer: function(question, index) {Vue.delete(question.answers, index)},
       save: function() {
+        // alertj(this.questions)
         var userdata = JSON.stringify({
           "questionnaire": this.questionnaire,
-          "questions": this.questions,
-          "logic": this.logic
+          "questions": this.questions
         });
         self=this;
         $.post("/api/edit_questionnaire", userdata, function(data) {

@@ -62,18 +62,46 @@ get_questionnaire_questions(QuestionnaireId) ->
   %  <<"SELECT id,answers_type,image,name,question, '[' || group_concat(answers) || ']' AS answers FROM
   %  (SELECT q1.name,q2.*, '[\"' || an.answer || '\",\"' || an.weight || '\"]' AS answers FROM questionnaires AS q1, questions AS q2, answers AS an
   %   WHERE q2.questionnaires_id=?1 AND q1.id=q2.questionnaires_id AND an.question_id = q2.id);">>, [create], [[QuestionnaireId]]).
-   <<"SELECT id,answers_type,image,question,'[' || group_concat(answers) || ']' AS answers FROM (SELECT q2.*, '{\"value\":' || '\"' || an.answer || '\",\"weight\":' || '\"' || an.weight || '\"}' AS answers FROM questionnaires AS q1
-    INNER JOIN questions AS q2 on q1.id=q2.questionnaires_id
-    LEFT JOIN answers AS an ON an.question_id = q2.id WHERE q2.questionnaires_id=?1 AND an.questionnaires_id=?1) GROUP BY id;">>, [create], [[QuestionnaireId]]).
+   <<"SELECT id,answers_type,image,question, '[' || group_concat(answers) || ']' AS answers FROM (SELECT q2.*,
+    '{\"value\":' || '\"' || an.answer || '\",\"weight\":' || '\"' || an.weight || '\",\"id\":' || '\"' || an.id || '\",\"defaultNextQuestion\":' || '\"' || an.default_next_question || '\",
+    \"conditions\":' || an.conditions || '}' AS answers
+    FROM questionnaires AS q1 INNER JOIN questions AS q2 on q1.id=q2.questionnaires_id
+    LEFT JOIN (SELECT an.*,  '[' || ifnull(group_concat('{ \"nextQuestion\":' || lc.next_question || ',\"condition\":' || lc.condition || '}'),'') || ']' as conditions FROM answers AS an
+     LEFT JOIN logic_conditions AS lc on an.questionnaires_id = lc.questionnaires_id AND an.question_id=lc.question_id AND an.id=lc.answer_id
+     WHERE an.questionnaires_id=?1 GROUP BY an.question_id, an.id ) AS an
+    ON an.question_id = q2.id WHERE q2.questionnaires_id=?1) GROUP BY id;">>, [create], [[QuestionnaireId]]).
+
+get_test() -> QuestionnaireId=1,
+  {ok,{false,Res}}= actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+   <<"SELECT an.*, '[' || ifnull(lc.condition, '') || ']' as conditions FROM answers AS an
+    LEFT JOIN logic_conditions AS lc on an.questionnaires_id = lc.questionnaires_id AND an.question_id=lc.question_id AND an.id=lc.answer_id
+    WHERE an.questionnaires_id=?1 GROUP BY an.question_id, an.id">>, [create], [[QuestionnaireId]]),
+    lager:debug("~p",[Res]).
+    get_test1() -> QuestionnaireId=1,
+      {ok,{false,Res}}= actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+       <<"SELECT an.*, ifnull(lc.condition, '[]') as conditions FROM answers AS an
+        LEFT JOIN logic_conditions AS lc on an.question_id=lc.question_id AND an.id=lc.answer_id
+        WHERE an.question_id=1 AND an.questionnaires_id=?1">>, [create], [[QuestionnaireId]]),
+        lager:debug("~p",[Res]).
 
 get_questionnaire_question(QuestionnaireId, QuestionId) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"SELECT id,answers_type,image,question,'[' || group_concat(answers) || ']' AS answers FROM
-   (SELECT q2.*, '{\"value\":' || '\"' || an.answer || '\",\"weight\":' || '\"' || an.weight || '\"}' AS answers FROM questionnaires AS q1
-    INNER JOIN questions AS q2 on q1.id=q2.questionnaires_id AND q2.id=?2
-    LEFT JOIN answers AS an ON an.question_id = q2.id WHERE q2.questionnaires_id=?1 AND an.questionnaires_id=?1) GROUP BY id;">>, [create], [[QuestionnaireId, QuestionId]]) of
+   <<"SELECT ifnull(default_next_question, ?3) as default_next_question,id,answers_type,image,question,'[' || group_concat(answers) || ']' AS answers FROM
+   (SELECT q2.*,default_next_question, '{\"value\":' || '\"' || an.answer || '\",\"weight\":' || '\"' || an.weight || '\"}' AS answers FROM questions AS q2
+    LEFT JOIN answers AS an ON an.questionnaires_id = q2.questionnaires_id AND an.question_id = q2.id
+    WHERE q2.questionnaires_id=?1 AND q2.id=?2) GROUP BY id;">>, [create], [[QuestionnaireId, QuestionId,QuestionId+1]]) of
     {ok,{false,[]}} -> [];
-    {ok, {false, [H | _]}} -> H;
+    {ok, {false, [H | _]}} -> H; % just one row
+    {error,Error} -> lager:debug("~p",[Error]), error
+  end.
+get_questionnaire_question(QuestionnaireId, QuestionId, AnswerId) ->
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+   <<"SELECT ifnull(default_next_question, -1) as default_next_question,id,answers_type,image,question,'[' || group_concat(answers) || ']' AS answers FROM
+   (SELECT q2.*,default_next_question, '{\"value\":' || '\"' || an.answer || '\",\"weight\":' || '\"' || an.weight || '\"}' AS answers FROM questions AS q2
+    LEFT JOIN answers AS an ON an.questionnaires_id = q2.questionnaires_id AND an.question_id = q2.id
+    WHERE q2.questionnaires_id=?1 AND q2.id=?2 AND an.id=?3) GROUP BY id;">>, [create], [[QuestionnaireId, QuestionId,AnswerId]]) of
+    {ok,{false,[]}} -> [];
+    {ok, {false, [H | _]}} -> H; % just one row
     {error,Error} -> lager:debug("~p",[Error]), error
   end.
 
@@ -118,7 +146,7 @@ insert_update_questionnaire(Id, Name) ->
     {error,Error} -> lager:error("~p",[Error]), error
   end.
 
-insert_update_question_answers(QuestionnaireId, QuestionMap,Logic) ->
+insert_update_question_answers(QuestionnaireId, QuestionMap) ->
   #{ <<"id">> := QuestionId, <<"answers">> := Answers, <<"answers_type">> := Answers_type, <<"image">> := Image, <<"question">> := Question} = QuestionMap,
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"INSERT OR REPLACE INTO questions VALUES(?1, ?2, ?3, ?4, ?5);">>, [create],
@@ -127,7 +155,7 @@ insert_update_question_answers(QuestionnaireId, QuestionMap,Logic) ->
    {error,Error} -> lager:error("~p ~p ~p ~p ~p",[QuestionId,QuestionnaireId,Question,Image,Answers_type]), error
   end,
   % % be careful, same QuestionId and answerId because it not include QuestionnaireId
-  [mu_db:insert_update_answer(AnswerMap,QuestionId, QuestionnaireId,Logic) || AnswerMap <- Answers ],
+  [mu_db:insert_update_answer(AnswerMap,QuestionId, QuestionnaireId) || AnswerMap <- Answers ],
   ok.
 
 insert_question(QuestionnaireId, Id, Question, Image, Answers_type) ->
@@ -144,32 +172,38 @@ update_question(Id, Question, Image, Answers_type) ->
     {_,Error} -> lager:debug("~p",[Error]), error
   end.
 
-insert_update_answer(AnswerMap, QuestionId, QuestionnaireId,Logic) ->
-  #{ <<"id">> := AnswerId, <<"value">> := Answer, <<"weight">> := Weight} = AnswerMap,
-  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"INSERT OR REPLACE INTO answers VALUES(?1,?2,?3,?4,?5);">>, [create], [[AnswerId, QuestionId,QuestionnaireId,Answer,Weight]]) of
-   {ok,Va} -> lager:debug("Inserting updating answer ~p",[Va]), ok;
-   {error,Error} -> lager:debug("~p",[Error]), error
-  end,
-  QA = "qa_"++integer_to_list(QuestionId)++"_"++integer_to_list(AnswerId),
-  case maps:get(list_to_binary(QA), Logic, false) of
-    false -> ok;
-    Log -> insert_update_logic(QuestionnaireId, QuestionId, AnswerId, Log)
-  end,
-  ok.
+insert_update_answer(AnswerMap, QuestionId, QuestionnaireId) ->lager:debug("~p",[AnswerMap]),
+  lager:error("AnswerMap ~p",[AnswerMap]),
+  lager:error("QuestionId ~p",[QuestionId]),
+  case AnswerMap of
+    #{ <<"id">> := AnswerId, <<"value">> := Answer, <<"weight">> := Weight} ->
+      case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+        <<"INSERT OR REPLACE INTO answers VALUES(?1,?2,?3,?4,?5,?6);">>, [create], [[AnswerId, QuestionId,QuestionnaireId,Answer,Weight,maps:get(<<"defaultNextQuestion">>, AnswerMap, QuestionId+1)]]) of
+        {ok,Va} -> lager:debug("Inserting updating answer ~p",[Va]),
+        mu_db:insert_update_logic(maps:get(<<"conditions">>, AnswerMap, []),QuestionnaireId, QuestionId, AnswerId, 1), ok;
+        {error,Error} -> lager:error("~p",[Error]), error
+      end;
+    _ -> lager:error("Pattern matching Answer or Weight"), error
+  end.
 
-insert_update_logic(QuestionnaireId, QuestionId, AnswerId, Logic) ->
-  Id = 1, % just for fun , we don't need id, for now
+insert_update_logic([Condition|T],QuestionnaireId, QuestionId, AnswerId, Id) ->
+  #{<<"nextQuestion">> := NextQuestion, <<"condition">> := QuestionsAnswers} = Condition,
+  lager:error("Condition: ~p",[Condition]),
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"INSERT OR REPLACE INTO logic VALUES(?1,?2,?3,?4,?5);">>, [create], [[Id, AnswerId, QuestionId,QuestionnaireId,jsx:encode(Logic)]]) of
+   <<"INSERT OR REPLACE INTO logic_conditions VALUES(?1,?2,?3,?4,?5,?6);">>, [create], [[Id, AnswerId, QuestionId,QuestionnaireId,NextQuestion, jsx:encode(QuestionsAnswers)]]) of
    {ok,Va} -> lager:debug("Inserting updating logic ~p",[Va]), ok;
    {error,Error} -> lager:error("~p",[Error]), error
   end,
-ok.
+  insert_update_logic(T,QuestionnaireId, QuestionId, AnswerId, Id+1);
+insert_update_logic([],QuestionnaireId, QuestionId, AnswerId, Id) -> ok.
+
+get_logic_column_names() ->
+  actordb_client:exec_single(config(), <<"mocenum">>, <<"questionnaire">>,
+   <<"PRAGMA table_info(logic_conditions);">>, [create]).
 
 get_logic() ->
   actordb_client:exec_single(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"SELECT * FROM logic;">>, [create]).
+   <<"SELECT * FROM logic_conditions;">>, [create]).
 get_logic(QuestionnaireId) ->
  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"SELECT * FROM logic WHERE questionnaires_id=?1;">>, [create], [[QuestionnaireId]]) of
@@ -178,8 +212,8 @@ get_logic(QuestionnaireId) ->
  end.
 get_logic(QuestionnaireId, QuestionId, AnswerId) ->
  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"SELECT * FROM logic WHERE questionnaires_id=?1 AND question_id=?2 AND answer_id=?3;">>, [create], [[QuestionnaireId, QuestionId, AnswerId]]) of
-   {ok, {false, [Res]}} -> Res;
+   <<"SELECT * FROM logic_conditions WHERE questionnaires_id=?1 AND question_id=?2 AND answer_id=?3;">>, [create], [[QuestionnaireId, QuestionId, AnswerId]]) of
+   {ok, {false, Res}} -> Res;
    {ok,{false,[]}} -> [];
    Error -> lager:error("~p",[Error]), error
  end.
