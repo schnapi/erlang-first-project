@@ -66,7 +66,7 @@ check_args(Args) ->
           [mu_db:insert_update_question_answers(NewQuestionnaireId,Question) || Question <- QuestionMap ],
 
           lager:debug("QuestionMap: ~p",[QuestionMap]),
-          file:write_file("/home/sandik/Desktop/test1", io_lib:fwrite("~p.\n", [QuestionMap])),
+          % file:write_file("/home/sandik/Desktop/test1", io_lib:fwrite("~p.\n", [QuestionMap])),
           NewQuestionnaireId
       end;
     #{ <<"get">> := <<"all">> } ->
