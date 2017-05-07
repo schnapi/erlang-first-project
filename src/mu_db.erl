@@ -4,6 +4,7 @@
 -export([get_all_users/0,get_answers/0,get_questionnaires/0,get_questions/0]).
 -export([insert_update_questionnaire/2]).
 -export([remove_questionnaire/1, remove_answer/1]).
+-export([insert_new_session/1, delete_session_record/1]).
 -export([check_schema/0, upgrade_schema/0]).
 
 -compile(export_all).
@@ -242,6 +243,22 @@ remove_questions(NewQuestionnaireId, MinId) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"DELETE FROM questions WHERE questionnaires_id=?1 AND id>?2;">>, [], [[NewQuestionnaireId, MinId]]) of
    {ok,_} -> lager:error("Removing NewQuestionnaireId:~p, from id upwards:~p",[NewQuestionnaireId, MinId]), ok;
+   {error,Error} -> lager:debug("~p",Error), error
+  end.
+
+% insert record for new session, 1st param -> sessionid, 2nd param -> json object with
+insert_new_session(SessionId) ->
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
+   <<"INSERT INTO session VALUES(?1,?2);">>, [create], [[SessionId, ""]]) of
+    {ok,{_,NewId,_}} -> lager:debug("session has been inserted: sessionid:~p newID:~p",[SessionId, NewId]);
+    {error,Error} -> lager:error("~p",[Error]), error
+  end.
+
+% delete record for session
+delete_session_record(SessionId) ->
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
+   <<"DELETE FROM session WHERE id=?1;">>, [], [[SessionId]]) of
+   {ok,_} -> lager:error("Session record successfully deleted",[]), ok;
    {error,Error} -> lager:debug("~p",Error), error
   end.
 

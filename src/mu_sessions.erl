@@ -2,7 +2,10 @@
 
 -export([check_session_validation/1,
          create_new_session/2,
-         set_sessionid/2, generate_sessionid/2]).
+         set_sessionid/2,
+         generate_sessionid/2,
+         get_sessionid/1,
+         get_session_pid/1]).
 
 -include("../include/mu.hrl").
 
@@ -70,6 +73,8 @@ create_new_session(Ip, Username) ->
     {ok, Pid} ->
       {SessionId} = generate_sessionid(Ip, Username),
       ets:insert(mu_sessions, {SessionId, Pid}),
+      % create record for new session in db
+      mu_session:create_session_DB(Pid, SessionId),
       {SessionId, Pid}
   end.
 

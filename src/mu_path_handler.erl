@@ -13,9 +13,7 @@ out(Path) ->
       #{ status => 302, headers=>#{<<"Location">> => <<"index">>}};
     <<"/index">> ->
       Context = [{pagetitle, "Home"},
-        {navMenu, [{"Login","login"}, {"Registration", "registration"},{"Questionnaires", "questionnaires"}, {"Admin questionnaires","edit_questionnaires"}]},
-        {posts, [#{"name" => "PostName1", "content" => "Content1"},
-        #{"name" => "PostName2", "content" => "Content2"}]}],
+        {navMenu, [{"Login","login"}, {"Registration", "registration"},{"Questionnaires", "questionnaires"}, {"Admin questionnaires","edit_questionnaires"}]}],
       #{ view => mu_view_index, data => Context };
     <<"/login">> ->
       #{ view => mu_view_login } ;

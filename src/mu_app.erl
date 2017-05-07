@@ -23,6 +23,7 @@ start(_, _) ->
     {'_', [
       %% {HostMatch, list({PathMatch, Handler, InitialState})}
       {"/api/login", mu_api_login, []},
+      {"/api/logout", mu_api_logout, []},
       {"/api/registration", mu_api_registration, []},
       {"/api/edit_questionnaire", mu_api_edit_questionnaire, []},
       {"/api/view_questionnaires", mu_api_edit_questionnaire, []},

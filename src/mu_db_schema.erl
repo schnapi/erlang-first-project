@@ -42,10 +42,9 @@ schema_def() ->
         #adb_field{ name = <<"salt">>, type = <<"TEXT">> }
       ]},
 
-      #adb_table{ name = <<"session">>, opts = [without_rowid], fields = [
-        #adb_field{ name = <<"id">>, type = <<"TEXT">>, opts = [ primary_key ]},
-        #adb_field{ name = <<"value">>, type = <<"BLOB">>},
-        #adb_field{ name = <<"expires">>, type = <<"INTEGER">>}
+      #adb_table{ name = <<"session">>, opts = [without_rowid, {primary_key,[<<"id">>]}], fields = [
+        #adb_field{ name = <<"id">>, type = <<"TEXT">>},
+        #adb_field{ name = <<"value">>, type = <<"BLOB">>}
       ]},
 
       #adb_table{ name = <<"statestore">>, opts = [without_rowid], fields = [

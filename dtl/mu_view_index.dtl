@@ -3,6 +3,14 @@
 
     <head>
         <title>My Site - {{pagetitle}}</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script>
+          function logout() {
+            $.post("http://localhost:8080/api/logout", {}, function(data) {
+              window.location = "http://localhost:8080/login";
+            })
+          }
+        </script>
     </head>
 
     <body>
@@ -13,6 +21,7 @@
                 <li><a href="/{{link}}">{{name}}</a></li>
               {% endfor %}
             </ul>
+            <button onclick="logout()">Odjava</button>
         </div>
         <section>
           {% for post in posts %}

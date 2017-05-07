@@ -11,13 +11,15 @@
 
 -export([start_link/0,
          ping/1,
-         update_session_expiry_time/1]).
+         update_session_expiry_time/1,
+         create_session_DB/2,
+         logout/1]).
 
 -include("../include/mu.hrl").
 
 -record(state, {timer_reference}).
 
-% 7200000 milisecunds -> 2hours
+% 7200000 miliseconds -> 2hours
 -define(EXPIRYDATE, 72000000).
 
 start_link() -> gen_server:start_link(?MODULE, [], []).
@@ -30,6 +32,12 @@ ping(Pid) ->
 
 update_session_expiry_time(Pid) ->
   gen_server:call(Pid, {restart_timer}).
+
+create_session_DB(Pid, SessionId) ->
+  gen_server:call(Pid, {create_session_DB, SessionId}).
+
+logout(Pid) ->
+  gen_server:call(Pid, {logout}).
 
 % ====================================================================
 
@@ -47,6 +55,15 @@ handle_call({restart_timer}, _From, State) ->
   NewState = restart_timer(State),
   lager:debug("session expiry date updated.~n", []),
 	{reply, session_expiry_date_updated, NewState};
+
+handle_call({create_session_DB, SessionId}, _From, State) ->
+  mu_db:insert_new_session(SessionId),
+	{reply, session_inserted, State};
+
+handle_call({logout}, _From, State) ->
+  erlang:cancel_timer(State#state.timer_reference),
+  NewTRef = erlang:send_after(1, self(), {stop, session_timeout}),
+	{reply, logout_successful, State};
 
 handle_call(stop, _From, State) ->
   {stop, normal, stopped, State}.
