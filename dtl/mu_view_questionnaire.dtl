@@ -10,7 +10,9 @@
     <div class = "container">
       <section id="question">
         <p> Pid: {{pid}} </p>
-        <p> Vprašanje: {{questionId}} </p>
+        <p> Tip odgovora/strani: {{question.answers_type}} </p>
+        <p> Score: {{score}} </p>
+        <p> Vprašanje: {{question.id}} </p>
         <h3>{{question.question}}</h3>
         <p v-if="question['image'] != ''">Slika: <fieldset>
             <!-- <template v-if="question['image'] != ''"><img src= -->
@@ -45,7 +47,7 @@
       data: {
         question: "",
         pid: 0,
-        questionId: 0,
+        score: 0,
         answerId: 0
       },
       mounted: function() {
@@ -67,7 +69,7 @@
           var data = JSON.stringify({
             "question": "next",
             "questionnaireId": questionnaireId,
-            "questionId": this.questionId,
+            "questionId": this.question.id,
             "answerId": this.answerId,
             "pid" : this.pid
           });
@@ -75,25 +77,26 @@
           $.post("/api/questionnaire", data, function(data) {
             if(data.error) alert(data.error);
             else {
-              if(data.question==undefined) {
+              // alert(data.question)
+              if(data.question=="") {
                 alert("Vprašalnik končan!")
                 window.history.replaceState(null, "test", location.protocol + '//' + location.host + "/")
                 window.location.href = "/questionnaires"
               }
               else {
                 try {
-                  if(data.answers != "undefined") {
-                    data.answers = JSON.parse(data.answers)
+                  if(data.question.answers != "undefined") {
+                    data.question.answers = JSON.parse(data.question.answers)
                     self.answerId = 0
                   }
                   else {
-                    data["answers"] = []
-                    self.answerId = -1
+                    data.question["answers"] = []
+                    self.answerId = -1 // if we send 0 to server, server would return sam question, if -1 server returns nextdefault question
                   }
-                  self.question=data
-                  self.questionId= data.id
+                  self.question=data.question
+                  self.score=data.score
                 } catch(ex) {
-                  alert("Napaka: "+data.answers)
+                  alert("Napaka: "+data.question.answers)
                 }
               }
             }

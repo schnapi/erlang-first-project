@@ -36,6 +36,13 @@ get_all_users_id_role() ->
 get_answers() ->
   actordb_client:exec_single(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"SELECT * FROM answers;">>, [create]).
+get_answer(QuestionnaireId, QuestionId,AnswerId) ->
+ case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+  <<"SELECT * FROM answers WHERE questionnaire_id=?1 AND question_id=?2 AND id=?3 ;">>, [create], [[QuestionnaireId, QuestionId,AnswerId]]) of
+  {ok, {false, []}} -> [];
+  {ok, {false, [H|_]}} -> H;
+  {error,Error} -> lager:debug("~p",[Error]), error
+end.
 
 get_questionnaires() ->
   actordb_client:exec_single(config(), <<"mocenum">>, <<"questionnaire">>,
@@ -51,7 +58,7 @@ get_questions() ->
 
 get_questions(QuestionnaireId) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-    <<"SELECT * FROM questions WHERE questionnaires_id=?1;">>, [create], [[QuestionnaireId]]) of
+    <<"SELECT * FROM questions WHERE questionnaire_id=?1;">>, [create], [[QuestionnaireId]]) of
     {ok, {false, Res}} -> Res;
     {error,Error} -> lager:debug("~p",[Error]), error
   end.
@@ -59,38 +66,38 @@ get_questions(QuestionnaireId) ->
 get_questionnaire_questions(QuestionnaireId) ->
   Res = actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
   %  <<"SELECT q1.name,q2.*, GROUP_CONCAT(an.weight) weights,GROUP_CONCAT(an.answer) answers FROM questionnaires AS q1, questions AS q2, answers AS an
-  %   WHERE q2.questionnaires_id=?1 AND q1.id=q2.questionnaires_id AND an.question_id = q2.id GROUP BY an.question_id;">>, [create], [[QuestionnaireId]]).
+  %   WHERE q2.questionnaire_id=?1 AND q1.id=q2.questionnaire_id AND an.question_id = q2.id GROUP BY an.question_id;">>, [create], [[QuestionnaireId]]).
   %  <<"SELECT id,answers_type,image,name,question, '[' || group_concat(answers) || ']' AS answers FROM
   %  (SELECT q1.name,q2.*, '[\"' || an.answer || '\",\"' || an.weight || '\"]' AS answers FROM questionnaires AS q1, questions AS q2, answers AS an
-  %   WHERE q2.questionnaires_id=?1 AND q1.id=q2.questionnaires_id AND an.question_id = q2.id);">>, [create], [[QuestionnaireId]]).
+  %   WHERE q2.questionnaire_id=?1 AND q1.id=q2.questionnaire_id AND an.question_id = q2.id);">>, [create], [[QuestionnaireId]]).
    <<"SELECT id,answers_type,image,question, '[' || group_concat(answers) || ']' AS answers FROM (SELECT q2.*,
     '{\"value\":' || '\"' || an.answer || '\",\"weight\":' || '\"' || an.weight || '\",\"id\":' || '\"' || an.id || '\",\"defaultNextQuestion\":' || '\"' || an.default_next_question || '\",
     \"conditions\":' || an.conditions || '}' AS answers
-    FROM questionnaires AS q1 INNER JOIN questions AS q2 on q1.id=q2.questionnaires_id
+    FROM questionnaires AS q1 INNER JOIN questions AS q2 on q1.id=q2.questionnaire_id
     LEFT JOIN (SELECT an.*,  '[' || ifnull(group_concat('{ \"nextQuestion\":' || lc.next_question || ',\"condition\":' || lc.condition || '}'),'') || ']' as conditions FROM answers AS an
-     LEFT JOIN logic_conditions AS lc on an.questionnaires_id = lc.questionnaires_id AND an.question_id=lc.question_id AND an.id=lc.answer_id
-     WHERE an.questionnaires_id=?1 GROUP BY an.question_id, an.id ) AS an
-    ON an.question_id = q2.id WHERE q2.questionnaires_id=?1) GROUP BY id;">>, [create], [[QuestionnaireId]]).
+     LEFT JOIN logic_conditions AS lc on an.questionnaire_id = lc.questionnaire_id AND an.question_id=lc.question_id AND an.id=lc.answer_id
+     WHERE an.questionnaire_id=?1 GROUP BY an.question_id, an.id ) AS an
+    ON an.question_id = q2.id WHERE q2.questionnaire_id=?1) GROUP BY id;">>, [create], [[QuestionnaireId]]).
 
 get_test() -> QuestionnaireId=1,
   {ok,{false,Res}}= actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"SELECT an.*, '[' || ifnull(lc.condition, '') || ']' as conditions FROM answers AS an
-    LEFT JOIN logic_conditions AS lc on an.questionnaires_id = lc.questionnaires_id AND an.question_id=lc.question_id AND an.id=lc.answer_id
-    WHERE an.questionnaires_id=?1 GROUP BY an.question_id, an.id">>, [create], [[QuestionnaireId]]),
+    LEFT JOIN logic_conditions AS lc on an.questionnaire_id = lc.questionnaire_id AND an.question_id=lc.question_id AND an.id=lc.answer_id
+    WHERE an.questionnaire_id=?1 GROUP BY an.question_id, an.id">>, [create], [[QuestionnaireId]]),
     lager:debug("~p",[Res]).
     get_test1() -> QuestionnaireId=1,
       {ok,{false,Res}}= actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
        <<"SELECT an.*, ifnull(lc.condition, '[]') as conditions FROM answers AS an
         LEFT JOIN logic_conditions AS lc on an.question_id=lc.question_id AND an.id=lc.answer_id
-        WHERE an.question_id=1 AND an.questionnaires_id=?1">>, [create], [[QuestionnaireId]]),
+        WHERE an.question_id=1 AND an.questionnaire_id=?1">>, [create], [[QuestionnaireId]]),
         lager:debug("~p",[Res]).
 
 get_questionnaire_question(QuestionnaireId, QuestionId) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"SELECT ifnull(default_next_question, ?3) as default_next_question,id,answers_type,image,question,'[' || group_concat(answers) || ']' AS answers FROM
+   <<"SELECT id,answers_type,image,question,'[' || group_concat(answers) || ']' AS answers FROM
    (SELECT q2.*,default_next_question, '{\"value\":' || '\"' || an.answer || '\",\"weight\":' || '\"' || an.weight || '\"}' AS answers FROM questions AS q2
-    LEFT JOIN answers AS an ON an.questionnaires_id = q2.questionnaires_id AND an.question_id = q2.id
-    WHERE q2.questionnaires_id=?1 AND q2.id=?2) GROUP BY id;">>, [create], [[QuestionnaireId, QuestionId,QuestionId+1]]) of
+    LEFT JOIN answers AS an ON an.questionnaire_id = q2.questionnaire_id AND an.question_id = q2.id
+    WHERE q2.questionnaire_id=?1 AND q2.id=?2) GROUP BY id;">>, [create], [[QuestionnaireId, QuestionId]]) of
     {ok,{false,[]}} -> [];
     {ok, {false, [H | _]}} -> H; % just one row
     {error,Error} -> lager:debug("~p",[Error]), error
@@ -99,8 +106,8 @@ get_questionnaire_question(QuestionnaireId, QuestionId, AnswerId) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"SELECT ifnull(default_next_question, -1) as default_next_question,id,answers_type,image,question,'[' || group_concat(answers) || ']' AS answers FROM
    (SELECT q2.*,default_next_question, '{\"value\":' || '\"' || an.answer || '\",\"weight\":' || '\"' || an.weight || '\"}' AS answers FROM questions AS q2
-    LEFT JOIN answers AS an ON an.questionnaires_id = q2.questionnaires_id AND an.question_id = q2.id
-    WHERE q2.questionnaires_id=?1 AND q2.id=?2 AND an.id=?3) GROUP BY id;">>, [create], [[QuestionnaireId, QuestionId,AnswerId]]) of
+    LEFT JOIN answers AS an ON an.questionnaire_id = q2.questionnaire_id AND an.question_id = q2.id
+    WHERE q2.questionnaire_id=?1 AND q2.id=?2 AND an.id=?3) GROUP BY id;">>, [create], [[QuestionnaireId, QuestionId,AnswerId]]) of
     {ok,{false,[]}} -> [];
     {ok, {false, [H | _]}} -> H; % just one row
     {error,Error} -> lager:debug("~p",[Error]), error
@@ -207,13 +214,13 @@ get_logic() ->
    <<"SELECT * FROM logic_conditions;">>, [create]).
 get_logic(QuestionnaireId) ->
  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"SELECT * FROM logic WHERE questionnaires_id=?1;">>, [create], [[QuestionnaireId]]) of
+   <<"SELECT * FROM logic WHERE questionnaire_id=?1;">>, [create], [[QuestionnaireId]]) of
    {ok,{false,Res}} -> Res;
    Error -> lager:error("~p",[Error]), error
  end.
 get_logic(QuestionnaireId, QuestionId, AnswerId) ->
  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"SELECT * FROM logic_conditions WHERE questionnaires_id=?1 AND question_id=?2 AND answer_id=?3;">>, [create], [[QuestionnaireId, QuestionId, AnswerId]]) of
+   <<"SELECT * FROM logic_conditions WHERE questionnaire_id=?1 AND question_id=?2 AND answer_id=?3;">>, [create], [[QuestionnaireId, QuestionId, AnswerId]]) of
    {ok, {false, Res}} -> Res;
    {ok,{false,[]}} -> [];
    Error -> lager:error("~p",[Error]), error
@@ -235,13 +242,13 @@ remove_questionnaire(Id) ->
 
 remove_question(NewQuestionnaireId, Id) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"DELETE FROM questions WHERE questionnaires_id=?1 AND id=?2;">>, [], [[NewQuestionnaireId, Id]]) of
+   <<"DELETE FROM questions WHERE questionnaire_id=?1 AND id=?2;">>, [], [[NewQuestionnaireId, Id]]) of
    {ok,_} -> lager:error("Removing NewQuestionnaireId:~p, id:~p",[NewQuestionnaireId, Id]), ok;
    {error,Error} -> lager:debug("~p",Error), error
   end.
 remove_questions(NewQuestionnaireId, MinId) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"DELETE FROM questions WHERE questionnaires_id=?1 AND id>?2;">>, [], [[NewQuestionnaireId, MinId]]) of
+   <<"DELETE FROM questions WHERE questionnaire_id=?1 AND id>?2;">>, [], [[NewQuestionnaireId, MinId]]) of
    {ok,_} -> lager:error("Removing NewQuestionnaireId:~p, from id upwards:~p",[NewQuestionnaireId, MinId]), ok;
    {error,Error} -> lager:debug("~p",Error), error
   end.
