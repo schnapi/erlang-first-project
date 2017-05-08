@@ -52,7 +52,8 @@ get_sessionid(Req0) ->
 
 % set sessionid in cookie
 set_sessionid(Req0, SessionId) ->
-  Req = cowboy_req:set_resp_cookie(<<"sessionId">>, SessionId, Req0, #{domain=>"localhost", path=>"/"}),
+  #{host := Host} = Req0,
+  Req = cowboy_req:set_resp_cookie(<<"sessionId">>, SessionId, Req0, #{domain=>Host, path=>"/"}),
   {ok, Req}.
 
 % vrne ok in pid če je, drugače false
