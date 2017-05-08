@@ -50,7 +50,7 @@ var login = new Vue({
             if(data.error)
               alert(data.error);
             else {
-              window.location = "http://localhost:8080/";
+              window.location = "/";
             }
           })
         }
