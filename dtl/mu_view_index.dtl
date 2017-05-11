@@ -4,13 +4,7 @@
     <head>
         <title>My Site - {{pagetitle}}</title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-        <script>
-          function logout() {
-            $.post("api/logout", {}, function(data) {
-              window.location = "/";
-            })
-          }
-        </script>
+        <script src="static/js/logout.js"></script>
     </head>
 
     <body>
