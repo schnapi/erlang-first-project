@@ -1,0 +1,3 @@
+{% extends "mu_base_example.dtl" %}
+
+{% block title %} spremenjen title {% endblock %}
