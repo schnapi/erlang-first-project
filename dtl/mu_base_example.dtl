@@ -1,0 +1,3 @@
+to je base file
+  
+ {% block title %} blok1 {% endblock %}
