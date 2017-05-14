@@ -29,7 +29,9 @@ start(_, _) ->
       {"/api/view_questionnaires", mu_api_edit_questionnaire, []},
       {"/api/view_questionnaire", mu_questionnaire, []},
       {"/api/questionnaire", mu_api_questionnaire, []},
+      {"/questionnaire", mu_api_questionnaire, []},
       {"/static/[...]", cowboy_static, {dir, "www"}},
+      {"/"++getConfigPathImage()++"[...]", cowboy_static, {dir, getConfigPathImage()}},
       {"/[...]", mu_handler, []}
     ]}
   ]),

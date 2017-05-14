@@ -12,6 +12,10 @@ width: 100%;
 height: 400px;
 position: absolute;
 }
+#modalGallery .modal-container {box-sizing: content-box;max-height:60%; overflow-y: auto;}
+#modalGallery .modal-header {padding: 0;}
+#modalGallery .modal-body {margin: 30px 0;}
+#modalGallery .active {background-color: orange}
 .row-eq-height [class^="col-"] {
   padding-top: 5px;
   padding-bottom: 5px
@@ -31,10 +35,9 @@ position: absolute;
 }
 .btn.disabled, .btn:disabled { cursor: pointer; opacity: 0.3}
 .add, .remove{cursor:pointer;font-size: 17px;}
-
 .add{color: green}
-
 .remove{color: red}
+.close{cursor:pointer;font-size: 22px;}
 
 .row>[class^=col-] {
     background-color: rgba(86,61,124,.15);
@@ -109,6 +112,11 @@ th.active .arrow {
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   border-top: 4px solid #fff;
+}
+
+.img-fluid {
+    max-width: 100%;
+    height: auto;
 }
 
 /* ================= LOGIN PAGE ================= */

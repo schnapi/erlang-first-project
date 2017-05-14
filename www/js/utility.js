@@ -1,4 +1,23 @@
 
+Array.prototype.spliceArray = function(index, n, array) {
+  return Array.prototype.splice.apply(this, [index, n].concat(array));
+}
+
+Array.prototype.clone = function() {
+  return JSON.parse(JSON.stringify(this))
+}
+Array.prototype.peekBack = function() {
+  return this[this.length-1]
+}
+
+function alertj(obj) {
+  alert(JSON.stringify(obj))
+}
+
+function clone(obj) {
+  return JSON.parse(JSON.stringify(obj))
+}
+
 UtilitySearchParams= undefined
 function getUrlParams() {
   let url = new URL(window.location.href);
@@ -8,6 +27,24 @@ getUrlParams()
 
 function getUrlParam(val) {
   return UtilitySearchParams.get(val);
+}
+
+function POST(url, params) {
+    var form = document.createElement('form');
+    form.action = url;
+    form.method = 'POST';
+    form.enctype='application/x-www-form-urlencoded'
+    for (var i in params) {
+        if (params.hasOwnProperty(i)) {
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = i;
+            input.value = params[i];
+            form.appendChild(input);
+        }
+    }
+    document.body.appendChild(form);
+    form.submit();
 }
 
 function drawCanvasBackground() {

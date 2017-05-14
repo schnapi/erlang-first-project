@@ -6,7 +6,7 @@
 
 insert_questionnaire1() ->
   Id=1, Name = "Možnost rasti",
-  mu_db:insert_update_questionnaire(Id, Name),
+  mu_db:insert_update_questionnaire(Id, Name,1,15),
   QuestionMap= [#{<<"answers">> => [#{<<"conditions">> => [],
       <<"defaultNextQuestion">> => <<"2">>,
       <<"id">> => 1,
@@ -164,7 +164,7 @@ insert_questionnaire1() ->
 
 insert_questionnaire2() ->
   Id=2, Name = "PREPRIČANOST VASE",
-  mu_db:insert_update_questionnaire(Id, Name),
+  mu_db:insert_update_questionnaire(Id, Name,1,20),
   QuestionMap= [#{<<"answers">> => [#{<<"conditions">> => [],
       <<"defaultNextQuestion">> => <<"2">>,
       <<"id">> => 1,

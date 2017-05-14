@@ -55,9 +55,20 @@ schema_def() ->
     ]},
 
     #adb_actor{ name = <<"questionnaire">>, tables = [
+
       #adb_table{ name = <<"questionnaires">>, fields = [
         #adb_field{ name = <<"id">>, type = <<"INTEGER">>, opts = [ primary_key, autoincrement ]},
-        #adb_field{ name = <<"name">>, type = <<"TEXT">>}
+        #adb_field{ name = <<"name">>, type = <<"TEXT">>},
+        #adb_field{ name = <<"scoring">>, type = <<"BOOLEAN">>},
+        #adb_field{ name = <<"max_score">>, type = <<"INTEGER">>}
+      ]},
+
+      #adb_table{ name = <<"users_score">>, opts = [without_rowid, {foreign_key,[{key,["questionnaire_id"]},
+        {ref_table,"questionnaires"},{ref_id,["id"]},{opts,[on_delete_cascade]}]},
+        {primary_key,[<<"user_id">>,<<"questionnaire_id">>]}], fields = [
+        #adb_field{ name = <<"questionnaire_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"user_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"score">>, type = <<"INTEGER">>}
       ]},
 
       #adb_table{ name = <<"questions">>, opts = [without_rowid, {foreign_key,[{key,["questionnaire_id"]},
@@ -67,6 +78,7 @@ schema_def() ->
         #adb_field{ name = <<"questionnaire_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"question">>, type = <<"TEXT">>},
         #adb_field{ name = <<"image">>, type = <<"TEXT">>},
+        #adb_field{ name = <<"folder">>, type = <<"TEXT">>},
         #adb_field{ name = <<"answers_type">>, type = <<"TEXT">>}
         % #adb_field{ name = <<"next_question">>, type = <<"INTEGER">>}
       ]},

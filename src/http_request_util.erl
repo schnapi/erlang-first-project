@@ -1,18 +1,20 @@
 -module(http_request_util).
 
--export([cowboy_out/4]).
+-export([cowboy_out/4, cowboy_out/5]).
 
 -include("../include/mu.hrl").
 
 -define(HEADERHTML, #{<<"content-type">> => <<"text/html">>}).
+-define(HEADERTEXT, #{<<"content-type">> => <<"text/plain">>}).
 -define(HEADERJSON, #{<<"content-type">> => <<"application/json">>}).
 
 -spec cowboy_out(atom(), binary() | integer() | map() | pid()| atom(),cowboy_req:req(), atom()) -> {ok,cowboy_req:req(),atom()}.
 
-cowboy_out(Module,Path, Req0, State) ->
-
+cowboy_out(Module,Path, Req0, State) -> cowboy_out(Module,Path, Req0, State,[]).
+cowboy_out(Module,Path, Req0, State,Context1) ->
+% lager:error("Path: ~p",[Path]),
   % if some error comes from dtl page then catch an exception and print to
-  case catch Module:out(Path) of
+  case catch Module:out(Path,Context1) of
     {'EXIT', Error} ->
       lager:error("error on path=~p exception=~p",[Path, Error]),
       Pgr = #{ type => json, data => #{ <<"status">> => <<"error">> }};
@@ -24,8 +26,9 @@ cowboy_out(Module,Path, Req0, State) ->
 DefReply = #{ status => 200, header => ?HEADERHTML, body => <<>>},
   case Pgr of
     #{ type := json, data := ToSeralize} ->
-      JsonOut = jsx:encode(ToSeralize),
-      Reply = DefReply#{ header => ?HEADERJSON, body => JsonOut };
+      Reply = DefReply#{ header => ?HEADERJSON, body => jsx:encode(ToSeralize) };
+    #{ type := text, data := Context} ->
+      Reply = DefReply#{ header => ?HEADERTEXT, body => Context };
     #{ data := Context, view := View} -> % view is dtl file
       Reply = DefReply#{ body => render_page(View, Context) }; % render_page function is in mu.hrl
     #{ view := View } ->

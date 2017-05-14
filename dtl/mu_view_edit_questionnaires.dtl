@@ -11,7 +11,7 @@
         {% for questionnaire in questionnaires %}
           <tr>
             <td><input type="hidden" class='id' value="{{questionnaire.id}}"><input type="text" class='name' value="{{questionnaire.name}}" disabled></td>
-            <td><a class="btn btn-success" href="edit_questionnaire?id={{questionnaire.id}}&name={{questionnaire.name}}">Uredi</a></td>
+            <td><a class="btn btn-success" href="edit_questionnaire?id={{questionnaire.id}}&name={{questionnaire.name}}&scoring={{questionnaire.scoring}}&max_score={{questionnaire.max_score}}">Uredi</a></td>
             <td><button type="button" class="btn btn-danger" onclick="removeQuestionnaire(this)">Izbriši</button></td>
           </tr>
         {% endfor %}

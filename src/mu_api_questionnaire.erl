@@ -28,10 +28,12 @@ init(Req0, State) ->
   end.
 
 handle_questions_api(Req0, State) ->
-  {ok, Body, _} = cowboy_req:read_body(Req0),
-  % convert body from json
-  Args = bjson:decode(Body),
-  % {Ok, Id} = supervisor:start_child(mu_sup, ChildSpec),
+  Header = maps:get(headers,Req0),
+  case maps:get(<<"content-type">>,Header) of
+    <<"application/x-www-form-urlencoded">> -> {ok, Args, _} = cowboy_req:read_urlencoded_body(Req0); % check on form submit
+    Res -> lager:debug("Res: ~p",[Res]),{ok, Body, _} = cowboy_req:read_body(Req0), Args = bjson:decode(Body)
+  end,
+    % lager:error("Args: ~p",[Args]),
   case check_args(Args) of
     false -> http_request_util:cowboy_out(mu_json_error_handler,2, Req0, State);
     % todo: implement gen_server for sessions, call it at this point
@@ -43,22 +45,21 @@ handle_questions_api(Req0, State) ->
     {next, Pid, Response} -> NewQuestion=mu_questionnaire:getNewQuestion(Pid,Response),
       http_request_util:cowboy_out(mu_json_success_handler,NewQuestion, Req0, State);
     {previous, Pid, QuestionnaireId} -> PreviousQuestion=mu_questionnaire:getNewQuestion(Pid,QuestionnaireId),
-      http_request_util:cowboy_out(mu_json_success_handler,PreviousQuestion, Req0, State)
+      http_request_util:cowboy_out(mu_json_success_handler,PreviousQuestion, Req0, State);
+    {start,{QuestionnaireId, Scoring,MaxScore}} ->
+        % lager:error("Req0: ~p",[Req0]),
+        http_request_util:cowboy_out(mu_path_handler,<<"/questionnaire">>, Req0, State, [{questionnaireId, QuestionnaireId},{scoring, Scoring},{max_score, MaxScore}])
   end.
 
 check_args(Args) ->
-  Child = proplists:get_value(<<"child">>, Args),
-  Question = proplists:get_value(<<"question">>, Args),
-  Pid = proplists:get_value(<<"pid">>, Args), %convert binary string to Pid
-  QuestionnaireId = proplists:get_value(<<"questionnaireId">>, Args),
-  QuestionId = proplists:get_value(<<"questionId">>, Args),
-  AnswerId = proplists:get_value(<<"answerId">>, Args),
-  		lager:debug("test: ~p",[Args]),
-  case Child of
-    undefined -> case Question of
-        <<"next">> -> {next,list_to_pid(binary_to_list(Pid)),{QuestionnaireId, QuestionId, AnswerId}};
+  case proplists:get_value(<<"child">>, Args) of
+    undefined ->
+      Pid = proplists:get_value(<<"pid">>, Args), %convert binary string to Pid
+      case proplists:get_value(<<"question">>, Args) of
+        <<"next">> -> {next,list_to_pid(binary_to_list(Pid)),{proplists:get_value(<<"questionnaireId">>, Args),
+         proplists:get_value(<<"questionId">>, Args, 1), proplists:get_value(<<"answerId">>, Args)}};
         <<"previous">> -> {previous,Pid};
-        undefined -> false
+        undefined -> {start,{proplists:get_value(<<"questionnaireId">>, Args), proplists:get_value(<<"scoring">>, Args), proplists:get_value(<<"max_score">>, Args)}}
       end;
     _ -> child
   end.

@@ -19,7 +19,7 @@ start_link() -> gen_server:start_link(?MODULE, [], []).
 stop()  -> gen_server:call(?MODULE, stop).
 
 %gen_server:call = remote procedure call to the server.
--spec getNewQuestion(pid(), integer()) -> term().
+-spec getNewQuestion(pid(), {integer(),any()}) -> term().
 getNewQuestion(Pid,Response) ->
 		gen_server:call(Pid, {next, Response}).
 % getAnswers(State)  -> gen_server:call(?MODULE, {new, State}).
@@ -39,18 +39,6 @@ checkConditionQA(#{<<"p2">> := Op},Tab) -> binary_to_list(Op).
 createLogicTokens([],Tab, BooleanList) -> BooleanList;
 createLogicTokens([H|T],Tab, BooleanList) -> createLogicTokens(T,Tab, BooleanList ++ [checkConditionQA(H,Tab)]).
 
-testCheckCondition() ->
-	Tab = [{{1,1},1}, {{3,2},2}, {{2,2},3}],%state question,answer,score
-	QA1 = [#{<<"answer">> => 1,<<"id">> => 1},#{<<"op">> => <<"and">>},
-	#{<<"p1">> => <<"(">>},#{<<"answer">> => 2,<<"id">> => 3},#{<<"op">> => <<"or">>},
-	#{<<"answer">> => 1,<<"id">> => 2},#{<<"p2">> => <<")">>}],
-	["true","and","(","true","or","false",")"]  = createLogicTokens(QA1,Tab, []),
-
-	QA2 = [#{<<"answer">> => 1,<<"id">> => 1},#{<<"op">> => <<"and">>},
-	#{<<"answer">> => 2,<<"id">> => 3},#{<<"op">> => <<"or">>},
-	#{<<"answer">> => 1,<<"id">> => 2}],
-	["true","and","true","or","false"]  = createLogicTokens(QA2,Tab, []),
-	ok.
 
 getNextQuestion([Condition|T],DefaultNextQuestion,Tab) ->
 	lager:error("getNextQuestion: ~p",[Condition]),
@@ -74,14 +62,14 @@ nextQuestion(QuestionnaireId, QuestionId, AnswerId, Tab) ->
 
 handle_call({next, {QuestionnaireId, QuestionId, AnswerId}}, _From, #{tab := Tab, score := Score}) ->
 lager:error("QuestionId: ~p",[QuestionId]),
+lager:error("AnswerId: ~p",[AnswerId]),
 lager:error("Tab: ~p",[Tab]),
-	case {Tab, AnswerId} of
-		{[], 0} -> lager:error("[] 0: ~p",[Tab]),{Tab1, Weight,Question} = {[],0, mu_db:get_questionnaire_question(QuestionnaireId, 1)};%if no answer and empty state, return question 1
-		{L, 0} -> lager:error("L 0: ~p",[Tab]),{Tab1, Weight,Question} = {Tab,0, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId)}; % if no answer send same question
-		{L, -1} -> {Tab1, Weight, Question} = {Tab, 0, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId+1)};
+	case AnswerId of
+		0 -> lager:error("L 0: ~p",[Tab]),{Tab1, Weight,Question} = {Tab,0, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId)}; % if no answer send same question
+		_ when AnswerId<0 -> {Tab1, Weight, Question} = {Tab, 0, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId+1)};
 		_ -> lager:error("all: ~p",[Tab]),{Tab1, Weight, Question} = nextQuestion(QuestionnaireId,QuestionId, AnswerId, Tab)
 	end,
-		lager:error("Current user questionnaire state: ~p",[Tab1]),
+			lager:error("Current user questionnaire state: ~p",[Tab1]),
 		% lager:error("req: ~p -- ~p",[Tab, ets:lookup(Tab, who)]),
 		% ets:insert(Tab, {who,QuestionnaireId}),
 		% lager:error("req: ~p -- ~p",[Tab, ets:lookup(Tab, who)]),
@@ -92,7 +80,12 @@ lager:error("Tab: ~p",[Tab]),
 		% 		[_] -> {Who, you_already_are_a_customer}
 		%  end,
 		Score1 = Score + Weight,
-		{reply, #{<<"score">> => Score1, <<"question">> => Question}, #{tab => Tab1,score => Score1}};
+		case Question of
+			[] -> mu_db:insert_result(QuestionnaireId,1,Score1); %end of questions, check scoring
+			_ -> ok
+		end,
+		% reply, response, state
+		{reply, #{score => Score1, question => Question}, #{tab => Tab1,score => Score1}};
 
 %function is called from terminate(...)
 %{stop, Reason, NewState}
@@ -109,3 +102,17 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 %      io:format("result 1/0~n"),
 %      1 / 0,
 %      {noreply, State}.
+
+
+testCheckCondition() ->
+	Tab = [{{1,1},1}, {{3,2},2}, {{2,2},3}],%state question,answer,score
+	QA1 = [#{<<"answer">> => 1,<<"id">> => 1},#{<<"op">> => <<"and">>},
+	#{<<"p1">> => <<"(">>},#{<<"answer">> => 2,<<"id">> => 3},#{<<"op">> => <<"or">>},
+	#{<<"answer">> => 1,<<"id">> => 2},#{<<"p2">> => <<")">>}],
+	["true","and","(","true","or","false",")"]  = createLogicTokens(QA1,Tab, []),
+
+	QA2 = [#{<<"answer">> => 1,<<"id">> => 1},#{<<"op">> => <<"and">>},
+	#{<<"answer">> => 2,<<"id">> => 3},#{<<"op">> => <<"or">>},
+	#{<<"answer">> => 1,<<"id">> => 2}],
+	["true","and","true","or","false"]  = createLogicTokens(QA2,Tab, []),
+	ok.

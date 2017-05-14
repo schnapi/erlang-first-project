@@ -4,6 +4,7 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
   <link rel="stylesheet" href="static/css/style.css">
   <script src="static/js/vue.js"></script>
+  <script src="static/js/utility.js"></script>
   <body>
     {% verbatim %}
     <div class = "container">
@@ -12,7 +13,7 @@
         <table>
           <tr v-for="item in questionnaires" class="panel panel-default question">
             <td><input type="hidden" class='id' :value="item.id">{{ item.name }}</td>
-            <td><a class="btn btn-success" :href="'questionnaire?id='+item.id+'&name='+item.name">Začni</a></td>
+            <td><a class="btn btn-success" @click="vuePOST('questionnaire', {questionnaireId: item.id, name: item.name, scoring: item.scoring, max_score: item.max_score})">Začni</a></td>
           </tr>
         </table>
       </section>
@@ -44,8 +45,8 @@
         })
       },
       methods: {
-        alertj: function(obj) {
-          alert(JSON.stringify(obj))
+        vuePOST: function(url, params) {
+          POST(url, params)
         }
       }
     })

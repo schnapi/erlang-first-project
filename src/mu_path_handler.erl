@@ -1,12 +1,13 @@
 -module(mu_path_handler).
 
--export([out/1]).
+-export([out/1, out/2]).
 
 -include("../include/mu.hrl").
 
--spec out(string()) -> map().
+-spec out(string(),any()) -> map().
 
-out(Path) ->
+out(Path) -> out(Path, []).
+out(Path, Context1) ->
   % #pgr{ status = (http koda), headers = [ headerji ], body = <<binarni body>> }
   case Path of
     <<"/">> ->
@@ -20,9 +21,11 @@ out(Path) ->
     <<"/registration">> ->
       #{ view => mu_view_registration } ;
     <<"/questionnaire">> ->
-      #{ view => mu_view_questionnaire };
+        lager:error("Args: ~p",[Context1]),
+      #{ view => mu_view_questionnaire, data => Context1 };
     <<"/questionnaires">> ->
-      #{ view => mu_view_questionnaires };
+        % lager:error("Unsupported token: ~p",[Context]),
+      #{ view => mu_view_questionnaires};
     <<"/edit_questionnaires">> ->
       {ok, {false, Questionnaires}} = mu_db:get_questionnaires(),
       Context = [{questionnaires, Questionnaires}],
