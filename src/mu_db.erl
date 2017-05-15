@@ -4,7 +4,7 @@
 -export([get_all_users/0,get_answers/0,get_questionnaires/0,get_questions/0]).
 -export([insert_update_questionnaire/4]).
 -export([remove_questionnaire/1, remove_answer/1]).
--export([insert_new_session/1, delete_session_record/1]).
+-export([insert_new_session/2, delete_session_record/1, get_sessions_userid/1]).
 -export([check_schema/0, upgrade_schema/0]).
 
 -compile(export_all).
@@ -108,16 +108,17 @@ get_questionnaire_question(QuestionnaireId, QuestionId, AnswerId) ->
   end.
 
 get_user(Email) ->
-  lager:debug("~p",[Email]),
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
     <<"SELECT * FROM data WHERE email=?1;">>, [create], [[Email]]) of
     {ok, {false, [Res]}} -> Res;
+    {ok, {false, []}} -> [];
     {error,Error} -> lager:debug("~p",[Error]), error
   end.
 
 check_user_password(Email, Password) ->
   case get_user(Email) of
     {error,Error} -> lager:debug("~p",[Error]), error;
+    [] -> lager:debug("Neveljaven uporabnik.", []), error;
     Map -> #{ <<"salt">> := Salt, <<"role">> := Role, <<"passwordHash">> := PasswordHash} = Map,
       case butil:dec2hex(crypto:hash(sha256, binary_to_list(Password) ++ binary_to_list(Salt))) of
         PasswordHash -> ok;
@@ -260,18 +261,26 @@ remove_questions(NewQuestionnaireId, MinId) ->
    {error,Error} -> lager:debug("~p",Error), error
   end.
 
-% insert record for new session, 1st param -> sessionid, 2nd param -> json object with
-insert_new_session(SessionId) ->
-  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
-   <<"INSERT INTO session VALUES(?1,?2);">>, [create], [[SessionId, ""]]) of
-    {ok,{_,NewId,_}} -> lager:debug("session has been inserted: sessionid:~p newID:~p",[SessionId, NewId]);
+% insert record for new session, 1st param -> sessionid, 2nd param -> email as user id
+insert_new_session(SessionId, Email) ->
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"session">>,
+   <<"INSERT INTO actors VALUES(?1,{{hash(SessionId)}},?2);">>, [create], [[SessionId, Email]]) of
+    {ok,{_,NewId,_}} -> lager:debug("session has been inserted: sessionid:~p",[SessionId]);
     {error,Error} -> lager:error("~p",[Error]), error
+  end.
+
+get_sessions_userid(SessionId) ->
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"session">>,
+    <<"SELECT * FROM actors WHERE id=?1;">>, [], [[SessionId]]) of
+    {ok, {false, Res}} -> Res;
+    {ok,{false,[]}} -> [];
+    Error -> lager:error("~p",[Error]), error
   end.
 
 % delete record for session
 delete_session_record(SessionId) ->
-  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
-   <<"DELETE FROM session WHERE id=?1;">>, [], [[SessionId]]) of
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"session">>,
+   <<"DELETE FROM actors WHERE id=?1;">>, [], [[SessionId]]) of
    {ok,_} -> lager:error("Session record successfully deleted",[]), ok;
    {error,Error} -> lager:debug("~p",Error), error
   end.

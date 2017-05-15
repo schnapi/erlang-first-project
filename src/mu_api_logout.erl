@@ -19,11 +19,14 @@ handle_logout_api(Req, State) ->
     {ok} ->
       {ok, SessionId} = mu_sessions:get_sessionid(Req),
       {ok, Pid} = mu_sessions:get_session_pid(SessionId),
-      % clear session's additional data
-      ets:delete(mu_sessions, SessionId),
-      mu_db:delete_session_record(SessionId),
+      {ok, Req0} = delete_sessionid_from_cookie(Req),
       mu_session:logout(Pid),
       http_request_util:cowboy_out(mu_json_success_handler, true, Req, State);
     {false} ->
       http_request_util:cowboy_out(mu_json_error_handler, 8, Req, State)
   end.
+
+delete_sessionid_from_cookie(Req0) ->
+  #{host := Host} = Req0,
+  Req = cowboy_req:set_resp_cookie(<<"sessionId">>, "123", Req0, #{max_age => 0, domain=>Host, path=>"/"}),
+  {ok, Req}.

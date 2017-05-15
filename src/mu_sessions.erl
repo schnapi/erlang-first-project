@@ -5,7 +5,9 @@
          set_sessionid/2,
          generate_sessionid/2,
          get_sessionid/1,
-         get_session_pid/1]).
+         get_session_pid/1,
+         get_session_id_by_pid/1,
+         get_userid_from_session/1]).
 
 -include("../include/mu.hrl").
 
@@ -54,6 +56,7 @@ get_sessionid(Req0) ->
 set_sessionid(Req0, SessionId) ->
   #{host := Host} = Req0,
   Req = cowboy_req:set_resp_cookie(<<"sessionId">>, SessionId, Req0, #{domain=>Host, path=>"/"}),
+  Cookies = cowboy_req:parse_cookies(Req),
   {ok, Req}.
 
 % vrne ok in pid če je, drugače false
@@ -68,6 +71,22 @@ get_session_pid(SessionId) ->
       {ok, Pid}
   end.
 
+get_session_id_by_pid(Pid) ->
+  case ets:match(mu_sessions, {'$1', Pid}) of
+    [] ->
+      {false};
+    % return only pid
+    [SessionId] ->
+      {ok, SessionId}
+  end.
+
+get_userid_from_session(SessionId) ->
+  Res = mu_db:get_sessions_userid(SessionId),
+  [Head | _] = Res,
+  {ok, User_id} = maps:find(<<"user_id">>, Head),
+  {User_id}.
+
+
 % start new session for user
 create_new_session(Ip, Username) ->
   case supervisor:start_child(?SUPERVISIOR, ?CHILDSPEC) of
@@ -75,7 +94,7 @@ create_new_session(Ip, Username) ->
       {SessionId} = generate_sessionid(Ip, Username),
       ets:insert(mu_sessions, {SessionId, Pid}),
       % create record for new session in db
-      mu_session:create_session_DB(Pid, SessionId),
+      mu_session:create_session_DB(Pid, SessionId, Username),
       {SessionId, Pid}
   end.
 

@@ -12,7 +12,7 @@
 -export([start_link/0,
          ping/1,
          update_session_expiry_time/1,
-         create_session_DB/2,
+         create_session_DB/3,
          logout/1]).
 
 -include("../include/mu.hrl").
@@ -33,8 +33,8 @@ ping(Pid) ->
 update_session_expiry_time(Pid) ->
   gen_server:call(Pid, {restart_timer}).
 
-create_session_DB(Pid, SessionId) ->
-  gen_server:call(Pid, {create_session_DB, SessionId}).
+create_session_DB(Pid, SessionId, Email) ->
+  gen_server:call(Pid, {create_session_DB, SessionId, Email}).
 
 logout(Pid) ->
   gen_server:call(Pid, {logout}).
@@ -56,8 +56,9 @@ handle_call({restart_timer}, _From, State) ->
   lager:debug("session expiry date updated.~n", []),
 	{reply, session_expiry_date_updated, NewState};
 
-handle_call({create_session_DB, SessionId}, _From, State) ->
-  mu_db:insert_new_session(SessionId),
+handle_call({create_session_DB, SessionId, Email}, _From, State) ->
+  mu_db:insert_new_session(SessionId, Email),
+  mu_sessions:get_userid_from_session(SessionId),
 	{reply, session_inserted, State};
 
 handle_call({logout}, _From, State) ->
@@ -80,6 +81,13 @@ handle_info(_Info, State) ->
 
 terminate(_Reason, _State) ->
   lager:debug("TERMINATE SESSION'S PROCESS BECAUSE OF:~p", [_Reason]),
+  case mu_sessions:get_session_id_by_pid(self()) of
+    {ok, SessionId} ->
+      mu_db:delete_session_record(SessionId),
+      ets:delete(mu_sessions, SessionId);
+    _ ->
+      lager:debug("just pass", [])
+  end,
   exit(self(), shutdown),
   ok.
 
