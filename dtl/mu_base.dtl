@@ -23,37 +23,6 @@
     <!-- Custom Fonts -->
     <link href="/static/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
-  {#
-    <!-- commented out, remove after checking it out :-) -->
-    <!-- commented out, remove after checking it out :-) -->
-    <!-- commented out, remove after checking it out :-) -->
-    <!-- CSS -->
-    <link href="static/css/bootstrap.min.css" rel="stylesheet">
-    <link href="static/css/metisMenu.min.css" rel="stylesheet">
-    <link href="static/css/sb-admin-2.css" rel="stylesheet">
-    <link href="static/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-
-    <!-- JS -->
-    <script src="static/js/jquery/jquery.min.js"></script>
-    <script src="static/js/bootstrap/bootstrap.min.js"></script>
-    <script src="static/js/metisMenu.min.js"></script>
-    <script src="static/js/sb-admin-2.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-
-
-    <!-- commented out, remove after checking it out :-) -->
-    <!-- commented out, remove after checking it out :-) -->
-    <!-- commented out, remove after checking it out :-) -->
-
-    #}
-
-    <!-- Vue -->
-    <script src="https://unpkg.com/vue"></script>
-
-    <!-- Internal scripts -->
-    <script src="static/js/login.js"></script>
-    <script src="static/js/logout.js"></script>
-
   {% endblock %}
 </head>
 <body>
@@ -71,12 +40,19 @@
   <script src="/static/vendor/metisMenu/metisMenu.min.js"></script>
 
   <!-- Morris Charts JavaScript -->
-  <script src="/static/vendor/raphael/raphael.min.js"></script>
+  <!--<script src="/static/vendor/raphael/raphael.min.js"></script>
   <script src="/static/vendor/morrisjs/morris.min.js"></script>
-  <script src="/static/data/morris-data.js"></script>
+  <script src="/static/data/morris-data.js"></script>-->
 
   <!-- Custom Theme JavaScript -->
   <script src="/static/dist/js/sb-admin-2.js"></script>
+
+  <!-- Vue -->
+  <script src="https://unpkg.com/vue"></script>
+
+  <!-- Internal scripts -->
+  <script src="static/js/login.js"></script>
+  <script src="static/js/logout.js"></script>
   {% endblock %}
 </body>
 </html>
