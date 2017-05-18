@@ -48,11 +48,15 @@
   <script src="/static/dist/js/sb-admin-2.js"></script>
 
   <!-- Vue -->
-  <script src="https://unpkg.com/vue"></script>
+  <script src="static/js/vue.js"></script>
+
+  <script src="static/js/utility.js"></script>
 
   <!-- Internal scripts -->
   <script src="static/js/login.js"></script>
   <script src="static/js/logout.js"></script>
+  <script src="static/js/questionnaires.js"></script>
+  <script src="static/js/edit_questionnaires.js"></script>
   {% endblock %}
 </body>
 </html>

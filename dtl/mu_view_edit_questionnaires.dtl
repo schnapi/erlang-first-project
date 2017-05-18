@@ -1,45 +1,19 @@
-<!DOCTYPE html>
-<html>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-  <link rel="stylesheet" href="static/css/style.css">
-  <body>
-    <div class = "container">
-      <section class="questionnaires">
-        <h1>Vprašalniki</h1>
-        <table>
-        {% for questionnaire in questionnaires %}
-          <tr>
-            <td><input type="hidden" class='id' value="{{questionnaire.id}}"><input type="text" class='name' value="{{questionnaire.name}}" disabled></td>
-            <td><a class="btn btn-success" href="edit_questionnaire?id={{questionnaire.id}}&name={{questionnaire.name}}&scoring={{questionnaire.scoring}}&max_score={{questionnaire.max_score}}">Uredi</a></td>
-            <td><button type="button" class="btn btn-danger" onclick="removeQuestionnaire(this)">Izbriši</button></td>
-          </tr>
-        {% endfor %}
-        </table>
-        <p><button onclick="newQuestionnaire()">Nov vprašalnik</button></p>
-      </section>
+{% extends "mu_interface.dtl" %}
+{% block container %}
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="btn-toolbar" role="toolbar">
+          {% for questionnaire in questionnaires %}
+            <div class="btn-group mr-2 col-lg-12" style="margin-bottom: 10px;padding:0;" role="group">
+              <div class="btn btn-default col-lg-10">{{questionnaire.name}}</div>
+              <a href="edit_questionnaire?id={{questionnaire.id}}&name={{questionnaire.name}}&scoring={{questionnaire.scoring}}&max_score={{questionnaire.max_score}}" class="btn btn-success">Uredi</a>
+              <button type="button" class="btn btn-danger" onclick="removeQuestionnaire(this)">Izbriši</button>
+            </div>
+          {% endfor %}
+        </div>
+        <div clas="col-lg-12">
+          <button class="btn btn-primary" onclick="newQuestionnaire()">Nov vprašalnik</button>
+        </div>
+      </div>
     </div>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-  <script>
-    // $(document).ready(function() {
-    // })
-    function removeQuestionnaire(cur) {
-      var userdata = JSON.stringify({
-        "remove": $(cur).closest("tr").find(".id").val(),
-      });
-      $.post("/api/edit_questionnaire", userdata, function(data) {
-        if(data.error)
-          alert(data.error);
-        else {
-          alert("Ustrezno vnešeni podatki, success");
-          $(cur).closest("tr").remove();
-        }
-      })
-
-    }
-    function newQuestionnaire() {
-      location.href = '/edit_questionnaire';
-    }
-  </script>
-  </body>
-</html>
+{% endblock %}
