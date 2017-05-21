@@ -17,3 +17,7 @@
       </div>
     </div>
 {% endblock %}
+
+{% block footer_javascript %}
+{% include "../www/js/edit_questionnaires.js" %}
+{% endblock %}

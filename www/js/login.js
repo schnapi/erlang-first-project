@@ -1,9 +1,8 @@
-$(function() {
-  var login = new Vue({
+new Vue({
     el: '#login',
       data: {
-        email: '',
-        password: ''
+        email: 'mocenum',
+        password: 'mocenum'
       },
       methods: {
         login: function(e) {
@@ -27,4 +26,3 @@ $(function() {
         }
       }
   });
-});

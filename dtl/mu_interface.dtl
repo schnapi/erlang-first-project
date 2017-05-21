@@ -2,7 +2,6 @@
 
 {% block content %}
   <div id="wrapper">
-
     <!-- Navigation -->
     <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
         <div class="navbar-header">
@@ -39,9 +38,9 @@
         <div class="navbar-default sidebar" role="navigation">
             <div class="sidebar-nav navbar-collapse">
                 <ul class="nav" id="side-menu">
-                  <li><a href="/index"><i class="fa fa-home fa-fw"></i> Domov</a></li>
-                  <li><a href="/questionnaires"><i class="fa fa-home fa-fw"></i> Vprašalniki</a></li>
-                  <li><a href="/edit_questionnaires"><i class="fa fa-home fa-fw"></i> Admin vprašalniki</a></li>
+                {% for name, link in navMenu%}
+                  <li><a href="/{{link}}"><i class="fa fa-home fa-fw"></i>{{name}}</a></li>
+                {% endfor %}
                 </ul>
             </div>
             <!-- /.sidebar-collapse -->

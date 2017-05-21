@@ -28,3 +28,7 @@
     </div>
     {% endverbatim %}
 {% endblock %}
+
+{% block footer_javascript %}
+{% include "../www/js/login.js" %}
+{% endblock %}

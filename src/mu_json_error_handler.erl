@@ -9,6 +9,7 @@
 out(Message,Context) -> out(Message).
 
 out(Message) when is_list(Message) -> generateResponse(Message);
+out(Message) when is_atom(Message) -> generateResponse(Message);
 out(Code) when is_integer(Code) ->
   case Code of
     0 -> generateResponse("Wrong request method");

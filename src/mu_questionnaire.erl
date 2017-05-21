@@ -18,20 +18,13 @@
 start_link() -> gen_server:start_link(?MODULE, [], []).
 stop()  -> gen_server:call(?MODULE, stop).
 
-%gen_server:call = remote procedure call to the server.
--spec getNewQuestion(pid(), {integer(),any()}) -> term().
-getNewQuestion(Pid,Response) ->
-		gen_server:call(Pid, {next, Response}).
-% getAnswers(State)  -> gen_server:call(?MODULE, {new, State}).
-% withdraw(Who, Amount) -> gen_server:call(?MODULE, {remove, Who, Amount}).
-
 init([]) ->
 		% lager:error("ch1 has started (~w)~n   - ~p", [self(), ?MODULE]),
-		{ok, #{tab => [],score => 0}}. %1 - start with first question
+		{ok, #{tab => [],processingSpeed => 0, brainCapacity => 0, brainWeight => 0, userId => ""}}. %1 - start with first question
 		% {ok, ets:new(?MODULE,[])}. % local pid storage
 
 checkConditionQA(#{<<"id">> := Qid, <<"answer">> := AnswerId},Tab) ->
-	atom_to_list(lists:any(fun(X) -> case X of {{Qid, AnswerId},_} -> true; _ -> false end end, Tab));
+	atom_to_list(lists:any(fun(X) -> case X of {{Qid, AnswerId},_,_} -> true; _ -> false end end, Tab));
 checkConditionQA(#{<<"op">> := Op},Tab) -> binary_to_list(Op);
 checkConditionQA(#{<<"p1">> := Op},Tab) -> binary_to_list(Op);
 checkConditionQA(#{<<"p2">> := Op},Tab) -> binary_to_list(Op).
@@ -53,46 +46,64 @@ getNextQuestion([Condition|T],DefaultNextQuestion,Tab) ->
 getNextQuestion([], DefaultNextQuestion,_) -> DefaultNextQuestion.
 
 nextQuestion(QuestionnaireId, QuestionId, AnswerId, Tab) ->
-	#{<<"default_next_question">> := DefaultNextQuestion, <<"weight">> := Weight} = mu_db:get_answer(QuestionnaireId, QuestionId,AnswerId),
+	#{<<"default_next_question">> := DefaultNextQuestion, <<"processingSpeed">> := W1, <<"brainCapacity">> := W2, <<"brainWeight">> := W3} = mu_db:get_answer(QuestionnaireId, QuestionId,AnswerId),
 		lager:error("DefaultNextQuestion: ~p",[DefaultNextQuestion]),
 	NextQuestion = getNextQuestion( mu_db:get_logic(QuestionnaireId, QuestionId, AnswerId),DefaultNextQuestion,Tab),
 		lager:error("NextQuestion: ~p",[NextQuestion]),
 	%we add current state to Tab - where we have been {Question, Answer}, and get next question from database
-	{Tab ++ [{{QuestionId, AnswerId},Weight}], Weight, mu_db:get_questionnaire_question(QuestionnaireId, NextQuestion)}.
+	{Tab ++ [{{QuestionId, AnswerId},{W1,W2,W3},NextQuestion}], {W1,W2,W3}, mu_db:get_questionnaire_question(QuestionnaireId, NextQuestion)}.
 
-handle_call({next, {QuestionnaireId, QuestionId, AnswerId}}, _From, #{tab := Tab, score := Score}) ->
-lager:error("QuestionId: ~p",[QuestionId]),
-lager:error("AnswerId: ~p",[AnswerId]),
-lager:error("Tab: ~p",[Tab]),
+%gen_server:call = remote procedure call to the server.
+-spec getNewQuestion(pid(), {integer(),any()}) -> term().
+getNewQuestion(Pid,Response) ->
+		gen_server:call(Pid, {next, Response}).
+
+-spec start(pid(), binary(),integer()) -> term().
+start(Pid,UserId,QuestionnaireId) ->
+	gen_server:call(Pid, {start, UserId,QuestionnaireId}).
+
+handle_call({start, UserId, QuestionnaireId}, _From, Tab) ->
+	ets:insert(mu_questionnaire_user, {UserId, {self(),QuestionnaireId}}),
+	{reply, [], Tab#{userId => UserId, questionnaireId=>QuestionnaireId }};
+handle_call({next, {UserId1, QuestionnaireId1,Qid, AnswerId}}, _From, #{tab := Tab,
+	processingSpeed := PS, brainCapacity := BC, brainWeight := BW, userId := UserId, questionnaireId := QuestionnaireId}) ->
+	lager:error("tedasdasdas: ~p",[UserId]),
+	lager:error("tedasdasdas: ~p",[Tab]),
+	case Tab of
+		[] -> QuestionId=1; % get last saved state
+		_ -> {_,_,QuestionId} = lists:last(Tab)
+	end,
+		lager:error("QuestionId: ~p",[QuestionId]),
+		lager:error("AnswerId: ~p",[AnswerId]),
+		lager:error("Tab: ~p",[Tab]),
 	case AnswerId of
-		0 -> lager:error("L 0: ~p",[Tab]),{Tab1, Weight,Question} = {Tab,0, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId)}; % if no answer send same question
-		_ when AnswerId<0 -> {Tab1, Weight, Question} = {Tab, 0, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId+1)};
-		_ -> lager:error("all: ~p",[Tab]),{Tab1, Weight, Question} = nextQuestion(QuestionnaireId,QuestionId, AnswerId, Tab)
+		0 -> lager:error("L 0: ~p",[Tab]),{Tab1, W1,W2,W3,Question} = {Tab,0,0,0, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId)}; % if no answer send same question
+		_ when AnswerId<0 orelse is_binary(AnswerId) -> {Tab1, W1,W2,W3, Question} = {Tab ++ [{{QuestionId, AnswerId},{0,0,0},QuestionId+1}],0,0,0, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId+1)};
+		_ -> lager:error("all: ~p",[Tab]),{Tab1, {W1,W2,W3}, Question} = nextQuestion(QuestionnaireId,QuestionId, AnswerId, Tab)
 	end,
 			lager:error("Current user questionnaire state: ~p",[Tab1]),
-		% lager:error("req: ~p -- ~p",[Tab, ets:lookup(Tab, who)]),
-		% ets:insert(Tab, {who,QuestionnaireId}),
-		% lager:error("req: ~p -- ~p",[Tab, ets:lookup(Tab, who)]),
-		% ets:insert(mu_questionnaire_state, {self(), QuestionnaireId}),
-		%  Reply = case ets:lookup(Tab, Who) of
-		% 		[]  -> ets:insert(Tab, {Who,0}), % if is empty then insert
-		% 		       {welcome, Who}; %return
-		% 		[_] -> {Who, you_already_are_a_customer}
-		%  end,
-		Score1 = Score + Weight,
+		S1 = PS + W1,S2 = BC + W2,S3 = BW + W3,
 		case Question of
-			[] -> mu_db:insert_result(QuestionnaireId,1,Score1); %end of questions, check scoring
+			[] ->
+			lager:error("dsadas: ~p",[Tab1]),
+			mu_db:insert_result(QuestionnaireId,UserId,S1,S2,S3); %end of questions, check scoring
 			_ -> ok
 		end,
 		% reply, response, state
-		{reply, #{score => Score1, question => Question}, #{tab => Tab1,score => Score1}};
-
-%function is called from terminate(...)
-%{stop, Reason, NewState}
-handle_call(stop, _From, Tab) -> {stop, normal, stopped, Tab}.
+		{reply, #{processingSpeed => S1, brainCapacity => S2, brainWeight => S3, question => Question},
+		#{tab => Tab1,processingSpeed => S1, brainCapacity => S2, brainWeight => S3,userId => UserId, questionnaireId => QuestionnaireId}};
+handle_call(stop, _From, Tab) ->
+lager:error("stop: ~p",[Tab]),{stop, normal, stopped, Tab}.
 handle_cast(_Msg, State) -> {noreply, State}. %it’s called a cast to distinguish it from a remote procedure call)
 handle_info(_Info, State) -> {noreply, State}.
-terminate(_Reason, _State) -> ok.
+
+removeUserFromEtsTable(UserId) ->
+	case UserId of
+		-1 -> lager:error("User do not exist in ETS table: ~p",[UserId]),error;
+		_ -> lager:error("UserId successfully removed from ets table: ~p",[UserId]), ets:delete(mu_questionnaire_user, UserId),ok
+	end.
+terminate(_Reason, _State) -> removeUserFromEtsTable(maps:get(userId, _State,-1)),
+	ok.
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 
 % handle_cast(calc, State) ->

@@ -8,35 +8,33 @@
 
 out(Path) -> out(Path, []).
 out(Path, Context1) ->
+  Context = [{pagetitle, <<"Home">>},
+    {navMenu, [{<<"Registracija uporabnika">>, <<"registration">>}, {<<"Urejanje avatarjev">>, <<"edit_avatar">>},{<<"Vprašalniki"/utf8>>, <<"questionnaires">>}, {<<"Admin vprašalniki"/utf8>>,<<"edit_questionnaires">>}]}],
+  DefaultOut = #{ data => Context ++ Context1},
+  lager:error("DefaultOut: ~p",[DefaultOut]),
   % #pgr{ status = (http koda), headers = [ headerji ], body = <<binarni body>> }
   case Path of
     <<"/">> ->
       #{ status => 302, headers=>#{<<"Location">> => <<"index">>}};
     <<"/index">> ->
-      Context = [{pagetitle, "Home"},
-        {navMenu, [{"Login","login"}, {"Registration", "registration"},{"Questionnaires", "questionnaires"}, {"Admin questionnaires","edit_questionnaires"}]}],
-      #{ view => mu_view_index, data => Context };
+      DefaultOut#{ view => mu_view_index };
     <<"/login">> ->
-      Context = [{pagetitle, "Login"}],
-      #{ view => mu_view_login, data => Context };
+      #{ view => mu_view_login } ;
     <<"/registration">> ->
-      #{ view => mu_view_registration } ;
+      DefaultOut#{ view => mu_view_registration };
+    <<"/edit_avatar">> ->
+      DefaultOut#{ view => mu_view_edit_avatar };
     <<"/questionnaire">> ->
-        lager:error("Args: ~p",[Context1]),
-      #{ view => mu_view_questionnaire, data => Context1 };
+      DefaultOut#{ view => mu_view_questionnaire };
     <<"/questionnaires">> ->
-        % lager:error("Unsupported token: ~p",[Context]),
-        Context = [{pagetitle, "questionnaires"}],
-      #{ view => mu_view_questionnaires, data => Context};
-    <<"/edit_questionnaires">> ->
+      DefaultOut#{ view => mu_view_questionnaires };
+    <<"/edit_questionnaires">> ->lager:error("Test: ~p",[Context1]),
       {ok, {false, Questionnaires}} = mu_db:get_questionnaires(),
-      Context = [{questionnaires, Questionnaires}, {pagetitle, "Edit questionnaires"}],
-      #{ view => mu_view_edit_questionnaires, data => Context };
+      #{ view => mu_view_edit_questionnaires, data => Context ++ [{questionnaires, Questionnaires}] ++ Context1 };
     <<"/edit_questionnaire">> ->
       % {ok, Html} = mu_view_edit_questionnaire:render(Context),
       % #{ status => 200, headers=>#{<<"content-type">> => <<"text/html">>}, body => render_page(mu_view_edit_questionnaire, Context)};
-      Context = [{pagetitle, "Edit questionnaire"}],
-      #{ view => mu_view_edit_questionnaire };
+      DefaultOut#{ view => mu_view_edit_questionnaire };
     <<"/jsontest">> ->
       % #{ status => 200, headers=>#{<<"content-type">> => <<"application/json">>}, body => Html};
       % A = 1,

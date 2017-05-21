@@ -35,11 +35,13 @@ schema_def() ->
 
     #adb_actor{ name = <<"user">>, tables = [
       #adb_table{ name = <<"data">>, opts = [without_rowid, {primary_key,[<<"email">>]}], fields = [
-        #adb_field{ name = <<"param">>, type = <<"TEXT">> },
+        #adb_field{ name = <<"avatarName">>, type = <<"TEXT">> },
         #adb_field{ name = <<"email">>, type = <<"TEXT">> },
         #adb_field{ name = <<"role">>, type = <<"TEXT">> },
         #adb_field{ name = <<"passwordHash">>, type = <<"TEXT">> },
-        #adb_field{ name = <<"salt">>, type = <<"TEXT">> }
+        #adb_field{ name = <<"salt">>, type = <<"TEXT">> },
+        #adb_field{ name = <<"sex">>, type = <<"BOOLEAN">> },
+        #adb_field{ name = <<"avatar">>, type = <<"TEXT">> , opts = [ {default,""} ]}
       ]},
 
       #adb_table{ name = <<"session">>, opts = [without_rowid, {primary_key,[<<"id">>]}], fields = [
@@ -68,7 +70,9 @@ schema_def() ->
         {primary_key,[<<"user_id">>,<<"questionnaire_id">>]}], fields = [
         #adb_field{ name = <<"questionnaire_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"user_id">>, type = <<"INTEGER">>},
-        #adb_field{ name = <<"score">>, type = <<"INTEGER">>}
+        #adb_field{ name = <<"processingSpeed">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"brainCapacity">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"braintWeight">>, type = <<"INTEGER">>}
       ]},
 
       #adb_table{ name = <<"questions">>, opts = [without_rowid, {foreign_key,[{key,["questionnaire_id"]},
@@ -90,7 +94,9 @@ schema_def() ->
         #adb_field{ name = <<"question_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"questionnaire_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"answer">>, type = <<"TEXT">>},
-        #adb_field{ name = <<"weight">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"processingSpeed">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"brainCapacity">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"brainWeight">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"default_next_question">>, type = <<"INTEGER">>}
       ]},
 

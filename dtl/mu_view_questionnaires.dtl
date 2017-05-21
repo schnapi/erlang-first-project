@@ -4,10 +4,27 @@
     {% verbatim %}
     <div class="row" id="questionnaires">
       <div class="col-lg-12">
-        <div class="list-group" v-for="item in questionnaires">
-          <button :value="item.id" type="button" class="list-group-item" @click="vuePOST('questionnaire', {questionnaireId: item.id, name: item.name, scoring: item.scoring, max_score: item.max_score})">{{ item.name }}</button>
+        <div class="list-group" v-for="(item, index) in questionnaires">
+          <template v-if="index > 0 && questionnaires[index-1].braintWeight=='undefined'" >
+            <button :value="item.id" type="button" class="list-group-item">{{ item.name }}<span class="pull-right glyphicon glyphicon-lock"></span></button>
+          </template>
+          <template v-else>
+            <template v-if="questionnaireInProgressId==index+1">
+            {{vuePOST('questionnaire', {questionnaireId: item.id, name: item.name, scoring: item.scoring, max_score: item.max_score})}}
+            </template>
+            <button :value="item.id" type="button" class="list-group-item" @click="vuePOST('questionnaire', {questionnaireId: item.id, name: item.name, scoring: item.scoring, max_score: item.max_score})">{{ item.name }}</button>
+            <template v-if="item.braintWeight != 'undefined'">
+              braintWeight: {{ item.braintWeight }}
+              brainCapacity: {{ item.brainCapacity }}
+              processingSpeed: {{ item.processingSpeed }}
+            </template>
+          </template>
         </div>
       </div>
     </div>
     {% endverbatim %}
+{% endblock %}
+
+{% block footer_javascript %}
+{% include "../www/js/questionnaires.js" %}
 {% endblock %}

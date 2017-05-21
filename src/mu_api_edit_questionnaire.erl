@@ -6,7 +6,7 @@
 
 -spec init(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
 -spec handle_questionnaires_api(cowboy_req:req(), atom()) -> {ok, cowboy_req:req(), atom()}.
--spec check_args(nonempty_list()) -> any().
+-spec check_args(integer(), nonempty_list()) -> any().
 
 init(Req0, State) ->
   Method = cowboy_req:method(Req0),
@@ -24,14 +24,15 @@ handle_questionnaires_api(Req0, State) ->
   % Args = jsx:decode(Body,[{labels, atom}, return_maps]),
   Args = jsx:decode(Body,[return_maps]),
 
-  case check_args(Args) of
+  case check_args(getUserIdFromReq(Req0), Args) of
     {error,Message} -> http_request_util:cowboy_out(mu_json_error_handler,Message, Req0, State);
     error -> http_request_util:cowboy_out(mu_json_error_handler,2, Req0, State);
     ok -> http_request_util:cowboy_out(mu_json_success_handler,  true, Req0, State);
     {ok,Message} -> http_request_util:cowboy_out(mu_json_success_handler, Message, Req0, State, decodeOff);
     Id when is_integer(Id) -> http_request_util:cowboy_out(mu_json_success_handler,  Id, Req0, State);
     % todo: implement gen_server for sessions, call it at this point
-    Map -> http_request_util:cowboy_out(mu_json_success_handler, Map , Req0, State)
+    Map ->
+      lager:error("Map: ~p",[Map]),http_request_util:cowboy_out(mu_json_success_handler, Map , Req0, State)
   end.
 
 
@@ -50,7 +51,14 @@ writeFile(Path,Image) ->
     _ -> lager:error("writeFile, no match: ~p",[Image]), error
   end.
 
-check_args(Args) ->
+check_args(UserId, #{ <<"get">> := <<"all">> }) ->
+  {ok, {false, Questionnaires}} = mu_db:get_questionnaire_and_score(UserId),
+  case ets:lookup(mu_questionnaire_user, UserId) of
+    [{_,{_,Qid}}|_] -> ok;
+    _ -> Qid = -1
+  end,
+  #{<<"questionnaires">> => Questionnaires,<<"questionnaireInProgressId">> => Qid};
+check_args(UserId, Args) ->
   case Args of
     #{ <<"remove">> := Id } -> mu_db:remove_questionnaire(Id);
     #{ <<"questionnaire">> := Questionnaire} ->
@@ -69,9 +77,6 @@ check_args(Args) ->
           [mu_db:insert_update_question_answers(NewQuestionnaireId,Question) || Question <- QuestionMap ],
           NewQuestionnaireId
       end;
-    #{ <<"get">> := <<"all">> } ->
-      {ok, {false, Questionnaires}} = mu_db:get_questionnaires(),
-      Questionnaires;
     #{ <<"get">> := Id } ->
       {ok, {false, Questions}} = mu_db:get_questionnaire_questions(Id),
       Questions;

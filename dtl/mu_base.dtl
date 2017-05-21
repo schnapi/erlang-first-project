@@ -23,6 +23,8 @@
     <!-- Custom Fonts -->
     <link href="/static/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
+    <link rel="stylesheet" href="static/css/modal.css">
+
   {% endblock %}
 </head>
 <body>
@@ -51,12 +53,12 @@
   <script src="static/js/vue.js"></script>
 
   <script src="static/js/utility.js"></script>
-
-  <!-- Internal scripts -->
-  <script src="static/js/login.js"></script>
   <script src="static/js/logout.js"></script>
-  <script src="static/js/questionnaires.js"></script>
-  <script src="static/js/edit_questionnaires.js"></script>
+
   {% endblock %}
+  <script>
+    {% block footer_javascript %}
+    {% endblock %}
+  </script>
 </body>
 </html>

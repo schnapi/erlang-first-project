@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="static/css/modal.css">
+  <link rel="stylesheet" href="static/css/style.css">
+  <!-- <script src="https://unpkg.com/vue"></script> -->
+  <script src="static/js/vue.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/sortable/1.4.2/Sortable.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.13.1/lodash.min.js"></script>
+  <script type="text/javascript" src="https://cdn.rawgit.com/David-Desmaisons/Vue.Draggable/master/dist/vuedraggable.min.js"></script>
+  <style type="text/css">
+</style>
+  <body>
+    {% verbatim %}
+    <div class="container" id="avatars">
+        <div style="border-bottom: solid 1px #eceeef;">
+          <div class="d-flex justify-content-end">
+            <div class="mr-auto"> <h3>Pregled galerije</h3></div>
+            <div><input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
+              <label class="btn btn-primary btn-file" onclick="triggerClick()">
+              Naloži avatarja<input style="display:none" type="file" name="fileselect[]" multiple="multiple" accept="image/*" @change="onFileChange()" />
+              </label>
+              <label class="btn btn-primary btn-file" v-on:click="deleteSelImages()">Izbriši slike</label>
+            </div>
+          </div>
+        </div>
+        <div class="row" id="modalGallery">
+          <div v-for="(file, index) in filesManager.files" class="img-thumbnail d-inline-block mx-2 my-2" v-on:click="selectImage(index)" style="width:100px">
+            <img :src="filesManager.folder+file" class="thumbnail" style="width:100%">
+            <div class="caption text-center">{{file}}</div>
+          </div>
+        </div>
+    </div>
+    {% endverbatim %}
+  <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="static/js/utility.js"></script>
+  <script>
+
+  function triggerClick() {
+    $(this).children("input").trigger('click');
+  }
+
+  new Vue({
+    el: '#avatars',
+    data: {
+      files: [],
+      filesManager: [],
+      removeFilesInd: [],
+      removeFilesClassList: [],
+      progressBars: []
+    },
+    mounted: function() {
+      var data = JSON.stringify({
+        "getAllFiles": "path_avatars"
+      });
+      var self=this
+      $.post("/api/edit_files", data, function(data) {
+        if (data.error) {
+          alert(data.error);alert("Napaka pri branju podatkov!");}
+        else {
+          self.filesManager = data
+        }
+      })
+    },
+    methods: {
+      ifExistVal: function(obj,para) {
+        if(obj[para] == "") return true
+        return false
+      },
+      deleteSelImages() {
+        removeFiles = []
+        var self=this
+        this.removeFilesInd.forEach(function(index){
+          removeFiles.push(self.filesManager.folder+self.filesManager.files[index])
+        })
+        // alertj(removeFiles)
+        var data = JSON.stringify({
+          removeFiles: removeFiles
+        });
+        $.post("/api/edit_files", data, function(data) {
+          if(data.error) alert(data.error)
+          else {
+            // alert(self.removeFilesClassList)
+            // alert(self.removeFilesInd)
+            self.removeFilesInd.forEach(function(ind, index){
+              if(data[index] != "ok") alert(self.filesManager.files[index]+" ni bilo mogoče izbrisati!\n"+el)
+              else {
+                self.filesManager.files[ind] = undefined
+              }
+              self.removeFilesClassList[index].toggle('active')
+            })
+            filesManager = []
+            self.filesManager.files.forEach(function(el){
+              if(el !== undefined) filesManager.push(el)
+            })
+            self.filesManager.files = filesManager
+            self.removeFilesClassList= []
+            self.removeFilesInd = []
+          }
+        })
+      },
+      selectImage(index) {
+        // ind = myArray.findIndex(x => x.question_id === index+1 && x.questionnaire_id === self.questionnaire.id)
+        ind = this.removeFilesInd.indexOf(index)
+        if(ind == -1) {
+          this.removeFilesInd.push(index);
+          this.removeFilesClassList.push(event.currentTarget.classList);
+        }
+        else {
+          this.removeFilesInd.splice(ind,1)
+          this.removeFilesClassList.splice(ind,1)
+        }
+        event.currentTarget.classList.toggle('active')
+      },
+      onFileChange() {
+        index=1
+        var files = event.target.files || event.dataTransfer.files;
+        if (!files.length)
+          return;
+        this.uploadImage(files[0],this.filesManager.folder,files[0].name);
+      },
+      uploadImage(file,folder,fileName) {
+        filePath = folder+fileName
+        var data = JSON.stringify({
+          fileExist: filePath,
+        });
+        self=this;
+        $.post("/api/edit_files", data, function(data) {
+          if(data.error) {
+            if(data.error == "eexist") {if(!confirm("Slika s tem imenom že obstaja! Ali jo želite zamenjati?")) return false;}
+            else {alert(data.error); return false;}
+          }
+          var image = new Image();
+          var reader = new FileReader();
+          reader.onload = (e) => {
+            var data = JSON.stringify({
+              writeFile: filePath,
+              file:e.target.result
+            });
+            $.post("/api/edit_files", data, function(data) {
+              if(data.error == "eacces") alert("Datoteke ni bilo mogoče ustvariti saj nimate dodeljenih teh pravic! Obrnite se na administratorja!")
+              else if(data.error) alert(data.error)
+              else {self.filesManager.files.push(fileName);alert("Slika je bila uspešno naložena!");}
+            })
+          };
+          reader.onprogress = function(event) {
+              if (event.lengthComputable) {
+                  self.progressBars.max = event.total;
+                  self.progressBars.value = event.loaded;
+              }
+          };
+          reader.readAsDataURL(file);
+        })
+      },
+    }
+  })
+  </script>
+  </body>
+
+</html>

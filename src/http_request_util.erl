@@ -4,19 +4,20 @@
 
 -include("../include/mu.hrl").
 
--define(HEADERHTML, #{<<"content-type">> => <<"text/html">>}).
--define(HEADERTEXT, #{<<"content-type">> => <<"text/plain">>}).
--define(HEADERJSON, #{<<"content-type">> => <<"application/json">>}).
+-define(HEADERHTML, #{<<"content-type">> => <<"text/html; charset=utf-8">>}).
+-define(HEADERTEXT, #{<<"content-type">> => <<"text/plain; charset=utf-8">>}).
+-define(HEADERJSON, #{<<"content-type">> => <<"application/json; charset=utf-8">>}).
 
 -spec cowboy_out(atom(), binary() | integer() | map() | pid()| atom(),cowboy_req:req(), atom()) -> {ok,cowboy_req:req(),atom()}.
 
 cowboy_out(Module,Path, Req0, State) -> cowboy_out(Module,Path, Req0, State,[]).
 cowboy_out(Module,Path, Req0, State,Context1) ->
-% lager:error("Path: ~p",[Path]),
+lager:debug("Path: ~p",[Path]),
+lager:debug("Module: ~p",[Module]),
   % if some error comes from dtl page then catch an exception and print to
   case catch Module:out(Path,Context1) of
     {'EXIT', Error} ->
-      lager:error("error on path=~p exception=~p",[Path, Error]),
+      lager:error("Check pattern matching in Module:out: error on path=~p exception=~p",[Path, Error]),
       Pgr = #{ type => json, data => #{ <<"status">> => <<"error">> }};
     Pgr ->
       ok

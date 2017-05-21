@@ -10,7 +10,6 @@
   <script type="text/javascript" src="https://cdn.jsdelivr.net/sortable/1.4.2/Sortable.min.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.13.1/lodash.min.js"></script>
   <script type="text/javascript" src="https://cdn.rawgit.com/David-Desmaisons/Vue.Draggable/master/dist/vuedraggable.min.js"></script>
-  <script src="static/js/utility.js"></script>
   <style type="text/css">
 </style>
   <body>
@@ -153,18 +152,23 @@
               <p>Tip odgovora:
                 <select v-model="question['answers_type']">
                   <option value="selectOne">Eden pravilni odgovor</option>
-                  <option value="selectMulti">Več pravilnih odgovorov</option>
+                  <option value="textarea">Vnos teksta</option>
+                  <!-- <option value="selectMulti">Več pravilnih odgovorov</option> -->
                   <option value="motivation">Oblaček MocenUm</option>
                 </select>
               </p>
-              <template v-if="question['answers_type'] != 'motivation'">
+              <template v-if="question['answers_type'] == 'selectOne'">
                 <table class="answers table">
-                  <thead><tr><th></th><th>Odgovor</th><th>Točke</th><th>Naslednje vprašanje</th><th></th></tr></thead>
+                  <thead><tr><th></th><th>Odgovor</th><th v-if="questionnaire.scoring" align="center">Točke</th><th>Naslednje vprašanje</th><th></th></tr></thead>
                   <tbody>
                     <tr v-for="(answer, index1) in question['answers']">
                       <td>{{answer.id = index1+1}}.</td>
                       <td><textarea v-model="answer.value"></textarea></td>
-                      <td v-if="questionnaire.scoring"><input type='text' v-model='answer.weight'></td>
+                      <td v-if="questionnaire.scoring">
+                        Hitrost procesiranja: <input class="col-3" type='text' v-model='answer.processingSpeed'> <br>
+                        Spominske kapacitete: <input class="col-3" type='text' v-model='answer.brainCapacity'> <br>
+                        Teža možganov: <input class="col-3" type='text' v-model='answer.brainWeight'> <br>
+                      </td>
                       <td>
                         <button @click="showModalLogicF(index+1, index1+1)">Logika</button>
                       </td>
@@ -187,6 +191,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="static/js/utility.js"></script>
   <script type="text/x-template" id="modal-template">
     <transition name="modal">
       <div class="modal-mask">
@@ -214,7 +219,6 @@
     </transition>
   </script>
   <script>
-  drawCanvasBackground()
 
   Vue.component('modal', {
     template: '#modal-template'

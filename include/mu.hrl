@@ -16,8 +16,19 @@ render_page(Module) ->
     {ok, Out} -> Out
   end.
 
-getConfigPathImage() ->
-  case application:get_env(mu,path_image) of
+getUserIdFromHeader(Header) ->
+  Cookie = maps:get(<<"cookie">>,Header),
+  [_ | SessionId] = binary:split(Cookie,<<"sessionId=">>),
+  {UserId} = mu_sessions:get_userid_from_session(SessionId),
+  UserId.
+getUserIdFromReq(Req) ->
+  Header = maps:get(headers,Req),
+  getUserIdFromHeader(Header).
+
+getConfigPathImage() -> getConfigPathImage(path_images).
+getConfigPathImage(ConfigVal) ->
+  lager:error("ConfigVal: ~p",[ConfigVal]),
+  case application:get_env(mu,ConfigVal) of
     {ok, PathImage} -> case lists:last(PathImage) of "/" -> PathImage; "\\" -> PathImage; _ -> PathImage ++ "/" end;
     _ -> "/"
   end.
