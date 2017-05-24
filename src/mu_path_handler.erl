@@ -28,14 +28,14 @@ out(Path, Context1) ->
       DefaultOut = #{ data => Context ++ [{pagetitle, <<"Urejanje avatarjev">>}] ++ Context1},
       DefaultOut#{ view => mu_view_edit_avatar };
     <<"/questionnaire">> ->
-      DefaultOut = #{ data => Context ++ [{pagetitle, <<"Vprasalnik">>}] ++ Context1},
+      DefaultOut = #{ data => Context ++ [{pagetitle, <<"Vprašalnik"/utf8>>}] ++ Context1},
       DefaultOut#{ view => mu_view_questionnaire };
     <<"/questionnaires">> ->
-      DefaultOut = #{ data => Context ++ [{pagetitle, <<"Vprasalniki">>}] ++ Context1},
+      DefaultOut = #{ data => Context ++ [{pagetitle, <<"Vprašalniki"/utf8>>}] ++ Context1},
       DefaultOut#{ view => mu_view_questionnaires };
     <<"/edit_questionnaires">> ->lager:error("Test: ~p",[Context1]),
       {ok, {false, Questionnaires}} = mu_db:get_questionnaires(),
-      #{ view => mu_view_edit_questionnaires, data => Context ++ [{pagetitle, <<"Admin vprasalniki">>}, {questionnaires, Questionnaires}] ++ Context1 };
+      #{ view => mu_view_edit_questionnaires, data => Context ++ [{pagetitle, <<"Admin vprašalniki"/utf8>>}, {questionnaires, Questionnaires}] ++ Context1 };
     <<"/edit_questionnaire">> ->
       % {ok, Html} = mu_view_edit_questionnaire:render(Context),
       % #{ status => 200, headers=>#{<<"content-type">> => <<"text/html">>}, body => render_page(mu_view_edit_questionnaire, Context)};
