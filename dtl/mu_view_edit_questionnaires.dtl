@@ -5,6 +5,7 @@
         <div class="btn-toolbar" role="toolbar">
           {% for questionnaire in questionnaires %}
             <div class="btn-group mr-2 col-lg-12" style="margin-bottom: 10px;padding:0;" role="group">
+              <input type="hidden" class='id' value="{{questionnaire.id}}">
               <div class="btn btn-default col-lg-10">{{questionnaire.name}}</div>
               <a href="edit_questionnaire?id={{questionnaire.id}}&name={{questionnaire.name}}&scoring={{questionnaire.scoring}}&max_score={{questionnaire.max_score}}" class="btn btn-success">Uredi</a>
               <button type="button" class="btn btn-danger" onclick="removeQuestionnaire(this)">Izbriši</button>

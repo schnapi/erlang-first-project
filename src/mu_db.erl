@@ -265,7 +265,7 @@ remove_questionnaire(Id) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"DELETE FROM questionnaires WHERE id=?1;">>, [], [[Id]]) of
    {ok,_} -> ok;
-   {error,Error} -> lager:debug("~p",Error), error
+   {error,Error} -> lager:error("~p",Error), error
   end.
 
 remove_question(NewQuestionnaireId, Id) ->

@@ -122,65 +122,67 @@
         <p><button @click="showModalGalleryF()">Prikaži/uredi galerijo</button></p>
         <draggable v-model="questions" class="dragArea">
           <div v-for="(question, index) in questions" class="card question">
-          <div class="card-header" role="tab">
+            <div class="card-header" role="tab">
             <a data-toggle="collapse" data-parent="#accordion" :href="'#question' + index" aria-expanded="true" :aria-controls="'question' + index">
             <h4>Vprašanje:<span>{{question.id = index+1}}</span></h4>
             </a>
             <a v-on:click="removeQuestion(index)" href="#">Odstrani</a>
-          </div>
-          <section :id="'question' + index" class="collapse card-block" role="tabpanel" :aria-labelledby="'question' + index">
-            <div class="form-group">
-              <textarea class="form-control" rows="5" id="comment" v-model="question['question']"></textarea>
             </div>
-            <div class="d-flex justify-content-end">
-              <div class="p-2"><input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
-              <label class="btn btn-primary btn-file" onclick="triggerClick()">
-              Izberi sliko: <input style="display:none" type="file" :id="'fileupload' + index" name="fileselect[]" multiple="multiple" accept="image/*" @change="onFileChange(index)" />
-              </label></div>
-              <div class="p-2 form-control"><input class="form-control" type="text" v-model="question['image']"></div>
-              <div class="p-2">
-                <a v-if="question['image'] != ''" href="#" @click="removeImage(index)">
-                  Odstrani sliko
-                </a>
+            <section :id="'question' + index" class="collapse card-block" role="tabpanel" :aria-labelledby="'question' + index">
+              <div class="form-group">
+                <textarea class="form-control" rows="5" id="comment" v-model="question['question']"></textarea>
               </div>
-              <div class="p-2">
-                <a href="#" v-if="typeof files[index] != 'undefined' && files[index] != ''" @click="uploadFile(files[index],index)">Naloži sliko</a>
+              <div class="d-flex justify-content-end">
+                <div class="p-2"><input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
+                <label class="btn btn-primary btn-file" onclick="triggerClick()">
+                Izberi sliko: <input style="display:none" type="file" :id="'fileupload' + index" name="fileselect[]" multiple="multiple" accept="image/*" @change="onFileChange(index)" />
+                </label></div>
+                <div class="p-2 form-control"><input class="form-control" type="text" v-model="question['image']"></div>
+                <div class="p-2">
+                  <a v-if="question['image'] != ''" href="#" @click="removeImage(index)">
+                    Odstrani sliko
+                  </a>
+                </div>
+                <div class="p-2">
+                  <a href="#" v-if="typeof files[index] != 'undefined' && files[index] != ''" @click="uploadFile(files[index],index)">Naloži sliko</a>
+                </div>
               </div>
-            </div>
-            <div class="form-group"><progress style="width:100%" v-if="progressBars[index].max!=progressBars[index].value" :max="progressBars[index].max" :value="progressBars[index].value"></progress></div>
-              <br>
-              <p>Tip odgovora:
-                <select v-model="question['answers_type']">
-                  <option value="selectOne">Eden pravilni odgovor</option>
-                  <option value="textarea">Vnos teksta</option>
-                  <!-- <option value="selectMulti">Več pravilnih odgovorov</option> -->
-                  <option value="motivation">Oblaček MocenUm</option>
-                </select>
-              </p>
-              <template v-if="question['answers_type'] == 'selectOne'">
-                <table class="answers table">
-                  <thead><tr><th></th><th>Odgovor</th><th v-if="questionnaire.scoring" align="center">Točke</th><th>Naslednje vprašanje</th><th></th></tr></thead>
-                  <tbody>
-                    <tr v-for="(answer, index1) in question['answers']">
-                      <td>{{answer.id = index1+1}}.</td>
-                      <td><textarea v-model="answer.value"></textarea></td>
-                      <td v-if="questionnaire.scoring">
-                        Hitrost procesiranja: <input class="col-3" type='text' v-model='answer.processingSpeed'> <br>
-                        Spominske kapacitete: <input class="col-3" type='text' v-model='answer.brainCapacity'> <br>
-                        Teža možganov: <input class="col-3" type='text' v-model='answer.brainWeight'> <br>
-                      </td>
-                      <td>
-                        <button @click="showModalLogicF(index+1, index1+1)">Logika</button>
-                      </td>
-                      <td><button v-on:click="removeAnswer(question,index1)" class="btn btn-danger" type="button">Odstrani</button></td>
-                    </tr>
-                  </tbody>
-                </table>
-                <button v-on:click="addAnswer(question)">Dodaj odgovor</button>
-              </template>
+              <div class="form-group">
+                <!-- <progress style="width:100%" v-if="progressBars[index].max!=progressBars[index].value" :max="progressBars[index].max" :value="progressBars[index].value"></progress> -->
+              </div>
+                <br>
+                <p>Tip odgovora:
+                  <select v-model="question['answers_type']">
+                    <option value="selectOne">Eden pravilni odgovor</option>
+                    <option value="textarea">Vnos teksta</option>
+                    <!-- <option value="selectMulti">Več pravilnih odgovorov</option> -->
+                    <option value="motivation">Oblaček MocenUm</option>
+                  </select>
+                </p>
+                <template v-if="question['answers_type'] == 'selectOne'">
+                  <table class="answers table">
+                    <thead><tr><th></th><th>Odgovor</th><th v-if="questionnaire.scoring" align="center">Točke</th><th>Naslednje vprašanje</th><th></th></tr></thead>
+                    <tbody>
+                      <tr v-for="(answer, index1) in question['answers']">
+                        <td>{{answer.id = index1+1}}.</td>
+                        <td><textarea v-model="answer.value"></textarea></td>
+                        <td v-if="questionnaire.scoring">
+                          Hitrost procesiranja: <input class="col-3" type='text' v-model='answer.processingSpeed'> <br>
+                          Spominske kapacitete: <input class="col-3" type='text' v-model='answer.brainCapacity'> <br>
+                          Teža možganov: <input class="col-3" type='text' v-model='answer.brainWeight'> <br>
+                        </td>
+                        <td>
+                          <button @click="showModalLogicF(index+1, index1+1)">Logika</button>
+                        </td>
+                        <td><button v-on:click="removeAnswer(question,index1)" class="btn btn-danger" type="button">Odstrani</button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <button v-on:click="addAnswer(question)">Dodaj odgovor</button>
+                </template>
+              </section>
             </section>
-          </section>
-        </div>
+          </div>
         </draggable>
         <p><button v-on:click="addQuestion()">Dodaj vprašanje</button></p>
         <p><button v-on:click="save()">Shrani vprašalnik</button></p>
@@ -260,6 +262,7 @@
         // alert(JSON.stringify(data))
         if (data.error) {alert("Napaka pri branju podatkov!");}
         else {
+          if(data =="") return false;
           data.forEach(function(question) {
             if (question['answers'] != "undefined") {
               try{
@@ -346,8 +349,6 @@
         this.showModalLogic=true
       },
       showModalGalleryF: function() {
-        this.showModalGallery=true;
-
         var data = JSON.stringify({
           "getAllFiles": ""
         });
@@ -357,6 +358,7 @@
             alert(data.error);alert("Napaka pri branju podatkov!");}
           else {
             self.filesManager = data
+            self.showModalGallery=true;
           }
         })
       },
@@ -406,7 +408,8 @@
           question: '',
           image: '',
           answers_type: 'selectOne',
-          answers: []
+          answers: [],
+          folder: ""
         });
       },
       addAnswer: function(question) {question.answers.push({});},
