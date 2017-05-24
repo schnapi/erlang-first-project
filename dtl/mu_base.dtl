@@ -51,6 +51,9 @@
 
   <!-- Vue -->
   <script src="static/js/vue.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/sortable/1.4.2/Sortable.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.13.1/lodash.min.js"></script>
+  <script type="text/javascript" src="https://cdn.rawgit.com/David-Desmaisons/Vue.Draggable/master/dist/vuedraggable.min.js"></script>-
 
   <script src="static/js/utility.js"></script>
   <script src="static/js/logout.js"></script>

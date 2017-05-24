@@ -38,8 +38,8 @@
         <div class="navbar-default sidebar" role="navigation">
             <div class="sidebar-nav navbar-collapse">
                 <ul class="nav" id="side-menu">
-                {% for name, link in navMenu%}
-                  <li><a href="/{{link}}"><i class="fa fa-home fa-fw"></i>{{name}}</a></li>
+                {% for name, link, caret in navMenu%}
+                  <li><a href="/{{link}}"><i class="fa {{caret}} fa-fw"></i>{{name}}</a></li>
                 {% endfor %}
                 </ul>
             </div>
