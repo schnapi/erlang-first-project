@@ -7,7 +7,8 @@
          get_sessionid/1,
          get_session_pid/1,
          get_session_id_by_pid/1,
-         get_userid_from_session/1]).
+         get_userid_from_session/1,
+         destroy_sessions_for_specific_user/1]).
 
 -include("../include/mu.hrl").
 
@@ -106,3 +107,24 @@ generate_sessionid(Ip, Username) ->
   RandBytes = butil:dec2hex(crypto:hash(sha256, crypto:strong_rand_bytes(32))),
   SessionId = list_to_binary(binary_to_list(Hash) ++ binary_to_list(RandBytes)),
   {SessionId}.
+
+destroy_sessions_for_specific_user(Email) ->
+  case mu_db:get_all_sessions_records(Email) of
+    [] ->
+      [];
+    SessionRecords ->
+      list_through_all(SessionRecords)
+  end.
+
+  list_through_all([H|T]) ->
+    Id = maps:get(<<"id">>,H),
+    case ets:lookup(mu_sessions, Id) of
+      [] ->
+        [];
+      [{_,Pid}] ->
+        mu_session:logout(Pid)
+    end,
+    case T of
+      [] -> [];
+      _ -> list_through_all(T)
+    end.

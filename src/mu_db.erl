@@ -4,7 +4,8 @@
 -export([get_all_users/0,get_answers/0,get_questionnaires/0,get_questions/0]).
 -export([insert_update_questionnaire/4]).
 -export([remove_questionnaire/1, remove_answer/1]).
--export([insert_new_session/2, delete_session_record/1, get_sessions_userid/1]).
+-export([insert_new_session/2, delete_session_record/1, get_sessions_userid/1,
+         get_all_sessions_records/1]).
 -export([check_schema/0, upgrade_schema/0]).
 
 -compile(export_all).
@@ -283,6 +284,14 @@ insert_new_session(SessionId, Email) ->
    <<"INSERT INTO actors VALUES(?1,{{hash(SessionId)}},?2);">>, [create], [[SessionId, Email]]) of
     {ok,{_,NewId,_}} -> lager:debug("session has been inserted: sessionid:~p",[SessionId]);
     {error,Error} -> lager:error("~p",[Error]), error
+  end.
+
+get_all_sessions_records(Email) ->
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"session">>,
+    <<"SELECT id FROM actors WHERE user_id=?1;">>, [], [[Email]]) of
+    {ok, {false, Res}} -> Res;
+    {ok,{false,[]}} -> [];
+    Error -> lager:error("~p",[Error]), error
   end.
 
 get_sessions_userid(SessionId) ->

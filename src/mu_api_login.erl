@@ -51,6 +51,7 @@ handle_session(Req0, State, Args) ->
     {false} ->
       #{peer := {Ip, _}} = Req0,
       Email = proplists:get_value(<<"email">>, Args),
+      mu_sessions:destroy_sessions_for_specific_user(Email),
       {SessionId, _} = mu_sessions:create_new_session(Ip, Email),
       {ok, Req2} = mu_sessions:set_sessionid(Req0, SessionId),
       http_request_util:cowboy_out(mu_json_success_handler,true, Req2, State);
