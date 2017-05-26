@@ -8,7 +8,7 @@ function removeQuestionnaire(cur) {
     if(data.error)
       alert(data.error);
     else {
-      alert("Ustrezno vnešeni podatki, success");
+      alert("Ustrezno odstranjeni podatki!");
       $(cur).closest("div").remove();
     }
   })

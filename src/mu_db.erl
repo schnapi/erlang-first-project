@@ -207,18 +207,14 @@ update_question(Id, Question, Image, Answers_type) ->
 
 insert_update_answer(AnswerMap, QuestionId, QuestionnaireId) ->lager:debug("~p",[AnswerMap]),
   case AnswerMap of
-    #{ <<"id">> := AnswerId, <<"value">> := Answer, <<"processingSpeed">> := ProcessingSpeed,
-    <<"brainCapacity">> := BrainCapacity, <<"brainWeight">> := BrainWeight} ->
-      case isInteger(ProcessingSpeed) of
-        true ->
-          case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-            <<"INSERT OR REPLACE INTO answers VALUES(?1,?2,?3,?4,?5,?6,?7,?8);">>, [create], [[AnswerId, QuestionId,
-            QuestionnaireId,Answer,ProcessingSpeed,BrainCapacity,BrainWeight,maps:get(<<"defaultNextQuestion">>, AnswerMap, QuestionId+1)]]) of
-            {ok,Va} -> lager:debug("Inserting updating answer ~p",[Va]),
-            mu_db:insert_update_logic(maps:get(<<"conditions">>, AnswerMap, []),QuestionnaireId, QuestionId, AnswerId, 1), ok;
-            {error,Error} -> lager:error("INSERT OR REPLACE INTO answers: ~p",[Error]), error
-          end;
-        false -> lager:error("ProcessingSpeed is not an integer ~p",[ProcessingSpeed])
+    #{ <<"id">> := AnswerId, <<"value">> := Answer} ->
+      case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+        <<"INSERT OR REPLACE INTO answers VALUES(?1,?2,?3,?4,?5,?6,?7,?8);">>, [create], [[AnswerId, QuestionId,
+        QuestionnaireId,Answer,maps:get(<<"processingSpeed">>, AnswerMap, 0),maps:get(<<"brainCapacity">>, AnswerMap, 0),
+        maps:get(<<"brainWeight">>, AnswerMap, 0), maps:get(<<"defaultNextQuestion">>, AnswerMap, QuestionId+1)]]) of
+        {ok,Va} -> lager:debug("Inserting updating answer ~p",[Va]),
+        mu_db:insert_update_logic(maps:get(<<"conditions">>, AnswerMap, []),QuestionnaireId, QuestionId, AnswerId, 1), ok;
+        {error,Error} -> lager:error("INSERT OR REPLACE INTO answers: ~p",[Error]), error
       end;
     _ -> lager:error("Answer data are missing, probably due test inserting :) "), error
   end.

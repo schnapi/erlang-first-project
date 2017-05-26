@@ -229,7 +229,8 @@
   var name = getUrlParam('name');
   var id = getUrlParam('id');
   var scoring = getUrlParam('scoring')==0?false:true;
-  var max_score = getUrlParam('max_score');
+  var max_score = parseInt(getUrlParam('max_score'));
+  if(!Number.isInteger(max_score)) max_score=0;
 
   if(name=="null") name="";
     toggle=true;
