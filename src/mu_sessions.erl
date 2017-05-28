@@ -83,9 +83,10 @@ get_session_id_by_pid(Pid) ->
 
 get_userid_from_session(SessionId) ->
   Res = mu_db:get_sessions_userid(SessionId),
-  [Head | _] = Res,
-  {ok, User_id} = maps:find(<<"user_id">>, Head),
-  {User_id}.
+  case Res of
+    [] -> {<<"">>};
+    [Head | _] ->  {ok, User_id} = maps:find(<<"user_id">>, Head), {User_id}
+  end.
 
 
 % start new session for user

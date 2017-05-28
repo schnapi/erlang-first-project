@@ -23,15 +23,25 @@ lager:debug("Module: ~p",[Module]),
       ok
   end,
 
+
+UserId = getUserIdFromReq(Req0),
+Role = mu_db:get_user_role(UserId),
+BasicMenu = [{<<"Domov">>, <<"index">>, <<"fa-home">>},{<<"Vprašalniki"/utf8>>, <<"questionnaires">>, <<"fa-question-circle">>}],
+case Role of
+  <<"admin">> -> AdminMenu = [{<<"Urejanje avatarjev">>, <<"edit_avatar">>, <<"fa-user">>}, {<<"Admin vprašalniki"/utf8>>,<<"edit_questionnaires">>, <<"fa-edit">>},
+  {<<"Admin registracija"/utf8>>,<<"admin_registration">>, <<"fa-edit">>}];
+  _ -> AdminMenu = []
+end,
+Menu = [{navMenu,BasicMenu++AdminMenu}],
   %default Reply
 DefReply = #{ status => 200, header => ?HEADERHTML, body => <<>>},
   case Pgr of
     #{ type := json, data := ToSeralize} ->
       Reply = DefReply#{ header => ?HEADERJSON, body => jsx:encode(ToSeralize) };
     #{ type := text, data := Context} ->
-      Reply = DefReply#{ header => ?HEADERTEXT, body => Context };
+      Reply = DefReply#{ header => ?HEADERTEXT, body => Context ++ Menu };
     #{ data := Context, view := View} -> % view is dtl file
-      Reply = DefReply#{ body => render_page(View, Context) }; % render_page function is in mu.hrl
+      Reply = DefReply#{ body => render_page(View, Context ++ Menu) }; % render_page function is in mu.hrl
     #{ view := View } ->
       Reply = DefReply#{ body => render_page(View) };
     #{ status := Status, headers := Header, body := Body} ->

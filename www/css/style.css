@@ -39,10 +39,10 @@ position: absolute;
 .remove{color: red}
 .close{cursor:pointer;font-size: 22px;}
 
-.row>[class^=col-] {
+/*.row>[class^=col-] {
     background-color: rgba(86,61,124,.15);
     border: 1px solid rgba(86,61,124,.2);
-}
+}*/
 
 .selected .row {background-color: cyan}
 
@@ -81,7 +81,6 @@ td {
 }
 
 th, td {
-  min-width: 80px;
   padding: 10px 20px;
 }
 

@@ -8,8 +8,7 @@
 
 out(Path) -> out(Path, []).
 out(Path, Context1) ->
-  Context = [
-    {navMenu, [{<<"Domov">>, <<"index">>, <<"fa-home">>}, {<<"Urejanje avatarjev">>, <<"edit_avatar">>, <<"fa-user">>},{<<"Vprašalniki"/utf8>>, <<"questionnaires">>, <<"fa-question-circle">>}, {<<"Admin vprašalniki"/utf8>>,<<"edit_questionnaires">>, <<"fa-edit">>}]}],
+  Context = [],
 
   %lager:error("DefaultOut: ~p",[DefaultOut]),
   % #pgr{ status = (http koda), headers = [ headerji ], body = <<binarni body>> }
@@ -24,6 +23,9 @@ out(Path, Context1) ->
     <<"/registration">> ->
       DefaultOut = #{ data => Context ++ [{pagetitle, <<"Registracija">>}] ++ Context1},
       DefaultOut#{ view => mu_view_registration };
+    <<"/admin_registration">> ->
+      DefaultOut = #{ data => Context ++ [{pagetitle, <<"Registracija">>}] ++ Context1},
+      DefaultOut#{ view => mu_view_admin_registration };
     <<"/edit_avatar">> ->
       DefaultOut = #{ data => Context ++ [{pagetitle, <<"Urejanje avatarjev">>}] ++ Context1},
       DefaultOut#{ view => mu_view_edit_avatar };

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="static/css/style.css">
+  <script src="https://unpkg.com/vue"></script>
+
+  {% verbatim %}
+  <script src="https://cdn.jsdelivr.net/vee-validate/2.0.0-beta.25/vee-validate.js"></script>
+  <!-- component template -->
+  <script type="text/x-template" id="grid-template">
+    <table>
+      <thead>
+        <tr>
+          <th v-for="(item, key) in columns"
+            @click="sortBy(key)"
+            :class="{ active: sortKey == key }">
+            {{ item | capitalize }}
+            <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
+            </span>
+          </th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(entry, index) in filteredData">
+          <td v-for="(item, key) in columns">
+            <template v-if="item == 'Spol'">
+              <template v-if="entry[key] == '0'">
+                Moški
+              </template>
+              <template v-else>
+                Ženski
+              </template>
+            </template>
+            <template v-else>
+              {{entry[key]}}
+            </template>
+          </td>
+          <td><button v-on:click="removeItem(index)" class="btn btn-danger" type="button">Odstrani</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </script>
+
+  <body>
+    <div class="container">
+    <div class="row">
+      <div class="col-xs-6 p-4">
+        <h1>Registracija</h1>
+        <form id="registration" class="form-horizontal" style="white-space: nowrap;">
+            <div v-bind:class="{'form-group': true, 'has-danger': errors.has('username')}">
+                <label class="control-label col-sm-2" for="email">Uporabniško ime:</label>
+                <input id="username" name="username" type="email" class="form-control" placeholder="Your email address" v-model="username" v-validate="'required|email'">
+                <span class="form-control-feedback" v-if="errors.has('username')">{{errors.first('username')}}</span>
+            </div>
+            <div v-bind:class="{'form-group': true, 'has-danger': errors.has('password')}">
+                <label class="control-label col-sm-2" for="password">Geslo:</label>
+                <input id="password" name="password" type="password" class="form-control" placeholder="Choose a password" v-model="password" v-validate="'required|min:8|max:32'">
+                <span class="form-control-feedback" v-if="errors.has('password')">{{errors.first('password')}}</span>
+            </div>
+            <div v-bind:class="{'form-group': true}">
+              <select  v-model="role" class="custom-select">
+                <option value="user" selected>Uporabnik</option>
+                <option value="admin">Administrator</option>
+              </select>
+            </div>
+            <div v-bind:class="{'form-group': true}">
+              Spol:
+              <label class="radio-inline">
+                <input type="radio" v-model="sex" value="0">Moški
+              </label>
+              <label class="radio-inline">
+                <input type="radio" v-model="sex" value="1">Ženski
+              </label>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" type="button" v-on:click="registration">Registracija</button>
+            </div>
+        </form>
+      </div>
+      <div class="col-xs-66 p-4">
+        <div id="users">
+          <form id="search">
+            Iskanje <input name="query" v-model="searchQuery">
+          </form>
+          <users-grid
+            :data="gridData"
+            :columns="gridColumns"
+            :filter-key="searchQuery">
+          </users-grid>
+        </div>
+      </div>
+    </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script>
+
+    Vue.use(VeeValidate);
+          // register the grid component
+    Vue.component('users-grid', {
+      template: '#grid-template',
+      props: {
+        data: Array,
+        columns: Object,
+        filterKey: String
+      },
+      data: function () {
+        var sortOrders = {}
+        for (var key in this.columns)
+          sortOrders[key] = 1
+        return {
+          sortKey: '',
+          sortOrders: sortOrders
+        }
+      },
+      computed: {
+        filteredData: function () {
+          var sortKey = this.sortKey
+          var filterKey = this.filterKey && this.filterKey.toLowerCase()
+          var order = this.sortOrders[sortKey] || 1
+          var data = this.data
+          if (filterKey) {
+            data = data.filter(function (row) {
+              return Object.keys(row).some(function (key) {
+                return String(row[key]).toLowerCase().indexOf(filterKey) > -1
+              })
+            })
+          }
+          if (sortKey) {
+            data = data.slice().sort(function (a, b) {
+              a = a[sortKey]
+              b = b[sortKey]
+              return (a === b ? 0 : a > b ? 1 : -1) * order
+            })
+          }
+          return data
+        }
+
+      },
+      filters: {
+        capitalize: function (str) {
+          return str.charAt(0).toUpperCase() + str.slice(1)
+        }
+      },
+      methods: {
+        sortBy: function (key) {
+          this.sortKey = key
+          this.sortOrders[key] = this.sortOrders[key] * -1
+        },
+        removeItem: function(index) {
+          var userdata = JSON.stringify({
+            "deleteUser": this.data[index].username
+          })
+          var self=this
+          $.post("/api/registration", userdata, function(data) {
+            if (data.error) {alert("Napaka pri brisanju uporabnika!")}
+            else {
+              self.data.splice(index, 1)
+              alert("Uporabnik uspešno odstranjen")
+            }
+          })
+        }
+      }
+    })
+
+    var registration = new Vue({
+    	el: '#registration',
+        data: {
+        	username: "",
+          password: "",
+          role: "user",
+          sex: 0
+        },
+        methods: {
+        	registration: function(e) {
+            this.$validator.validateAll();
+            if (!this.errors.any()) {
+              var userdata = JSON.stringify({
+                "registration": this.$data
+              });
+              self=this
+              $.post("/api/registration", userdata, function(data) {
+                if(data.error)
+                  alert(data.error);
+                else {
+                  alert("Registracija uspela");
+                  users.gridData.push(self.$data)
+                }
+              })
+            }
+          }
+        }
+    });
+    var users = new Vue({
+      el: '#users',
+      data: {
+        searchQuery: '',
+        gridColumns: {username: 'Uporabnik', role:'Privilegij', power:'Uspešnost', sex: 'Spol'},
+        gridData: [
+          // { username: 'Chuck Norris', role: "admin", power: Infinity }
+        ]
+      },
+      mounted: function() {
+        var userdata = JSON.stringify({
+          "get": "users"
+        });
+        var self=this
+        $.post("/api/registration", userdata, function(data) {
+          if (data.error) alert(data.error)
+          else self.gridData = data
+        })
+      }
+    })
+    </script>
+  </body>
+
+  {% endverbatim %}
+</html>

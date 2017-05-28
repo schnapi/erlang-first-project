@@ -34,11 +34,11 @@ checkKeys([KeyValue|T], Req0, State) ->
         http_request_util:cowboy_out(mu_json_success_handler,Users, Req0, State);
       {<<"deleteUser">>, Id} ->  case mu_db:delete_user(Id) of
          {ok,_} -> http_request_util:cowboy_out(mu_json_success_handler,true, Req0, State);
-          Error -> lager:error("~p",[Error]), http_request_util:cowboy_out(mu_json_error_handler,5, Req0, State)
+          Error -> lager:error("123: ~p",[Error]), http_request_util:cowboy_out(mu_json_error_handler,5, Req0, State)
         end;
       {<<"registration">>,[{<<"username">>,Id},{<<"password">>,Password},{<<"role">>,Role},{<<"sex">>,Sex}]} ->
         #{peer := {Ip, _}} = Req0,
-        case mu_db:insert_user(Id, Role, Password, Ip, Sex) of
+        case mu_db:insert_user(Id, Role, Password, Ip, Sex,"") of
           error -> http_request_util:cowboy_out(mu_json_error_handler,4, Req0, State);
           _ -> http_request_util:cowboy_out(mu_json_success_handler,true, Req0, State)
         end;

@@ -47,12 +47,12 @@
               </tbody>
               </table>
               <p>
-                <button v-on:click="pushRow(conditionAdd[0])" class="btn btn-success" type="button">Dodaj naslednje vprašanje</button>
-                <button v-on:click="popRow(getSelectedLogic().conditions)" class="btn btn-danger" type="button">Odstrani vprašanje</button>
+                <button v-on:click="pushRow(conditionAdd[0])" class="btn btn-success" type="button">Pojdi na vprašanje</button>
+                <button v-on:click="popRow(getSelectedLogic().conditions)" class="btn btn-danger" type="button">Odstrani</button>
               </p>
               <div class="container">
               <div class="row align-items-center row-eq-height">
-                <div class="col-3">Naslednje vprašanje</div>
+                <div class="col-3">Pojdi na vprašanje</div>
                 <div class="col-5">Pogoji</div>
                 <div class="col-3">Logični operator</div>
                 <div class="col-1">&#8203;</div>
@@ -95,6 +95,26 @@
             </div>
           </modal>
 
+          <modal v-if="showModalBrains" id="modalGallery" @close="showModalBrains = false">>
+            <div slot="header">
+              <div class="d-flex justify-content-end">
+                <div class="mr-auto"> <h3>Možganček reče:</h3></div>
+                <button class="mx-2 pull-right" v-on:click="addBrainMotivation()">Dodaj motivacijo</button>
+                <button class="mx-2 pull-right" v-on:click="popRow(questions[selected.question-1].answers[selected.answer-1].brainMotivations)">Izbriši zadnjo motivacijo</button>
+              </div>
+            </div>
+            <div slot="body">
+              <div class="row">
+                <div class="col-11">Tukaj lahko dodate možgančke. Prioriteta pomeni zaporedje prikaza možgančkov. Enaka prioriteta pomeni prikaz več možgančkov hkrati!</div>
+                <div class="col-1">Prioriteta</div>
+              </div>
+              <div class="form-group row" v-for="(obj, index) in questions[selected.question-1].answers[selected.answer-1].brainMotivations">
+                <div class="col-11"><textarea class="form-control" rows="5" v-model="obj.text"></textarea></div>
+                <div class="col-1"><input type="text" class="form-control" v-model="obj.special_id"></div>
+              </div>
+            </div>
+          </modal>
+
           <modal v-if="showModalGallery" id="modalGallery">
             <div slot="header" style="position:fixed; width:inherit; z-index: 5555; background:white; padding: 15px; margin-top: 15px; border-bottom: solid 1px #eceeef;">
               <div class="d-flex justify-content-end">
@@ -112,11 +132,22 @@
             <div slot="footer"></div>
           </modal>
 
-        <p>Ime vprašalnika:  <input type="text" v-model="questionnaire.name"></p>
-        <div class="checkbox"><label>Točkovanje vključeno: <input type="checkbox" v-model="questionnaire.scoring"></label></div>
-        <div class="form-group">
-          <label for="usr">Maksimalno število možnih točk:</label>
-          <input type="text" v-model="questionnaire.max_score" id="usr">
+        <div class="form-group row">
+          <label class="col-5 col-form-label col-form-label-lg" for="usr">Ime vprašalnika:</label>
+          <div class="col-7">
+            <input type="text" class="form-control" v-model="questionnaire.name" id="usr">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-5 col-form-label col-form-label-sm" for="usr">Minimalno število točk, da se uporabniku odklene naslednji vprašalnik:</label>
+          <div class="col-7">
+            <input type="text" class="form-control" v-model="questionnaire.max_score" id="usr">
+          </div>
+        </div>
+        <div class="form-check">
+          <label class="form-check-label">
+            <input class="form-check-input" type="checkbox" v-model="questionnaire.scoring"> Točkovanje vključeno
+          </label>
         </div>
         <p><button v-on:click="save()">Shrani vprašalnik</button></p>
         <p><button @click="showModalGalleryF()">Prikaži/uredi galerijo</button></p>
@@ -124,7 +155,7 @@
           <div v-for="(question, index) in questions" class="card question">
             <div class="card-header" role="tab">
             <a data-toggle="collapse" data-parent="#accordion" :href="'#question' + index" aria-expanded="true" :aria-controls="'question' + index">
-            <h4>Vprašanje:<span>{{question.id = index+1}}</span></h4>
+              <h4>Vprašanje:<span>{{question.id = index+1}}</span></h4>
             </a>
             <a v-on:click="removeQuestion(index)" href="#">Odstrani</a>
             </div>
@@ -161,20 +192,21 @@
                 </p>
                 <template v-if="question['answers_type'] == 'selectOne'">
                   <table class="answers table">
-                    <thead><tr><th></th><th>Odgovor</th><th v-if="questionnaire.scoring" align="center">Točke</th><th>Naslednje vprašanje</th><th></th></tr></thead>
+                    <thead><tr><th></th><th>Odgovor</th><th v-if="questionnaire.scoring" align="center">Točke</th><th>Ostalo</th><th></th></tr></thead>
                     <tbody>
                       <tr v-for="(answer, index1) in question['answers']">
-                        <td>{{answer.id = index1+1}}.</td>
-                        <td><textarea v-model="answer.value"></textarea></td>
-                        <td v-if="questionnaire.scoring">
-                          Hitrost procesiranja: <input class="col-3" type='text' v-model='answer.processingSpeed'> <br>
-                          Spominske kapacitete: <input class="col-3" type='text' v-model='answer.brainCapacity'> <br>
-                          Teža možganov: <input class="col-3" type='text' v-model='answer.brainWeight'> <br>
+                        <td style="width:1px">{{answer.id = index1+1}}.</td>
+                        <td class="h-100"><textarea class="form-control h-100" v-model="answer.value"></textarea></td>
+                        <td v-if="questionnaire.scoring" style="width:1px"> {{answer.processingSpeed}}
+                          Hitrost procesiranja: <input class="form-control" type='text' value="1" v-model='answer.processingSpeed'> <br>
+                          Spominske kapacitete: <input class="form-control" type='text' value="1" v-model='answer.brainCapacity'> <br>
+                          Teža možganov: <input class="form-control" type='text' value="1" v-model='answer.brainWeight'> <br>
                         </td>
-                        <td>
-                          <button @click="showModalLogicF(index+1, index1+1)">Logika</button>
+                        <td style="width:1px">
+                          <button class="w-100 m-2" @click="showModalLogicF(index+1, index1+1)">Logika</button>
+                          <button class="w-100 m-2" @click="showModalBrainsF(index+1, index1+1)">Dodaj možgančka</button>
                         </td>
-                        <td><button v-on:click="removeAnswer(question,index1)" class="btn btn-danger" type="button">Odstrani</button></td>
+                        <td style="width:1px"><button v-on:click="removeAnswer(question,index1)" class="btn btn-danger" type="button">Odstrani</button></td>
                       </tr>
                     </tbody>
                   </table>
@@ -240,8 +272,7 @@
     data: {
       questionnaire: { id: id, name: name, scoring: scoring, max_score: max_score},
       questions:  [],
-      showModalLogic: false,
-      showModalGallery: false,
+      showModalLogic: false, showModalGallery: false, showModalBrains: false,
       selected: {question:1, answer: 1},
       logicQAadd: [{ p1: "", id: 1, answer: 1, p2: "" }, { op: "" }],
       conditionAdd:[{
@@ -349,6 +380,10 @@
         this.selected = {question:i1, answer: i2}
         this.showModalLogic=true
       },
+      showModalBrainsF: function(i1,i2) {
+        this.selected = {question:i1, answer: i2}
+        this.showModalBrains=true;
+      },
       showModalGalleryF: function() {
         var data = JSON.stringify({
           "getAllFiles": ""
@@ -415,6 +450,9 @@
       },
       addAnswer: function(question) {question.answers.push({});},
       removeAnswer: function(question, index) {Vue.delete(question.answers, index)},
+      addBrainMotivation() {
+        this.getSelectedLogic().brainMotivations.push({text: "Možganček reče:", special_id: this.getSelectedLogic().brainMotivations.length+1})
+      },
       save: function() {
         // alertj(this.questions)
         this.questionnaire.scoring = + this.questionnaire.scoring //convert boolean to number

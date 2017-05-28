@@ -17,22 +17,27 @@
             brainWeight: {{brainWeight}}
           </p>
           <p> Vprašanje: {{question.id}} </p>
-          <h3>{{question.question}}</h3>
-          <div v-if="typeof question['image'] != 'undefined' && question['image'] != '' ">
-              <img :src="encodeURI(question.folder + question.image)" :alt="question.image" class="img-fluid">
-          </div>
-          <section>
-            <form v-if="question.answers_type == 'selectOne'">
-              <p v-for="(answer, index) in question.answers">
-                <label class="radio-inline">
-                  <input type="radio" :value="index+1" v-model="answerId">{{answer.value}}
-                </label>
-              </p>
-            </form>
-            <div v-if="question.answers_type == 'textarea'" class="form-group">
-              <textarea class="form-control" rows="5" id="comment" v-model="answerId"></textarea>
+          <template v-if="showBrainMotivations.length>0">
+            <h3 style="background-color:magenta" v-for="(motivation, index) in showBrainMotivations">{{motivation.text}}</h3>
+          </template>
+          <template v-else>
+            <h3>{{question.question}}</h3>
+            <div v-if="typeof question['image'] != 'undefined' && question['image'] != '' ">
+                <img :src="encodeURI(question.folder + question.image)" :alt="question.image" class="img-fluid">
             </div>
-          </section>
+            <section>
+              <form v-if="question.answers_type == 'selectOne'">
+                <p v-for="(answer, index) in question.answers">
+                  <label class="radio-inline">
+                    <input type="radio" :value="index+1" v-model="answerId">{{answer.value}}
+                  </label>
+                </p>
+              </form>
+              <div v-if="question.answers_type == 'textarea'" class="form-group">
+                <textarea class="form-control" rows="5" id="comment" v-model="answerId"></textarea>
+              </div>
+            </section>
+          </template>
           <button style="margin-top:10px;" v-on:click="nextQuestion()">Naprej</button>
         </section>
       </div>
@@ -40,5 +45,92 @@
   {% endverbatim %}
 {% endblock %}
 {% block footer_javascript %}
-{% include "../www/js/view_questionnaire.js" %}
+
+new Vue({
+  el: '#question',
+  data: {
+    showBrainMotivations: [],
+    questionnaireId: {{ questionnaireId }},
+    numOfQuestions: 0,
+    question: "",
+    pid: 0,
+    processingSpeed: 0,
+    brainCapacity: 0,
+    brainWeight: 0,
+    answerId: 0,
+    scoring : {{scoring}},
+    max_score : {{max_score}},
+    image: "test.jpg"
+  },
+  mounted: function() {
+      var userdata = JSON.stringify({
+        "child": this.questionnaireId
+      }); self=this
+      $.postJSON("/api/questionnaire", userdata, function(data) {
+        if(data.error) alert(data.error);
+        else {
+          self.pid=data.pid
+          self.numOfQuestions=data.numOfQuestions
+          self.nextQuestion()
+        }
+      })
+  },
+  methods: {
+    nextQuestion: function() {
+      if(this.question.answers!=undefined && this.answerId > 0) {
+        if(this.question.answers[this.answerId-1]["brainMotivations"].length>0) {
+          this.showBrainMotivations=[]
+          index=0;
+          while(this.question.answers[this.answerId-1]["brainMotivations"].length>0) {
+            this.showBrainMotivations.push(this.question.answers[this.answerId-1]["brainMotivations"].shift())
+            if(this.question.answers[this.answerId-1]["brainMotivations"].length>0)
+              if(this.showBrainMotivations[index++].special_id != this.question.answers[this.answerId-1]["brainMotivations"][0].special_id)
+                return false;
+          }
+          return false
+        }
+      }
+
+      var data = JSON.stringify({
+        "question": "next",
+        "questionnaireId": this.questionnaireId,
+        "questionId": this.question.id,
+        "answerId": this.question.answers_type=="motivation"?-1:this.answerId,
+        "pid" : this.pid,
+        "scoring" : this.scoring
+      });
+      self=this
+      $.postJSON("/api/questionnaire", data, function(data) {
+        if(data.error) alert(data.error);
+        else {
+          self.showBrainMotivations=[]
+          if(data.question=="") {
+            alert("Vprašalnik končan!")
+            window.history.replaceState(null, "test", location.protocol + '//' + location.host + "/")
+            window.location.href = "/questionnaires"
+          }
+          else {
+            try {
+              if(data.question.answers != "undefined") {
+                data.question.answers = JSON.parse(data.question.answers)
+                self.answerId = 0
+              }
+              else {
+                data.question["answers"] = []
+                self.answerId = -1 // if we send 0 to server, server would return same question, if -1 server returns nextdefault question
+              }
+              self.question=data.question
+              self.processingSpeed=data.processingSpeed
+              self.brainCapacity=data.brainCapacity
+              self.brainWeight=data.brainWeight
+            } catch(ex) {
+              alert("Napaka: "+data.question.answers)
+            }
+          }
+        }
+      })
+    }
+  }
+})
+
 {% endblock %}

@@ -109,6 +109,17 @@ schema_def() ->
         #adb_field{ name = <<"questionnaire_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"next_question">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"condition">>, type = <<"TEXT">>}
+      ]},
+
+      #adb_table{ name = <<"brain_motivations">>, opts = [without_rowid, {foreign_key,[{key,["answer_id","question_id","questionnaire_id"]},
+        {ref_table,"answers"},{ref_id,["id","question_id","questionnaire_id"]},{opts,[on_delete_cascade]}]},
+        {primary_key,[<<"id">>, <<"answer_id">>,<<"question_id">>,<<"questionnaire_id">>]}], fields = [
+        #adb_field{ name = <<"id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"answer_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"question_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"questionnaire_id">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"text">>, type = <<"TEXT">>},
+        #adb_field{ name = <<"special_id">>, type = <<"INTEGER">>}
       ]}
     ]}
   ].
