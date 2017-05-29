@@ -30,5 +30,8 @@
 {% endblock %}
 
 {% block footer_javascript %}
-{% include "../www/js/login.js" %}
+  {#
+    {% include "../www/js/login.js" %}
+  #}
+  {{javascript_file|safe}}
 {% endblock %}

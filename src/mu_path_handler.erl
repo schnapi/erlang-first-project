@@ -19,7 +19,8 @@ out(Path, Context1) ->
       DefaultOut = #{ data => Context ++ [{pagetitle, <<"Domov">>}] ++ Context1},
       DefaultOut#{ view => mu_view_index };
     <<"/login">> ->
-      #{ view => mu_view_login } ;
+      % {ok, JS} = file:read_file("./www/js/login.js"),
+      #{ view => mu_view_login, data => [{ javascript_file, {file, "./www/js/login.js"}}] } ;
     <<"/registration">> ->
       DefaultOut = #{ data => Context ++ [{pagetitle, <<"Registracija">>}] ++ Context1},
       DefaultOut#{ view => mu_view_registration };
