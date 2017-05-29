@@ -17,10 +17,20 @@ render_page(Module) ->
   end.
 
 getUserIdFromHeader(Header) ->
+  case catch getUserIdFromHeader1(Header) of
+    {'EXIT',Err} ->
+      % lager:error("getUserIdFromHeader failed: ~p",[Err]),
+      -1;
+    Val ->
+      Val
+  end.
+
+getUserIdFromHeader1(Header) ->
   Cookie = maps:get(<<"cookie">>,Header),
   [_ | SessionId] = binary:split(Cookie,<<"sessionId=">>),
   {UserId} = mu_sessions:get_userid_from_session(SessionId),
   UserId.
+
 getUserIdFromReq(Req) ->
   Header = maps:get(headers,Req),
   getUserIdFromHeader(Header).
