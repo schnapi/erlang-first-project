@@ -17,6 +17,11 @@
 
         <ul class="nav navbar-top-links navbar-right">
             <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="modal" data-target="#thoughtModal">
+                   <i class="fa fa-plus fa-fw"></i><i class="fa fa-cloud fa-fw"></i>
+                </a>
+            </li>
+            <li class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                     <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
                 </a>
@@ -64,4 +69,23 @@
 
   </div>
   <!-- /#wrapper -->
+  <div class="modal" id="thoughtModal" role="dialog">
+    <div class="modal-dialog">
+
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header modal-header-primary">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Dodaj misel</h4>
+        </div>
+        <div class="modal-body">
+          <textarea class="form-control" id="thought" name="thought" style="min-width: 100%" placeholder="Vnesi misel..." autofocus></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="addThought()">Dodaj misel</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 {% endblock %}

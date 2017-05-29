@@ -1,0 +1,34 @@
+{% extends "mu_interface.dtl" %}
+
+{% block container %}
+    {% verbatim %}
+    <div class="row" id="thoughts-model">
+      <div class="row">
+          <div class="col-sm-12">
+              <div class="panel panel-default">
+                  <div class="panel-body">
+                      <div class="form-group">
+                          <textarea class="form-control" id="thought_v" name="thought_v" v-model="thought" placeholder="Vnesi misel..." autofocus></textarea>
+                      </div>
+                      <input type="submit" class="btn btn-md btn-primary pull-right" v-on:click="saveThought" value="Shrani misel" />
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="col-sm-12">
+          <div class="panel panel-primary" v-for="thought in thoughts">
+              <div class="panel-heading">
+                <b>Datum: </b>{{thought.dateCreated}}
+              </div>
+              <div class="panel-body">
+                <p>{{thought.thought}}</p>
+              </div>
+          </div>
+      </div>
+    </div>
+    {% endverbatim %}
+{% endblock %}
+
+{% block footer_javascript %}
+{% include "../www/js/thoughts.js" %}
+{% endblock %}

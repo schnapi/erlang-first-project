@@ -44,6 +44,9 @@ out(Path, Context1) ->
       % #{ status => 200, headers=>#{<<"content-type">> => <<"text/html">>}, body => render_page(mu_view_edit_questionnaire, Context)};
       DefaultOut = #{ data => Context ++ [{pagetitle, <<"Home">>}] ++ Context1},
       DefaultOut#{ view => mu_view_edit_questionnaire };
+    <<"/thoughts">> ->
+      DefaultOut = #{ data => Context ++ [{pagetitle, <<"Dnevnik misli">>}] ++ Context1},
+      DefaultOut#{ view => mu_view_thoughts };
     <<"/jsontest">> ->
       % #{ status => 200, headers=>#{<<"content-type">> => <<"application/json">>}, body => Html};
       % A = 1,

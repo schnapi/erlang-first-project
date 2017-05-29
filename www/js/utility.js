@@ -63,3 +63,14 @@ function POST(url, params) {
     document.body.appendChild(form);
     form.submit();
 }
+
+function addThought() {
+  var th = $("textarea#thought").val();
+
+  $.post("/api/thoughts", JSON.stringify({"thought":th}), function(data) {
+    if(data) {
+      alert("Uspešno vnešena misel.");
+      $("#thoughtModal").modal("hide");
+    }
+  })
+}

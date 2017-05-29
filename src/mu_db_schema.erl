@@ -43,7 +43,12 @@ schema_def() ->
         #adb_field{ name = <<"sex">>, type = <<"BOOLEAN">> },
         #adb_field{ name = <<"avatar">>, type = <<"TEXT">> , opts = [ {default,""} ]}
       ]},
-
+      #adb_table{ name = <<"thoughts">>, fields = [
+        #adb_field{ name = <<"id">>, type = <<"INTEGER">> , opts = [ primary_key, autoincrement]},
+        #adb_field{ name = <<"email">>, type = <<"TEXT">> },
+        #adb_field{ name = <<"thought">>, type = <<"TEXT">> },
+        #adb_field{ name = <<"dateCreated">>, type = <<"TEXT">> }
+      ]},
       #adb_table{ name = <<"session">>, opts = [without_rowid, {primary_key,[<<"id">>]}], fields = [
         #adb_field{ name = <<"id">>, type = <<"TEXT">>},
         #adb_field{ name = <<"value">>, type = <<"BLOB">>}

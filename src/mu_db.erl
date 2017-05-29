@@ -6,6 +6,7 @@
 -export([remove_questionnaire/1, remove_answer/1]).
 -export([insert_new_session/2, delete_session_record/1, get_sessions_userid/1,
          get_all_sessions_records/1]).
+-export([insert_new_thought/3, get_all_thoughts/1]).
 -export([check_schema/0, upgrade_schema/0]).
 
 -compile(export_all).
@@ -349,6 +350,23 @@ delete_session_record(SessionId) ->
    <<"DELETE FROM actors WHERE id=?1;">>, [], [[SessionId]]) of
    {ok,_} -> lager:error("Session record successfully deleted",[]), ok;
    {error,Error} -> lager:debug("~p",Error), error
+  end.
+
+% get all thoughts from specific user
+get_all_thoughts(UserID) ->
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
+    <<"SELECT * FROM thoughts where email=?1 ORDER BY dateCreated DESC;">>, [], [[UserID]]) of
+    {ok, {false, Res}} ->
+      Res;
+    {ok,{false,[]}} -> [];
+    Error -> lager:error("~p",[Error]), error
+  end.
+
+insert_new_thought(UserID, Thought, CurrentDate) ->
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
+   <<"INSERT INTO Thoughts VALUES(null,?1,?2,?3);">>, [create], [[UserID, Thought, CurrentDate]]) of
+    {ok,{_,_,_}} -> lager:debug("thought has been inserted:",[]);
+    {error,Error} -> lager:error("~p",[Error]), error
   end.
 
 check_schema() ->
