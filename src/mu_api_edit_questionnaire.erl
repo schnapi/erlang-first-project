@@ -62,8 +62,11 @@ check_args(UserId, Args) ->
   case Args of
     #{ <<"remove">> := Id } -> mu_db:remove_questionnaire(Id);
     #{ <<"questionnaire">> := Questionnaire} ->
-      #{ <<"name">> := Name, <<"id">> := QuestionnaireId, <<"scoring">> := Scoring, <<"max_score">> := MaxScore} = Questionnaire,
-      case mu_db:insert_update_questionnaire(QuestionnaireId, Name, Scoring, MaxScore) of
+      #{ <<"name">> := Name, <<"id">> := QuestionnaireId, <<"scoring">> := Scoring,
+       <<"max_processingSpeed">> := Max_processingSpeed,
+       <<"max_brainCapacity">> := Max_brainCapacity,
+       <<"max_brainWeight">> := Max_brainWeight } = Questionnaire,
+      case mu_db:insert_update_questionnaire(QuestionnaireId, Name, Scoring, Max_processingSpeed, Max_brainCapacity, Max_brainWeight) of
         error -> error;
         NewQuestionnaireId ->
           QuestionMap = maps:get(<<"questions">>,Args),

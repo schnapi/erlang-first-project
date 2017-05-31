@@ -60,9 +60,9 @@ handle_questions_api(Req0, State) ->
         _ -> ok
       end,
       http_request_util:cowboy_out(mu_json_success_handler,NewQuestion, Req0, State);
-    {start,{QuestionnaireId, Scoring,MaxScore}} ->
+    {start,List} ->
         % lager:error("Req0: ~p",[Req0]),
-        http_request_util:cowboy_out(mu_path_handler,<<"/questionnaire">>, Req0, State, [{questionnaireId, QuestionnaireId},{scoring, Scoring},{max_score, MaxScore}])
+        http_request_util:cowboy_out(mu_path_handler,<<"/questionnaire">>, Req0, State, List)
   end.
 
 check_args(Args) ->
@@ -73,7 +73,12 @@ check_args(Args) ->
         <<"next">> -> {next,list_to_pid(binary_to_list(Pid)),{proplists:get_value(<<"questionnaireId">>, Args),
          proplists:get_value(<<"questionId">>, Args, 1), proplists:get_value(<<"answerId">>, Args)}};
         <<"previous">> -> {previous,Pid};
-        undefined -> {start,{proplists:get_value(<<"questionnaireId">>, Args), proplists:get_value(<<"scoring">>, Args), proplists:get_value(<<"max_score">>, Args)}}
+        undefined -> {start,[{questionnaireId,proplists:get_value(<<"questionnaireId">>, Args)},
+         {scoring, proplists:get_value(<<"scoring">>, Args)},
+         {name, proplists:get_value(<<"name">>,Args)},
+         {max_processingSpeed, proplists:get_value(<<"max_processingSpeed">>,Args)},
+         {max_brainCapacity, proplists:get_value(<<"max_brainCapacity">>,Args)},
+         {max_brainWeight, proplists:get_value(<<"max_brainWeight">>, Args)}]}
       end;
     QuestionnaireId -> {child,QuestionnaireId}
   end.

@@ -3,15 +3,13 @@
 {% block container %}
     {% verbatim %}
     <div class="row" id="thoughts-model">
-      <div class="row">
-          <div class="col-sm-12">
-              <div class="panel panel-default">
-                  <div class="panel-body">
-                      <div class="form-group">
-                          <textarea class="form-control" id="thought_v" name="thought_v" v-model="thought" placeholder="Vnesi misel..." autofocus></textarea>
-                      </div>
-                      <input type="submit" class="btn btn-md btn-primary pull-right" v-on:click="saveThought" value="Shrani misel" />
+      <div class="col-sm-12">
+          <div class="panel panel-default">
+              <div class="panel-body">
+                  <div class="form-group">
+                      <textarea class="form-control" id="thought_v" name="thought_v" v-model="thought" placeholder="Vnesi misel..." autofocus></textarea>
                   </div>
+                  <input type="submit" class="btn btn-md btn-primary pull-right" v-on:click="saveThought" value="Shrani misel" />
               </div>
           </div>
       </div>

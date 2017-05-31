@@ -28,7 +28,7 @@ checkKeys([], Req0, State) -> http_request_util:cowboy_out(mu_json_error_handler
 checkKeys([KeyValue|T], Req0, State) ->
    UserId = getUserIdFromReq(Req0),
    case KeyValue of
-      {<<"get">>, <<"user">>} -> Data = mu_db:get_user_registration(UserId),
+      {<<"get">>, <<"user">>} -> Data = mu_db:get_user(UserId),
        http_request_util:cowboy_out(mu_json_success_handler,Data, Req0, State);
       {<<"get">>, <<"users">>} -> {ok, {false, Users}} = mu_db:get_users_registration(),
         http_request_util:cowboy_out(mu_json_success_handler,Users, Req0, State);
@@ -38,7 +38,11 @@ checkKeys([KeyValue|T], Req0, State) ->
         end;
       {<<"registration">>,[{<<"username">>,Id},{<<"password">>,Password},{<<"role">>,Role},{<<"sex">>,Sex}]} ->
         #{peer := {Ip, _}} = Req0,
-        case mu_db:insert_user(Id, Role, Password, Ip, Sex,"") of
+        case Sex of
+          0 -> Avatar = <<"defaultMan.jpg">>;
+          _ -> Avatar = <<"defaultWoman.jpg">>
+        end,
+        case mu_db:insert_user(Id, Role, Password, Ip, Sex,Avatar) of
           error -> http_request_util:cowboy_out(mu_json_error_handler,4, Req0, State);
           _ -> http_request_util:cowboy_out(mu_json_success_handler,true, Req0, State)
         end;

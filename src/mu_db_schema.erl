@@ -67,7 +67,9 @@ schema_def() ->
         #adb_field{ name = <<"id">>, type = <<"INTEGER">>, opts = [ primary_key, autoincrement ]},
         #adb_field{ name = <<"name">>, type = <<"TEXT">>},
         #adb_field{ name = <<"scoring">>, type = <<"BOOLEAN">>},
-        #adb_field{ name = <<"max_score">>, type = <<"INTEGER">>}
+        #adb_field{ name = <<"max_processingSpeed">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"max_brainCapacity">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"max_brainWeight">>, type = <<"INTEGER">>}
       ]},
 
       #adb_table{ name = <<"users_score">>, opts = [without_rowid, {foreign_key,[{key,["questionnaire_id"]},

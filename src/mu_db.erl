@@ -2,7 +2,7 @@
 
 -export([connect/0]).
 -export([get_all_users/0,get_answers/0,get_questionnaires/0,get_questions/0]).
--export([insert_update_questionnaire/4]).
+-export([insert_update_questionnaire/6]).
 -export([remove_questionnaire/1, remove_answer/1]).
 -export([insert_new_session/2, delete_session_record/1, get_sessions_userid/1,
          get_all_sessions_records/1]).
@@ -69,7 +69,7 @@ get_questionnaire(Id) ->
     <<"SELECT * FROM questionnaires AS q WHERE q.id=?1;">>, [create], [[Id]]).
  get_questionnaire_and_score(UserId) ->
    actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-     <<"SELECT id,max_score,name, scoring,processingSpeed,brainCapacity,braintWeight FROM questionnaires AS q
+     <<"SELECT id,max_processingSpeed, max_brainCapacity, max_brainWeight,name, scoring,processingSpeed,brainCapacity,braintWeight FROM questionnaires AS q
      LEFT JOIN (SELECT * FROM users_score WHERE user_id=?1)
      ON questionnaire_id = id;">>, [create], [[UserId]]).
 get_questions() ->
@@ -203,10 +203,10 @@ update_user(UserId, Avatar, AvatarName) ->
     {_,Error} -> lager:debug("~p",[Error]), error
   end.
 
-insert_update_questionnaire(Id, Name,Scoring,MaxScore) ->
+insert_update_questionnaire(Id, Name,Scoring,Max_processingSpeed, Max_brainCapacity, Max_brainWeight) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-    <<"INSERT OR REPLACE INTO questionnaires VALUES(?1,?2,?3,?4);">>, [create], [[Id, Name, Scoring,MaxScore]]) of
-    {ok,{_,NewId,_}} -> lager:debug("insert_update_questionnaire: id:~p name:~p NewId:~p MaxScore:~p",[Id, Name, NewId,MaxScore]), NewId;
+    <<"INSERT OR REPLACE INTO questionnaires VALUES(?1,?2,?3,?4,?5,?6);">>, [create], [[Id, Name, Scoring,Max_processingSpeed,Max_brainCapacity,Max_brainWeight]]) of
+    {ok,{_,NewId,_}} -> lager:debug("insert_update_questionnaire: id:~p name:~p NewId:~p Max_processingSpeed:~p",[Id, Name, NewId,Max_processingSpeed]), NewId;
     {error,Error} -> lager:error("~p",[Error]), error
   end.
 

@@ -25,6 +25,8 @@
 
     <link rel="stylesheet" href="static/css/modal.css">
 
+    <link rel="stylesheet" href="static/css/style1.css">
+
   {% endblock %}
 </head>
 <body>

@@ -31,10 +31,9 @@
       <p>hitrost procesiranja</p>
       <p>spominske kapacitete</p>
       <p>teža možganov</p>
-
       <p><img width="100px" :src="encodeURI(this.folder + this.avatar)"/></p>
       <p><button @click="showModalGalleryF()">Izberi svojega avatarja</button></p>
-      <p><input type="text" v-model="avatarName" id="usr"></p>
+      <p>Ime Avatarja: <input type="text" v-model="avatarName" id="usr"></p>
       <p><button @click="saveUser()">Shrani spremembe</button></p>
     </div>
   </div>
@@ -68,5 +67,56 @@
 {% endblock %}
 
 {% block footer_javascript %}
-{% include "../www/js/avatars.js" %}
+Vue.component('modal', {
+  template: '#modal-template'
+})
+
+new Vue({
+  el: '#avatars',
+  data: {
+    filesManager: [],
+    showModalGallery: false,
+    selectedImage: "",
+    avatar: "{{user.avatar}}",
+    folder: "{{user.avatarFolder}}",
+    avatarName: "{{user.avatarName}}"
+  },
+  methods: {
+    showModalGalleryF: function() {
+      this.showModalGallery=true;
+      var data = JSON.stringify({
+        "getAllFiles": "path_avatars"
+      });
+      var self=this
+      $.post("/api/edit_files", data, function(data) {
+        if (data.error) {
+          alert(data.error);alert("Napaka pri branju podatkov!");}
+        else {
+          self.filesManager = data
+        }
+      })
+    },
+    saveUser: function() {
+      var data = JSON.stringify({
+        update: {avatar:this.avatar, avatarName:this.avatarName}
+      });
+      var self=this
+      $.post("/api/registration", data, function(data) {
+        if (data.error) {
+          alert(data.error);alert("Napaka pri branju podatkov!");}
+        else {
+          alert("Uspešno posodobljeni podatki!")
+        }
+      })
+    },
+    close: function () {
+      this.showModalGallery = false
+    },
+    selectImage(index) {
+      this.avatar = this.filesManager.files[index]
+      this.folder = this.filesManager.folder
+      this.close()
+    }
+  }
+  })
 {% endblock %}

@@ -29,7 +29,7 @@
         <div class="row" id="modalGallery">
           <div v-for="(file, index) in filesManager.files" class="img-thumbnail d-inline-block mx-2 my-2" v-on:click="selectImage(index)" style="width:100px">
             <img :src="filesManager.folder+file" class="thumbnail" style="width:100%">
-            <div class="caption text-center">{{file}}</div>
+            <div class="caption text-center" style="word-wrap: break-word;">{{file}}</div>
           </div>
         </div>
     </div>

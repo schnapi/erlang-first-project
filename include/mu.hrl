@@ -36,6 +36,7 @@ getUserIdFromReq(Req) ->
   getUserIdFromHeader(Header).
 
 getConfigPathImage() -> getConfigPathImage(path_images).
+getConfigPathAvatars() -> getConfigPathImage(path_avatars).
 getConfigPathImage(ConfigVal) ->
   lager:error("ConfigVal: ~p",[ConfigVal]),
   case application:get_env(mu,ConfigVal) of

@@ -139,11 +139,25 @@
           </div>
         </div>
         <div class="form-group row">
-          <label class="col-5 col-form-label col-form-label-sm" for="usr">Minimalno število točk, da se uporabniku odklene naslednji vprašalnik:</label>
+          <label class="col-5 col-form-label col-form-label-sm" for="usr">Maksimalna hitrost procesiranja:</label>
           <div class="col-7">
-            <input type="text" class="form-control" v-model="questionnaire.max_score" id="usr">
+            <input type="text" class="form-control" v-model="questionnaire.max_processingSpeed" id="usr">
+          </div>
+          <label class="col-5 col-form-label col-form-label-sm" for="usr">Maksimalne spominske kapacitete:</label>
+          <div class="col-7">
+            <input type="text" class="form-control" v-model="questionnaire.max_brainCapacity" id="usr">
+          </div>
+          <label class="col-5 col-form-label col-form-label-sm" for="usr">Maksimalna teža možganov:</label>
+          <div class="col-7">
+            <input type="text" class="form-control" v-model="questionnaire.max_brainWeight" id="usr">
           </div>
         </div>
+        <!-- <div class="form-group row">
+          <label class="col-5 col-form-label col-form-label-sm" for="usr">Minimalno število točk, da se uporabniku odklene naslednji vprašalnik:</label>
+          <div class="col-7">
+            <input type="text" class="form-control" v-model="questionnaire." id="usr">
+          </div>
+        </div> -->
         <div class="form-check">
           <label class="form-check-label">
             <input class="form-check-input" type="checkbox" v-model="questionnaire.scoring"> Točkovanje vključeno
@@ -261,8 +275,12 @@
   var name = getUrlParam('name');
   var id = getUrlParam('id');
   var scoring = getUrlParam('scoring')==0?false:true;
-  var max_score = parseInt(getUrlParam('max_score'));
-  if(!Number.isInteger(max_score)) max_score=0;
+  var max_processingSpeed = parseInt(getUrlParam('max_processingSpeed'));
+  var max_brainCapacity = parseInt(getUrlParam('max_brainCapacity'));
+  var max_brainWeight = parseInt(getUrlParam('max_brainWeight'));
+  if(!Number.isInteger(max_processingSpeed)) max_processingSpeed=0
+  if(!Number.isInteger(max_brainCapacity)) max_brainCapacity=0
+  if(!Number.isInteger(max_brainWeight)) max_brainWeight=0
 
   if(name=="null") name="";
     toggle=true;
@@ -270,7 +288,7 @@
   var VueQuestions = new Vue({
     el: '#questions',
     data: {
-      questionnaire: { id: id, name: name, scoring: scoring, max_score: max_score},
+      questionnaire: { id: id, name: name, scoring: scoring, max_brainCapacity: max_brainCapacity, max_brainWeight: max_brainWeight, max_processingSpeed: max_processingSpeed},
       questions:  [],
       showModalLogic: false, showModalGallery: false, showModalBrains: false,
       selected: {question:1, answer: 1},
@@ -451,6 +469,8 @@
       addAnswer: function(question) {question.answers.push({});},
       removeAnswer: function(question, index) {Vue.delete(question.answers, index)},
       addBrainMotivation() {
+        if(this.getSelectedLogic().brainMotivations == undefined)
+          this.$set(this.getSelectedLogic(), "brainMotivations", [])
         this.getSelectedLogic().brainMotivations.push({text: "Možganček reče:", special_id: this.getSelectedLogic().brainMotivations.length+1})
       },
       save: function() {
@@ -466,7 +486,7 @@
           if(data.error) alert("Prišlo do je napake, podatki niso vnešeni");
           else {
             self.questionnaire.id=data
-            window.history.replaceState(null, "test", location.protocol + '//' + location.host + location.pathname+"?id="+self.questionnaire.id+"&name="+self.questionnaire.name+"&scoring="+self.questionnaire.scoring+"&max_score="+self.questionnaire.max_score)
+            window.history.replaceState(null, "test", location.protocol + '//' + location.host + location.pathname+"?id="+self.questionnaire.id+"&name="+self.questionnaire.name+"&scoring="+self.questionnaire.scoring+"&max_processingSpeed="+self.questionnaire.max_processingSpeed+"&max_brainWeight="+self.questionnaire.max_brainWeight+"&max_brainCapacity="+self.questionnaire.max_brainCapacity)
             alert("Ustrezno vnešeni podatki!");
           }
         })

@@ -20,6 +20,8 @@ position: absolute;
   padding-top: 5px;
   padding-bottom: 5px
 }
+
+
 .custom-select {height: inherit;}
 .card .card-header h4:after {
     font-family: 'FontAwesome';  /* essential for enabling glyphicon */
