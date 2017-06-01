@@ -34,6 +34,7 @@ start(_, _) ->
       {"/questionnaire", mu_api_questionnaire, []},
       {"/static/[...]", cowboy_static, {dir, "www"}},
       {"/"++getConfigPathImage()++"[...]", cowboy_static, {dir, getConfigPathImage()}},
+      {"/"++getConfigPathCsv()++"[...]", cowboy_static, {dir, getConfigPathCsv()}},
       {"/"++getConfigPathImage(path_avatars)++"[...]", cowboy_static, {dir, getConfigPathImage(path_avatars)}},
       {"/[...]", mu_handler, []}
     ]}

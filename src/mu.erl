@@ -7,6 +7,7 @@
 start() ->
   application:ensure_all_started(mu),
   filelib:ensure_dir(getConfigPathImage()),
+  filelib:ensure_dir(getConfigPathCsv()),
   filelib:ensure_dir(getConfigPathImage(path_avatars)),
   mu_db:connect(),
   case mu_db:check_schema() of

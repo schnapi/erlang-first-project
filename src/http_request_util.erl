@@ -7,6 +7,7 @@
 -define(HEADERHTML, #{<<"content-type">> => <<"text/html; charset=utf-8">>}).
 -define(HEADERTEXT, #{<<"content-type">> => <<"text/plain; charset=utf-8">>}).
 -define(HEADERJSON, #{<<"content-type">> => <<"application/json; charset=utf-8">>}).
+-define(HEADERFILE, #{<<"content-type">> => <<"text/csv">>}).
 
 -spec cowboy_out(atom(), binary() | integer() | map() | pid()| atom(),cowboy_req:req(), atom()) -> {ok,cowboy_req:req(),atom()}.
 
@@ -23,12 +24,12 @@ lager:debug("Module: ~p",[Module]),
       ok
   end,
   UserId = getUserIdFromReq(Req0),
-  #{<<"avatar">> := Avatar, <<"avatarFolder">> := AvatarFolder, <<"avatarName">> := AvatarName, <<"role">> := Role,
-  <<"sex">> := Sex, <<"username">> := Username} = mu_db:get_user_registration(UserId),
+
+  UserData = mu_db:get_user_registration(UserId),
   BasicMenu = [{<<"Domov">>, <<"index">>, <<"fa-home">>},{<<"Vprašalniki"/utf8>>, <<"questionnaires">>, <<"fa-question-circle">>}, {<<"Dnevnik misli"/utf8>>, <<"thoughts">>, <<"fa-cloud">>}],
-  case Role of
+  case maps:get(<<"role">>,UserData,0) of
     <<"admin">> -> AdminMenu = [{<<"Urejanje avatarjev">>, <<"edit_avatar">>, <<"fa-user">>}, {<<"Admin vprašalniki"/utf8>>,<<"edit_questionnaires">>, <<"fa-edit">>},
-    {<<"Admin registracija"/utf8>>,<<"admin_registration">>, <<"fa-edit">>}];
+    {<<"Pregled uporabnikov"/utf8>>,<<"admin_registration">>, <<"fa-edit">>}];
     _ -> AdminMenu = []
   end,
   Menu = [{navMenu,BasicMenu++AdminMenu},{user,mu_db:get_user_registration(UserId)}],
@@ -38,6 +39,8 @@ lager:debug("Module: ~p",[Module]),
   case Pgr1 of
     #{ type := json, data := ToSeralize} ->
       Reply = DefReply#{ header => ?HEADERJSON, body => jsx:encode(ToSeralize) };
+    #{ type := file, data := Context} ->
+      Reply = DefReply#{ header => ?HEADERFILE, body => Context};
     #{ type := text, data := Context} ->
       Reply = DefReply#{ header => ?HEADERTEXT, body => Context ++ Menu };
     #{ data := Context, view := View} -> % view is dtl file
@@ -52,7 +55,6 @@ lager:debug("Module: ~p",[Module]),
       Reply = DefReply#{ status => Status, header => #{} }; %At a minimum, you must provide a header with a status line and a date.
     #{ } ->  Reply = DefReply#{ header => #{} }
   end,
-
   Req = cowboy_req:reply(maps:get(status, Reply), maps:get(header, Reply), maps:get(body, Reply), Req0),
   % Req = cowboy_req:reply(maps:get(status, Pgr), masp:get(headers, Pgr), maps:get(body, Pgr) , Req0),
 % Req = cowboy_req:reply(get(status, Pgr), #{<<"content-type">> => <<"application/json">>}, Reply , Req0),

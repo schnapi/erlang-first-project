@@ -1,29 +1,11 @@
-<!DOCTYPE html>
-<html>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
-  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="static/css/modal.css">
-  <link rel="stylesheet" href="static/css/style.css">
-  <!-- <script src="https://unpkg.com/vue"></script> -->
-  <script src="static/js/vue.js"></script>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/sortable/1.4.2/Sortable.min.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.13.1/lodash.min.js"></script>
-  <script type="text/javascript" src="https://cdn.rawgit.com/David-Desmaisons/Vue.Draggable/master/dist/vuedraggable.min.js"></script>
-  <style type="text/css">
-</style>
-  <body>
+{% extends "mu_interface.dtl" %}
+
+{% block container %}
     {% verbatim %}
     <div class="container" id="avatars">
         <div style="border-bottom: solid 1px #eceeef;">
           <div class="d-flex justify-content-end">
-            <div class="mr-auto"> <h3>Pregled galerije</h3></div>
-            <div><input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
-              <label class="btn btn-primary btn-file" onclick="triggerClick()">
-              Naloži avatarja<input style="display:none" type="file" name="fileselect[]" multiple="multiple" accept="image/*" @change="onFileChange()" />
-              </label>
-              <label class="btn btn-primary btn-file" v-on:click="deleteSelImages()">Izbriši slike</label>
-            </div>
+            <div class="mr-auto"> <h3>Pregled avatarjev</h3></div>
           </div>
         </div>
         <div class="row" id="modalGallery">
@@ -32,14 +14,18 @@
             <div class="caption text-center" style="word-wrap: break-word;">{{file}}</div>
           </div>
         </div>
+        <div class="mt-10 text-center">
+          <input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
+          <label class="btn btn-primary btn-file" onclick="triggerClick()">
+            Naloži avatarja<input style="display:none" type="file" name="fileselect[]" multiple="multiple" accept="image/*" @change="onFileChange()" />
+          </label>
+          <label class="btn btn-primary btn-file" v-on:click="deleteSelImages()">Izbriši avatarja/-e</label>
+        </div>
     </div>
     {% endverbatim %}
-  <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-  <script src="static/js/utility.js"></script>
-  <script>
+{% endblock %}
+
+{% block footer_javascript %}
 
   function triggerClick() {
     $(this).children("input").trigger('click');
@@ -159,7 +145,4 @@
       },
     }
   })
-  </script>
-  </body>
-
-</html>
+{% endblock %}

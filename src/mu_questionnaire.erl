@@ -67,15 +67,14 @@ handle_call({start, UserId, QuestionnaireId}, _From, Tab) ->
 	{reply, [], Tab#{userId => UserId, questionnaireId=>QuestionnaireId }};
 handle_call({next, {UserId1, QuestionnaireId1,Qid, AnswerId}}, _From, #{tab := Tab,
 	processingSpeed := PS, brainCapacity := BC, brainWeight := BW, userId := UserId, questionnaireId := QuestionnaireId}) ->
-	lager:error("tedasdasdas: ~p",[UserId]),
-	lager:error("tedasdasdas: ~p",[Tab]),
+	lager:error("UserId: ~p",[UserId]),
+	lager:error("State: ~p",[Tab]),
 	case Tab of
 		[] -> QuestionId=1; % get last saved state
 		_ -> {_,_,QuestionId} = lists:last(Tab)
 	end,
 		lager:error("QuestionId: ~p",[QuestionId]),
 		lager:error("AnswerId: ~p",[AnswerId]),
-		lager:error("Tab: ~p",[Tab]),
 	case AnswerId of
 		0 -> lager:error("L 0: ~p",[Tab]),{Tab1, W1,W2,W3,Question} = {Tab,0,0,0, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId)}; % if no answer send same question
 		_ when AnswerId<0 orelse is_binary(AnswerId) -> {Tab1, W1,W2,W3, Question} = {Tab ++ [{{QuestionId, AnswerId},{0,0,0},QuestionId+1}],0,0,0, mu_db:get_questionnaire_question(QuestionnaireId, QuestionId+1)};
@@ -85,8 +84,8 @@ handle_call({next, {UserId1, QuestionnaireId1,Qid, AnswerId}}, _From, #{tab := T
 		S1 = PS + W1,S2 = BC + W2,S3 = BW + W3,
 		case Question of
 			[] ->
-			lager:error("dsadas: ~p",[Tab1]),
-			mu_db:insert_result(QuestionnaireId,UserId,S1,S2,S3); %end of questions, check scoring
+			lager:error("End of questions: state: ~p",[Tab1]),
+			mu_db:insert_result(QuestionnaireId,UserId,S1,S2,S3,jsx:encode(getQA(Tab1,[]))); %end of questions, check scoring
 			_ -> ok
 		end,
 		% reply, response, state
@@ -96,6 +95,9 @@ handle_call(stop, _From, Tab) ->
 lager:error("stop: ~p",[Tab]),{stop, normal, stopped, Tab}.
 handle_cast(_Msg, State) -> {noreply, State}. %it’s called a cast to distinguish it from a remote procedure call)
 handle_info(_Info, State) -> {noreply, State}.
+
+getQA([{{Q,A},_,_}|T],QAList) -> getQA(T,QAList ++ [Q,A]);
+getQA([],QAList) -> QAList.
 
 removeUserFromEtsTable(UserId) ->
 	case UserId of

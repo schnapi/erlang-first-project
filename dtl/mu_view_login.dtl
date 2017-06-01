@@ -19,7 +19,6 @@
                                 <input class="form-control" id="password" v-model="password" placeholder="Password" name="password" type="password">
                             </div>
                             <input type="submit" class="btn btn-lg btn-success btn-block" v-on:click="login" value="Prijava" />
-                            <span><a href="/registration">Registriraj se</a></span>
                         </div>
                     </div>
                 </div>

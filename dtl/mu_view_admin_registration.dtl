@@ -1,100 +1,118 @@
-<!DOCTYPE html>
-<html>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
-  <link rel="stylesheet" href="static/css/style.css">
-  <script src="https://unpkg.com/vue"></script>
+{% extends "mu_interface.dtl" %}
 
-  {% verbatim %}
-  <script src="https://cdn.jsdelivr.net/vee-validate/2.0.0-beta.25/vee-validate.js"></script>
-  <!-- component template -->
-  <script type="text/x-template" id="grid-template">
-    <table>
-      <thead>
-        <tr>
-          <th v-for="(item, key) in columns"
-            @click="sortBy(key)"
-            :class="{ active: sortKey == key }">
-            {{ item | capitalize }}
-            <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
-            </span>
-          </th><th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(entry, index) in filteredData">
-          <td v-for="(item, key) in columns">
-            <template v-if="item == 'Spol'">
-              <template v-if="entry[key] == '0'">
-                Moški
+{% block container %}
+    {% verbatim %}
+    <script type="text/x-template" id="grid-template">
+      <table class="table">
+        <thead>
+          <tr>
+            <th v-for="(item, key) in columns"
+              @click="sortBy(key)"
+              :class="{ active: sortKey == key }">
+              {{ item | capitalize }}
+              <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
+              </span>
+            </th><th></th><th></th>
+          </tr>
+        </thead>
+        <tbody class=" text-center">
+          <tr v-for="(entry, index) in filteredData">
+            <td v-for="(item, key) in columns">
+              <template v-if="item == 'Spol'">
+                <template v-if="entry[key] == '0'">
+                  Moški
+                </template>
+                <template v-else>
+                  Ženski
+                </template>
               </template>
               <template v-else>
-                Ženski
+                {{entry[key]}}
               </template>
-            </template>
-            <template v-else>
-              {{entry[key]}}
-            </template>
-          </td>
-          <td><button v-on:click="removeItem(index)" class="btn btn-danger" type="button">Odstrani</button></td>
-        </tr>
-      </tbody>
-    </table>
-  </script>
-
-  <body>
-    <div class="container">
-    <div class="row">
-      <div class="col-xs-6 p-4">
-        <h1>Registracija</h1>
-        <form id="registration" class="form-horizontal" style="white-space: nowrap;">
-            <div v-bind:class="{'form-group': true, 'has-danger': errors.has('username')}">
-                <label class="control-label col-sm-2" for="email">Uporabniško ime:</label>
-                <input id="username" name="username" type="email" class="form-control" placeholder="Your email address" v-model="username" v-validate="'required|email'">
-                <span class="form-control-feedback" v-if="errors.has('username')">{{errors.first('username')}}</span>
+            </td>
+            <td><a href="#" v-on:click="$parent.getResults(index)">Zgodovina odgovorov</a></td>
+            <td><button v-on:click="removeItem(index)" class="btn btn-danger" type="button">Odstrani</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </script>
+    <div class="col-lg-12">
+      <div class="row">
+        <div class="col-lg-8">
+          <div id="users" class="p4">
+            <div class="form-group mb-10 row">
+              <label for="search" class="col-sm-2 control-label">Iskanje:</label>
+              <div class="col-sm-10">
+                <input name="query" class="form-control" id="search" v-model="searchQuery">
+              </div>
             </div>
-            <div v-bind:class="{'form-group': true, 'has-danger': errors.has('password')}">
-                <label class="control-label col-sm-2" for="password">Geslo:</label>
-                <input id="password" name="password" type="password" class="form-control" placeholder="Choose a password" v-model="password" v-validate="'required|min:8|max:32'">
-                <span class="form-control-feedback" v-if="errors.has('password')">{{errors.first('password')}}</span>
-            </div>
-            <div v-bind:class="{'form-group': true}">
-              <select  v-model="role" class="custom-select">
-                <option value="user" selected>Uporabnik</option>
-                <option value="admin">Administrator</option>
-              </select>
-            </div>
-            <div v-bind:class="{'form-group': true}">
-              Spol:
-              <label class="radio-inline">
-                <input type="radio" v-model="sex" value="0">Moški
-              </label>
-              <label class="radio-inline">
-                <input type="radio" v-model="sex" value="1">Ženski
-              </label>
-            </div>
-            <div class="form-group">
-                <button class="btn btn-primary" type="button" v-on:click="registration">Registracija</button>
-            </div>
-        </form>
-      </div>
-      <div class="col-xs-66 p-4">
-        <div id="users">
-          <form id="search">
-            Iskanje <input name="query" v-model="searchQuery">
-          </form>
-          <users-grid
-            :data="gridData"
-            :columns="gridColumns"
-            :filter-key="searchQuery">
-          </users-grid>
+            <users-grid
+              :data="gridData"
+              :columns="gridColumns"
+              :filter-key="searchQuery">
+            </users-grid>
+              <table>
+                <tr v-for="value in questionsAnswer">
+                  <td>
+                    <div>Vprašalnik: {{value.questionnaireId}}<div>
+                    <div>Čas reševanja: {{value.epoch}}</div>
+                    <div>Hitrost procesiranja: {{value.processingSpeed}}</div>
+                    <div>Spominske kapacitete: {{value.brainCapacity}}</div>
+                    <div>Teža možganov: {{value.braintWeight}}</div>
+                  </td>
+                  <td>
+                    <table>
+                      <tr><th>Slika</th><th>Vprašanje</th><th>Odgovor</th></tr>
+                      <tr v-for="k2 in value.qa">
+                        <td>{{ k2.image }}</td>
+                        <td>{{ k2.question }}</td>
+                        <td>{{ k2.answer }}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+          </div>
         </div>
-      </div>
+        <div class="col-lg-4">
+          <h1>Registracija</h1>
+          <form id="registration" class="form-horizontal" style="white-space: nowrap;">
+              <div v-bind:class="{'form-group': true, 'has-danger': errors.has('username')}">
+                  <label class="control-label col-sm-2" for="email">Uporabniško ime:</label>
+                  <input id="username" name="username" type="email" class="form-control" placeholder="Email naslov" v-model="username" v-validate="'required|email'">
+                  <span class="text-danger" v-if="errors.has('username')">{{errors.first('username')}}</span>
+              </div>
+              <div v-bind:class="{'form-group': true, 'has-danger': errors.has('password')}">
+                  <label class="control-label col-sm-2" for="password">Geslo:</label>
+                  <input id="password" name="password" type="password" class="form-control" placeholder="Geslo" v-model="password" v-validate="'required|min:8|max:32'">
+                  <span class="text-danger" v-if="errors.has('password')">{{errors.first('password')}}</span>
+              </div>
+              <div v-bind:class="{'form-group': true}">
+                <select  v-model="role" class="custom-select">
+                  <option value="user" selected>Uporabnik</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+              <div v-bind:class="{'form-group': true}">
+                Spol:
+                <label class="radio-inline">
+                  <input type="radio" v-model="sex" value="0">Moški
+                </label>
+                <label class="radio-inline">
+                  <input type="radio" v-model="sex" value="1">Ženski
+                </label>
+              </div>
+              <div class="form-group">
+                  <button class="btn btn-primary" type="button" v-on:click="registration">Registracija</button>
+              </div>
+          </form>
+        </div>
     </div>
     </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script>
+    {% endverbatim %}
+{% endblock %}
 
+{% block footer_javascript %}
     Vue.use(VeeValidate);
           // register the grid component
     Vue.component('users-grid', {
@@ -191,6 +209,7 @@
           }
         }
     });
+
     var users = new Vue({
       el: '#users',
       data: {
@@ -198,7 +217,8 @@
         gridColumns: {username: 'Uporabnik', role:'Privilegij', power:'Uspešnost', sex: 'Spol'},
         gridData: [
           // { username: 'Chuck Norris', role: "admin", power: Infinity }
-        ]
+        ],
+        questionsAnswer: {}
       },
       mounted: function() {
         var userdata = JSON.stringify({
@@ -209,10 +229,23 @@
           if (data.error) alert(data.error)
           else self.gridData = data
         })
+      },
+      methods: {
+        getResults: function() {
+          var userdata = JSON.stringify({
+            "get": "results"
+          })
+          self=this
+          $.post("/api/registration", userdata, function(data) {
+            if (data.error) {alert("Napaka pri brisanju uporabnika!")}
+            else {
+              var link=document.createElement('a');
+              document.body.appendChild(link);
+              link.href="/"+data ;
+              link.click();
+            }
+          })
+        },
       }
     })
-    </script>
-  </body>
-
-  {% endverbatim %}
-</html>
+{% endblock %}

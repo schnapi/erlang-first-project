@@ -8,7 +8,7 @@
           <div class="col-sm-8">
             <div class="row">
               <div class="col-sm-5"><img style="width:100%; max-width:250px" src="static/images/smartBrain.png" alt="Možganček"></div>
-              <div class="col-sm-7 well">Pozdravljen {{avatarName}}! Tukaj je področje kjer lahko izboljšaš svojo miselnost! Spodaj se nahajajo vprašalniki, pod rezultati pa lahko najdeš uspešnost reševanja vprašalnikov!</div>
+              <div class="col-sm-7 well">Pozdravljen/a {{avatarName}}! Tukaj je področje kjer lahko izboljšaš svojo miselnost! Spodaj se nahajajo vprašalniki, pod rezultati pa lahko najdeš uspešnost reševanja vprašalnikov!</div>
             </div>
           </div>
           <div class="col-sm-4" style="text-align:center">

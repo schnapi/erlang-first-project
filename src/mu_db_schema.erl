@@ -74,12 +74,14 @@ schema_def() ->
 
       #adb_table{ name = <<"users_score">>, opts = [without_rowid, {foreign_key,[{key,["questionnaire_id"]},
         {ref_table,"questionnaires"},{ref_id,["id"]},{opts,[on_delete_cascade]}]},
-        {primary_key,[<<"user_id">>,<<"questionnaire_id">>]}], fields = [
+        {primary_key,[<<"user_id">>,<<"epoch">>,<<"questionnaire_id">>]}], fields = [
         #adb_field{ name = <<"questionnaire_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"user_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"processingSpeed">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"brainCapacity">>, type = <<"INTEGER">>},
-        #adb_field{ name = <<"braintWeight">>, type = <<"INTEGER">>}
+        #adb_field{ name = <<"braintWeight">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"state">>, type = <<"TEXT">>},
+        #adb_field{ name = <<"epoch">>, type = <<"TIMESTAMP">>}
       ]},
 
       #adb_table{ name = <<"questions">>, opts = [without_rowid, {foreign_key,[{key,["questionnaire_id"]},

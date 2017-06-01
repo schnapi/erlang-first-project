@@ -23,6 +23,26 @@ handle_registration_api(Req0, State) ->
  Args = bjson:decode(Body),
  checkKeys(Args, Req0,State).
 
+getResult(QId,State) ->
+  % generate sql statement from state
+  SQL = generateSQLString(jsx:decode(State),[]),
+  mu_db:get_question_answer(QId,SQL).
+
+generateSQLString([Q,-1|T],[]) -> generateSQLString(T," questions.id="++integer_to_list(Q));
+generateSQLString([Q,-1|T],List) -> generateSQLString(T,List ++ " or questions.id="++integer_to_list(Q));
+generateSQLString([Q,A|T],[]) -> generateSQLString(T," questions.id="++integer_to_list(Q)++" and answers.id="++integer_to_list(A));
+generateSQLString([Q,A|T],List) -> generateSQLString(T,List ++ " or questions.id="++integer_to_list(Q)++" and answers.id="++integer_to_list(A));
+generateSQLString([],List) -> List.
+
+writeFile1(File, Answer,Image,Question) ->
+  csv_gen:row(File, ["Slika", Image]),
+  csv_gen:row(File, ["Vprašanje", Question]),
+  csv_gen:row(File, ["Odgovor", Answer]).
+writeFile(File, QId, Epoch,ProcessingSpeed, BrainCapacity,BraintWeight,State) ->
+  csv_gen:row(File,[]),
+  csv_gen:row(File, ["Vprašalnik", "Čas in datum","Hitrost procesiranja", "Možganska kapaciteta","Teža možganov"]),
+  csv_gen:row(File, [QId, Epoch,ProcessingSpeed, BrainCapacity,BraintWeight]),
+  [writeFile1(File, Answer,Image,Question) || #{<<"answer">> := Answer, <<"image">> := Image,<<"question">> := Question} <- getResult(QId,State)].
 % return first match
 checkKeys([], Req0, State) -> http_request_util:cowboy_out(mu_json_error_handler,6, Req0, State);
 checkKeys([KeyValue|T], Req0, State) ->
@@ -32,6 +52,17 @@ checkKeys([KeyValue|T], Req0, State) ->
        http_request_util:cowboy_out(mu_json_success_handler,Data, Req0, State);
       {<<"get">>, <<"users">>} -> {ok, {false, Users}} = mu_db:get_users_registration(),
         http_request_util:cowboy_out(mu_json_success_handler,Users, Req0, State);
+        {<<"get">>, <<"results">>} -> {ok, {false, Res}} = mu_db:get_results(UserId),
+        FilePath=getConfigPathCsv()++binary_to_list(getUserIdFromReq(Req0))++".csv",
+        {ok, File} = file:open(FilePath, [write]),
+        [writeFile(File, QId, Epoch,ProcessingSpeed, BrainCapacity,BraintWeight,State)
+         || #{<<"questionnaire_id">> := QId, <<"state">> := State,<<"epoch">> := Epoch,
+         <<"processingSpeed">> := ProcessingSpeed,<<"brainCapacity">> :=BrainCapacity,
+         <<"braintWeight">> := BraintWeight} <- Res],
+
+          file:close(File),
+          http_request_util:cowboy_out(mu_json_success_handler,tryUnicode(FilePath), Req0, State);
+        % http_request_util:cowboy_out(mu_file_handler,getConfigPathCsv()++binary_to_list(getUserIdFromReq(Req0))++".csv", Req0, State);
       {<<"deleteUser">>, Id} ->  case mu_db:delete_user(Id) of
          {ok,_} -> http_request_util:cowboy_out(mu_json_success_handler,true, Req0, State);
           Error -> lager:error("123: ~p",[Error]), http_request_util:cowboy_out(mu_json_error_handler,5, Req0, State)

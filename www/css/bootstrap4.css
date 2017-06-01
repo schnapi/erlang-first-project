@@ -9,13 +9,19 @@
 .bg-green { background-color: #5cb85c}
 
 .mb-20 {
-  margin-bottom: 1px!important;
+  margin-bottom: 20px!important;
+}
+.mb-10 {
+  margin-bottom: 10px!important;
 }
 .mt-10 {
   margin-top: 10px!important;
 }
 .mr-2 {
   margin-right: 2px!important;
+}
+.p-4 {
+    padding: 4px!important
 }
 
 media (min-width: 992px) {
@@ -44,6 +50,60 @@ media (min-width: 992px) {
     padding-left: 15px;
 }
 
+@media (min-width: 992px) {
+  .col-lg-4 {
+      -webkit-box-flex: 0;
+      -webkit-flex: 0 0 33.333333%;
+      -ms-flex: 0 0 33.333333%;
+      flex: 0 0 33.333333%;
+      max-width: 33.333333%;
+  }
+  .col-lg-5 {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 41.666667%;
+    -ms-flex: 0 0 41.666667%;
+    flex: 0 0 41.666667%;
+    max-width: 41.666667%;
+  }
+  .col-lg-7 {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 58.333333%;
+    -ms-flex: 0 0 58.333333%;
+    flex: 0 0 58.333333%;
+    max-width: 58.333333%;
+  }
+  .col-lg-8 {
+      -webkit-box-flex: 0;
+      -webkit-flex: 0 0 66.666667%;
+      -ms-flex: 0 0 66.666667%;
+      flex: 0 0 66.666667%;
+      max-width: 66.666667%;
+  }
+}
+
+@media (min-width: 768px){
+  .col-md-4 {
+      -webkit-box-flex: 0;
+      -webkit-flex: 0 0 33.333333%;
+      -ms-flex: 0 0 33.333333%;
+      flex: 0 0 33.333333%;
+      max-width: 33.333333%;
+  }
+  .col-md-5 {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 41.666667%;
+    -ms-flex: 0 0 41.666667%;
+    flex: 0 0 41.666667%;
+    max-width: 41.666667%;
+  }
+  .col-md-7 {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 58.333333%;
+    -ms-flex: 0 0 58.333333%;
+    flex: 0 0 58.333333%;
+    max-width: 58.333333%;
+  }
+}
 @media (min-width: 576px) {
   .col-sm-2 {
     -webkit-box-flex: 0;
@@ -72,6 +132,13 @@ media (min-width: 992px) {
     -ms-flex: 0 0 41.666667%;
     flex: 0 0 41.666667%;
     max-width: 41.666667%;
+  }
+  .col-sm-6 {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 50%;
+    -ms-flex: 0 0 50%;
+    flex: 0 0 50%;
+    max-width: 50%;
   }
   .col-sm-7 {
     -webkit-box-flex: 0;

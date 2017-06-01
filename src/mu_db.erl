@@ -38,7 +38,7 @@ get_user_registration(User) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
   <<"SELECT email as username,avatarName, role, sex, avatar, ?2 as avatarFolder FROM data
   WHERE email=?1;">>, [create], [[User,getConfigPathImage(path_avatars)]]) of
-    {ok, {false, []}} -> [];
+    {ok, {false, []}} -> #{};
     {ok,{false,[H|_]}} -> H;
     {error,Error} -> lager:error("get_user_registration ~p",[Error]), error
   end.
@@ -70,7 +70,7 @@ get_questionnaire(Id) ->
  get_questionnaire_and_score(UserId) ->
    actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
      <<"SELECT id,max_processingSpeed, max_brainCapacity, max_brainWeight,name, scoring,processingSpeed,brainCapacity,braintWeight FROM questionnaires AS q
-     LEFT JOIN (SELECT * FROM users_score WHERE user_id=?1)
+     LEFT JOIN (SELECT questionnaire_id,processingSpeed,brainCapacity,braintWeight, MAX(epoch) FROM users_score WHERE user_id=?1)
      ON questionnaire_id = id;">>, [create], [[UserId]]).
 get_questions() ->
   actordb_client:exec_single(config(), <<"mocenum">>, <<"questionnaire">>,
@@ -145,7 +145,15 @@ get_questionnaire_question(QuestionnaireId, QuestionId, AnswerId) ->
     {ok, {false, [H | _]}} -> H; % just one row
     {error,Error} -> lager:error("get_questionnaire_question: ~p",[Error]), error
   end.
-
+get_question_answer(QuestionnaireId,SQL) ->
+  String = "SELECT questions.id, answers.id as answer_id, question, answer, image FROM questions LEFT JOIN answers on questions.id=answers.question_id WHERE questions.questionnaire_id=?1 AND"
+  ++ SQL ++ " GROUP BY questions.id, answers.id;",
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+   list_to_binary(String), [create], [[QuestionnaireId]]) of
+    {ok,{false,[]}} -> [];
+    {ok, {false, List}} -> List; % just one row
+    {error,Error} -> lager:error("get_question_answer: ~p",[Error]), error
+  end.
 get_user(Email) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
     <<"SELECT * FROM data WHERE email=?1;">>, [create], [[Email]]) of
@@ -173,10 +181,10 @@ delete_user(Email) ->
    <<"DELETE FROM users_score WHERE user_id=?1;">>, [], [[Email]]).
 % out {ok,{changes,_,0}} or {error,Error}
 
-insert_result(QuestionnaireId,UserEmail,ProcessingSpeed,BrainCapacity,BrainWeight) ->
+insert_result(QuestionnaireId,UserEmail,ProcessingSpeed,BrainCapacity,BrainWeight,State) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-    <<"INSERT OR REPLACE INTO users_score VALUES(?1,?2, ?3,?4,?5);">>, [create], [[QuestionnaireId, UserEmail,ProcessingSpeed,BrainCapacity,BrainWeight]]) of
-    {ok,_} -> lager:debug("insert_result: QuestionnaireId:~p User:~p ProcessingSpeed:~p",[QuestionnaireId, UserEmail,ProcessingSpeed]), ok;
+    <<"INSERT INTO users_score VALUES(?1,?2, ?3,?4,?5,?6,?7);">>, [create], [[QuestionnaireId, UserEmail,ProcessingSpeed,BrainCapacity,BrainWeight,State,calendar:datetime_to_gregorian_seconds(calendar:now_to_universal_time( now()))-719528*24*3600]]) of
+    {ok,_} -> lager:debug("insert_result: QuestionnaireId:~p User:~p ProcessingSpeed:~p,State:~p",[QuestionnaireId, UserEmail,ProcessingSpeed,State]), ok;
     {error,Error} -> lager:error("~p",[Error]), error
   end.
 
@@ -186,6 +194,9 @@ get_results() ->
 get_results(UserId) ->
  actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
   <<"SELECT * FROM users_score WHERE user_id=?1;">>, [create], [[UserId]]).
+get_lastResult(UserId) ->
+actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+ <<"SELECT MAX(epoch) as epoch FROM users_score WHERE user_id=?1;">>, [create], [[UserId]]).
 
 -spec insert_user(binary(), binary(), binary(), tuple(), integer(), string()) -> any().
 insert_user(Email, Role, Password, Ip, Sex, Avatar) ->

@@ -12,21 +12,19 @@
               {{question.id}} / {{numOfQuestions}}
               Progress bar vprašanja: <progress :max="numOfQuestions" :value="question.id"></progress>
             </div>
-            <div class="col-sm-4">
-              <p v-if="scoring==1">
-                <div>Hitrost procesiranja:</div>
-                <div class="progress">
-                  <div class="progress-bar bg-green" role="progressbar" :style="{width: processingSpeedPercent +'%'}">{{processingSpeedPercent}}%</div>
-                </div>
-                <div>Spominske kapacitete:</div>
-                <div class="progress">
-                  <div class="progress-bar bg-blue" role="progressbar" :style="{width: processingBrainCapacity +'%'}">{{processingBrainCapacity}}%</div>
-                </div>
-                <div>Teža možganov:</div>
-                <div class="progress">
-                  <div class="progress-bar bg-gold" role="progressbar" :style="{width: processingBrainWeight +'%'}">{{processingBrainWeight}}%</div>
-                </div>
-              </p>
+            <div class="col-sm-4" v-if="scoring=='1'">
+              <div>Hitrost procesiranja:</div>
+              <div class="progress">
+                <div class="progress-bar bg-green" role="progressbar" :style="{width: processingSpeedPercent +'%'}">{{processingSpeedPercent}}%</div>
+              </div>
+              <div>Spominske kapacitete:</div>
+              <div class="progress">
+                <div class="progress-bar bg-blue" role="progressbar" :style="{width: processingBrainCapacity +'%'}">{{processingBrainCapacity}}%</div>
+              </div>
+              <div>Teža možganov:</div>
+              <div class="progress">
+                <div class="progress-bar bg-gold" role="progressbar" :style="{width: processingBrainWeight +'%'}">{{processingBrainWeight}}%</div>
+              </div>
             </div>
           </div>
           <div v-if="showBrainMotivations.length>0">
