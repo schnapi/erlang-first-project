@@ -83,9 +83,14 @@ handle_call({next, {UserId1, QuestionnaireId1,Qid, AnswerId}}, _From, #{tab := T
 			lager:error("Current user questionnaire state: ~p",[Tab1]),
 		S1 = PS + W1,S2 = BC + W2,S3 = BW + W3,
 		case Question of
-			[] ->
-			lager:error("End of questions: state: ~p",[Tab1]),
-			mu_db:insert_result(QuestionnaireId,UserId,S1,S2,S3,jsx:encode(getQA(Tab1,[]))); %end of questions, check scoring
+			[] -> lager:error("End of questions: state: ~p",[Tab1]),
+				%scoring to percent
+				#{<<"max_brainCapacity">> := Max_brainCapacity, <<"max_brainWeight">> := Max_brainWeight,
+	              <<"max_processingSpeed">> := Max_processingSpeed, <<"scoring">> := Scoring} = mu_db:get_questionnaire_max_scores(QuestionnaireId),
+				case Scoring of
+					1 ->	mu_db:insert_result(QuestionnaireId,UserId,valueToPercent(S1,Max_processingSpeed),valueToPercent(S2,Max_brainCapacity),valueToPercent(S3,Max_brainWeight),jsx:encode(getQA(Tab1,[]))); %end of questions, check scoring
+					_ -> mu_db:insert_result(QuestionnaireId,UserId,-1,-1,-1,jsx:encode(getQA(Tab1,[]))) %end of questions, check scoring
+				end;
 			_ -> ok
 		end,
 		% reply, response, state
@@ -96,6 +101,10 @@ lager:error("stop: ~p",[Tab]),{stop, normal, stopped, Tab}.
 handle_cast(_Msg, State) -> {noreply, State}. %it’s called a cast to distinguish it from a remote procedure call)
 handle_info(_Info, State) -> {noreply, State}.
 
+valueToPercent(Val, MaxVal) -> case MaxVal of
+		0 -> 0;
+		_ -> Val*100/MaxVal
+	end.
 getQA([{{Q,A},_,_}|T],QAList) -> getQA(T,QAList ++ [Q,A]);
 getQA([],QAList) -> QAList.
 

@@ -11,7 +11,7 @@
               <div class="col-sm-7 well">Pozdravljen/a {{avatarName}}! Tukaj je področje kjer lahko izboljšaš svojo miselnost! Spodaj se nahajajo vprašalniki, pod rezultati pa lahko najdeš uspešnost reševanja vprašalnikov!</div>
             </div>
           </div>
-          <div class="col-sm-4" style="text-align:center">
+          <div class="col-sm-4" class="text-center">
             <h4>Rezultati</h4>
             <div>Hitrost procesiranja:</div>
             <div class="progress">
@@ -35,40 +35,41 @@
               max_brainWeight: item.max_brainWeight})}}
           </template>
           <hr>
-          <button v-if="index > 0 && questionnaires[index-1].braintWeight=='undefined'" :value="item.id" type="button" class="list-group-item">
-            <h4 class="mt-10"><small>Vprašalnik:</small> {{ item.name }}</h4><span class="pull-right glyphicon glyphicon-lock"></span>
+          <button v-if="index > 0 && questionnaires[index].brainWeight=='undefined' && questionnaires[index-1].brainWeight=='undefined'" :value="item.id" type="button" class="list-group-item">
+            <h4 class="mt-10"><small>Vprašalnik:</small> {{ item.name }}</h4><i class="pull-right fa fa-lock" aria-hidden="true"></i>
           </button>
           <button v-else :value="item.id" type="button" class="list-group-item" @click="vuePOST('questionnaire',
            {questionnaireId: item.id, name: item.name, scoring: item.scoring,
             max_processingSpeed: item.max_processingSpeed, max_brainCapacity: item.max_brainCapacity,
-            max_brainWeight: item.max_brainWeight})"><h3 class="mt-10"><small>Vprašalnik:</small> {{ item.name }}</h3>
+            max_brainWeight: item.max_brainWeight})"><h3 class="mt-10"><small>Vprašalnik:</small> {{ item.name }}</h3><i v-if="index==firstNotSolved" class="pull-right fa fa-unlock-alt" aria-hidden="true"></i>
           </button>
-          <div v-if="item.scoring!='0' && item.braintWeight != 'undefined'" class="row">
+          <div v-if="item.scoring!='0' && item.brainWeight != 'undefined'" class="row">
             <div class="col-4">
-              <div class="progress mb-20">
-                <div class="progress-bar bg-green" role="progressbar" :style="{width: valueToPercent(item.processingSpeed,item.max_processingSpeed)+'%'}">
-                  {{valueToPercent(item.processingSpeed,item.max_processingSpeed)}}%
+              <div class="progress mb-2">
+                <div class="progress-bar bg-green" role="progressbar" :style="{width: item.processingSpeed+'%'}">
+                  {{Math.round(item.processingSpeed)}}%
                 </div>
               </div>
               <div>Hitrost procesiranja</div>
             </div>
             <div class="col-4">
-              <div class="progress mb-20">
-                <div class="progress-bar bg-blue" role="progressbar" :style="{width: valueToPercent(item.brainCapacity,item.max_brainCapacity)+'%'}">
-                  {{valueToPercent(item.brainCapacity,item.max_brainCapacity)}}%
+              <div class="progress mb-2">
+                <div class="progress-bar bg-blue" role="progressbar" :style="{width: item.brainCapacity+'%'}">
+                  {{Math.round(item.brainCapacity)}}%
                 </div>
               </div>
               <div>Spominske kapacitete</div>
             </div>
             <div class="col-4">
-              <div class="progress mb-20">
-                <div class="progress-bar bg-gold" role="progressbar" :style="{width: valueToPercent(item.braintWeight,item.max_brainWeight)+'%'}">
-                  {{item.braintWeight}}/{{item.max_brainWeight}}
+              <div class="progress mb-2">
+                <div class="progress-bar bg-gold" role="progressbar" :style="{width: item.brainWeight+'%'}">
+                  {{Math.round(item.brainWeight)}}%
                 </div>
               </div>
               <div>Teža možganov</div>
             </div>
           </div>
+          <div v-else-if="item.scoring=='0'" class="text-center"><small>Vprašalnik se ne točkuje!</small></div>
         </div>
       </div>
     </div>
@@ -84,7 +85,8 @@ new Vue({
     questionnaireInProgressId: -1,
     totalBrainCapacity: 0,
     totalBrainWeight: 0,
-    totalProcessingSpeed: 0
+    totalProcessingSpeed: 0,
+    firstNotSolved : -1
   },
   computed: {
   },
@@ -99,6 +101,13 @@ new Vue({
         // alertj(data)
         self.questionnaires= data.questionnaires
         self.questionnaireInProgressId = data.questionnaireInProgressId
+        for (i=0;i<data.questionnaires.length; i++) {
+          if(data.questionnaires[i].brainCapacity == 'undefined'){
+            //alert(data.questionnaires[i].id +": "+data.questionnaires[i].brainCapacity)
+            self.firstNotSolved = i;
+            break;
+          }
+        }
       }
     })
   },
@@ -124,13 +133,14 @@ new Vue({
         item= this.questionnaires[i]
         if(item.scoring==0 || item.brainCapacity == "undefined") continue;
         index++;
-        this.totalBrainCapacity+=this.valueToPercent(item.brainCapacity, item.max_brainCapacity)
-        this.totalBrainWeight+=this.valueToPercent(item.braintWeight, item.max_brainWeight)
-        this.totalProcessingSpeed+=this.valueToPercent(item.processingSpeed, item.max_processingSpeed)
+        this.totalBrainCapacity+=item.brainCapacity
+        this.totalBrainWeight+=item.brainWeight
+        this.totalProcessingSpeed+=item.processingSpeed
       }
-      this.totalBrainCapacity /= index
-      this.totalBrainWeight /=index
-      this.totalProcessingSpeed /= index
+      if(index==0) index=1
+      this.totalBrainCapacity =Math.round(this.totalBrainCapacity/index)
+      this.totalBrainWeight =Math.round(this.totalBrainWeight/index)
+      this.totalProcessingSpeed =Math.round(this.totalProcessingSpeed/index)
     }
   }
 })

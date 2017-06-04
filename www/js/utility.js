@@ -10,6 +10,11 @@ Array.prototype.peekBack = function() {
   return this[this.length-1]
 }
 
+function isUndefined(val) {
+  if(val == undefined || val == 'undefined') return true;
+  return false;
+}
+
 function alertj(obj) {
   alert(JSON.stringify(obj))
 }

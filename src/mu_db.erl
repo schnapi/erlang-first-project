@@ -34,6 +34,12 @@ get_all_users() ->
 get_users_registration() ->
   actordb_client:exec_single(config(), <<"mocenum">>, <<"user">>,
   <<"SELECT email as username, role, sex FROM data;">>, [create]).
+%it's no possible query on different actors???
+% get_users_registration() ->
+%   actordb_client:exec_single(config(), <<"mocenum">>, <<"user">>,
+%   <<"SELECT email as username, role, sex,brainCapacity,processingSpeed,brainWeight FROM data
+%   LEFT JOIN (SELECT user_id, AVG(brainCapacity) as brainCapacity, AVG(processingSpeed) as processingSpeed, AVG(brainWeight) as brainWeight FROM (SELECT users_score.*, MAX(epoch) as epoch FROM users_score WHERE brainCapacity>-1 GROUP BY questionnaire_id))
+%   ON user_id=email;">>, [create]).
 get_user_registration(User) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
   <<"SELECT email as username,avatarName, role, sex, avatar, ?2 as avatarFolder FROM data
@@ -67,11 +73,25 @@ get_questionnaires() ->
 get_questionnaire(Id) ->
   actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
     <<"SELECT * FROM questionnaires AS q WHERE q.id=?1;">>, [create], [[Id]]).
- get_questionnaire_and_score(UserId) ->
-   actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-     <<"SELECT id,max_processingSpeed, max_brainCapacity, max_brainWeight,name, scoring,processingSpeed,brainCapacity,braintWeight FROM questionnaires AS q
-     LEFT JOIN (SELECT questionnaire_id,processingSpeed,brainCapacity,braintWeight, MAX(epoch) FROM users_score WHERE user_id=?1)
-     ON questionnaire_id = id;">>, [create], [[UserId]]).
+ get_questionnaire_name(Id) ->
+   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+     <<"SELECT name FROM questionnaires AS q WHERE q.id=?1;">>, [create], [[Id]]) of
+     {ok, {false, [#{<<"name">> := Res}]}} -> Res;
+     {error,Error} -> lager:error("get_questions QuestionnaireId: ~p",[Error]), error
+   end.
+get_questionnaire_max_scores(QId) ->
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+    <<"SELECT scoring, max_processingSpeed, max_brainCapacity, max_brainWeight FROM questionnaires
+    WHERE id = ?1">>, [create], [[QId]]) of
+    {ok, {false, [Res|_]}} -> Res;
+    {error,Error} -> lager:error("get_questions QuestionnaireId: ~p",[Error]), error
+  end.
+
+get_questionnaire_and_score(UserId) ->
+ actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
+   <<"SELECT id,max_processingSpeed, max_brainCapacity, max_brainWeight,name, scoring,processingSpeed,brainCapacity,brainWeight FROM questionnaires AS q
+   LEFT JOIN (SELECT questionnaire_id,processingSpeed,brainCapacity,brainWeight, MAX(epoch) FROM users_score WHERE user_id=?1 GROUP BY questionnaire_id)
+   ON questionnaire_id = id;">>, [create], [[UserId]]).
 get_questions() ->
   actordb_client:exec_single(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"SELECT * FROM questions;">>, [create]).
@@ -106,21 +126,6 @@ get_questionnaire_questions(QuestionnaireId) ->
      WHERE an.questionnaire_id=?1 GROUP BY an.question_id, an.id ) AS an
     ON an.question_id = q2.id WHERE q2.questionnaire_id=?1) GROUP BY id;">>, [create], [[QuestionnaireId]]).
 
-% get_questionnaire_question(QuestionnaireId, QuestionId) ->
-%   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-%   <<"SELECT id,answers_type,image,folder,question, '[' || group_concat(answers) || ']' AS answers
-%     FROM (SELECT q2.*,default_next_question, '{\"value\":' || '\"' || an.answer || '\", \"processingSpeed\":' || '\"' || an.processingSpeed || '\",\"brainCapacity\":' || '\"' || an.brainCapacity || '\", \"brainWeight\":' || '\"' || an.brainWeight || '\",\"id\":' || '\"' || an.id || '\",\"defaultNextQuestion\":' || '\"' || an.default_next_question || '\",\"brainMotivations\":' || an.brainMotivations || '}' AS answers
-%     FROM questions AS q2
-%     LEFT JOIN (SELECT an.*,
-%     '[' || ifnull(group_concat('{ \"text\":\"' || bm.text || '\",\"special_id\":' || bm.special_id || '}'),'') || ']' as brainMotivations FROM answers AS an
-%      LEFT JOIN brain_motivations AS bm on an.questionnaire_id = bm.questionnaire_id AND an.question_id=bm.question_id AND an.id=bm.answer_id
-%      WHERE an.questionnaire_id=?1 GROUP BY an.question_id, an.id ) AS an
-%     ON an.question_id = q2.id WHERE q2.questionnaire_id=?1) GROUP BY id;">>, [create], [[QuestionnaireId, QuestionId]]) of
-%     {ok,{false,[]}} -> [];
-%     {ok, {false, [H | _]}} -> H; % just one row
-%     {error,Error} -> lager:error("get_questionnaire_question: ~p",[Error]), error
-%   end.
-
 get_questionnaire_question(QuestionnaireId, QuestionId) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"SELECT id,answers_type,image,folder,question,'[' || group_concat(answers) || ']' AS answers
@@ -146,8 +151,9 @@ get_questionnaire_question(QuestionnaireId, QuestionId, AnswerId) ->
     {error,Error} -> lager:error("get_questionnaire_question: ~p",[Error]), error
   end.
 get_question_answer(QuestionnaireId,SQL) ->
-  String = "SELECT questions.id, answers.id as answer_id, question, answer, image FROM questions LEFT JOIN answers on questions.id=answers.question_id WHERE questions.questionnaire_id=?1 AND"
-  ++ SQL ++ " GROUP BY questions.id, answers.id;",
+  String = "SELECT questions.id, answers.id as answer_id, question, answer, image FROM questions LEFT JOIN answers on questions.id=answers.question_id WHERE questions.questionnaire_id=?1 AND ("
+  ++ SQL ++ ") GROUP BY questions.id, answers.id;",
+   lager:error("String: ~p",[String]),
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
    list_to_binary(String), [create], [[QuestionnaireId]]) of
     {ok,{false,[]}} -> [];
@@ -194,9 +200,9 @@ get_results() ->
 get_results(UserId) ->
  actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
   <<"SELECT * FROM users_score WHERE user_id=?1;">>, [create], [[UserId]]).
-get_lastResult(UserId) ->
-actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
- <<"SELECT MAX(epoch) as epoch FROM users_score WHERE user_id=?1;">>, [create], [[UserId]]).
+get_usersLastAvgScoresLastEpoch() ->
+  actordb_client:exec_single(config(), <<"mocenum">>, <<"questionnaire">>,
+   <<"SELECT user_id, AVG(brainCapacity) as brainCapacity, AVG(processingSpeed) as processingSpeed, AVG(brainWeight) as brainWeight FROM (SELECT users_score.*, MAX(epoch) as epoch FROM users_score WHERE brainCapacity>-1 GROUP BY questionnaire_id);">>, [create]).
 
 -spec insert_user(binary(), binary(), binary(), tuple(), integer(), string()) -> any().
 insert_user(Email, Role, Password, Ip, Sex, Avatar) ->

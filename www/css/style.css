@@ -1,13 +1,7 @@
 
-
+a {cursor: pointer;}
 
 .container {position: relative;}
-/*#canvasBackground {
-background: #3498db;
-width: 100%;
-height: 400px;
-position: absolute;
-}*/
 
 #modalGallery .modal-container {box-sizing: content-box;max-height:60%; overflow-y: auto;}
 #modalGallery .modal-header {padding: 0;}
@@ -24,6 +18,7 @@ position: absolute;
     content: "\f054";    /* adjust as needed, taken from bootstrap.css */
     float: right;        /* adjust as needed */
     color: grey;         /* adjust as needed */
+    
 }
 .card .card-header .collapsed h4:after {
     content: "\f078";    /* adjust as needed, taken from bootstrap.css */
@@ -36,11 +31,6 @@ position: absolute;
 .add{color: green}
 .remove{color: red}
 .close{cursor:pointer;font-size: 22px;}
-
-/*.row>[class^=col-] {
-    background-color: rgba(86,61,124,.15);
-    border: 1px solid rgba(86,61,124,.2);
-}*/
 
 .selected .row {background-color: cyan}
 

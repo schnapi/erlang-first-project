@@ -13,7 +13,7 @@ start() ->
   case mu_db:check_schema() of
     {ok,_} ->
       mu_db:upgrade_schema(),
-      mu_db:insert_user(<<"mocenum">>, <<"admin">>, <<"mocenum">>, {127,0,0,1},0,""),
+      mu_db:insert_user(<<"mocenum">>, <<"admin">>, <<"mocenum">>, {127,0,0,1},0,"defaultWoman.jpg"),
       case mu_db:get_questionnaires() of
         {ok,{false,[]}} -> mu_tests:insert_questionnaire1(),
           mu_tests:insert_questionnaire2();

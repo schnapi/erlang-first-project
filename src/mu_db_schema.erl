@@ -79,7 +79,7 @@ schema_def() ->
         #adb_field{ name = <<"user_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"processingSpeed">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"brainCapacity">>, type = <<"INTEGER">>},
-        #adb_field{ name = <<"braintWeight">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"brainWeight">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"state">>, type = <<"TEXT">>},
         #adb_field{ name = <<"epoch">>, type = <<"TIMESTAMP">>}
       ]},

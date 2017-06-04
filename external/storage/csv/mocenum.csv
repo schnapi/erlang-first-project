@@ -1,30 +1,27 @@
 
-Vprašalnik,Čas in datum,Hitrost procesiranja,Možganska kapaciteta,Teža možganov
-2,1496294766,1,1,1
-Slika,
-Vprašanje,Vpraaanje 1
-Odgovor,Da
-Slika,
-Vprašanje,Vpraaanje 2
+Vprašalnik,Datum,Lokalni čas,Hitrost procesiranja,Možganska kapaciteta,Teža možganov
+Možnost rasti,04/06/2017,23:31:53,27.272727,27.272727,27.272727
+
+Vprašanje ID,1
+Vprašanje,"�Menim, da ne morem veliko narediti za izboljaanje svojih umskih sposobnosti.�"
 Odgovor,Ne
 
-Vprašalnik,Čas in datum,Hitrost procesiranja,Možganska kapaciteta,Teža možganov
-1,1496306267,2,2,2
-Slika,
-Vprašanje,"»Cilje veliko lažje dosežemo, če si jih natančno zastavimo. Tako je dobro, da točno določimo, kaj želimo doseči, kakšni so kriteriji za dosego tega cilja, v kolikšnem času nam bo to uspelo, na kak način bomo to storili, pa tudi zakaj je pomembno, da ta cilj dosežemo.«"
+Vprašanje ID,2
+Vprašanje,"�Verjamem, da lahko s trudom precej izboljaam svoje umske sposobnosti.�"
 Odgovor,Da
-Slika,
-Vprašanje,"»Cilje veliko lažje dosežemo, če si jih natančno zastavimo. Tako je dobro, da točno določimo, kaj želimo doseči, kakšni so kriteriji za dosego tega cilja, v kolikšnem času nam bo to uspelo, na kak način bomo to storili, pa tudi zakaj je pomembno, da ta cilj dosežemo.«"
-Odgovor,Ne
-Slika,
-Vprašanje,Vpraaanje 2
+
+Vprašanje ID,3
+Vprašanje,"»Lahko se naučim novih stvari, ne zmorem pa izboljšati svojih umskih sposobnosti.«"
 Odgovor,Da
-Slika,
-Vprašanje,Vpraaanje 2
+
+Vprašanje ID,4
+Vprašanje,"�Menim, da imam ne glede na svojo trenutno stopnjo umskih sposobnosti zmo~nost, da jo precej izboljaam.�"
 Odgovor,Ne
-Slika,
-Vprašanje,Vpraaanje 2
-Odgovor,"V prihodnjem letu želim ohraniti vsaj dve tretjini starih strank in podpisati pogodbe s 30 novimi. Tako moram vsak mesec podpisati vsaj 2 ali 3 novi stranki. Želim si skleniti 10 % več zavarovalnih polic kot lani. To mi bo uspelo s povečanjem deleža spletnega poslovanja. Če mi uspe, lahko upam na višjo plačo in napredovanje."
-Slika,2.jpg
-Vprašanje,"»Ta naloga je podobna prejšnji. Tokrat so predstavljeni cilji treh mediatorjev. Spet izberi osebo, ki ima najbolj natančno zastavljene delovne cilje! Pazi, da ima zastavljene tako cilje, kot tudi način, kako jih doseči!«"
-Odgovor,"V prihodnjem letu želim povečati delež uspešno razrešenih sporov na 60 odstotkov. Prav tako želim pridobiti 10 odstotkov novih strank. To mi bo uspelo tako, da bom do marca namenil polovico svoje plače za oglaševanje, prav tako bom podaljšal trajanje srečanj na eno uro. Če mi uspe, lahko zaposlim kakšnega novega sodelavca."
+
+Vprašanje ID,7
+Vprašanje,"Oseba na sliki je pravkar prejela e-poštno sporočilo, da je ocena njene delovne uspešnosti nižja od povprečja. Kako bi ti razmišljal, če bi bil ta oseba?"
+Odgovor,"Razmišljal bi, da bom v prihodnje v svoje delo vložil več truda. Prav tako bi načrtoval, da se bom udeležil dodatnih usposabljanj in tako izboljšal svojo delovno učinkovitost."
+
+Vprašanje ID,8
+Vprašanje,"Oseba na sliki ni bila izbrana za skupinski projekt. Kako bi ti razmišljal, če bi bil ta oseba?"
+Odgovor,"Razmialjal bi, da se nisem dovolj uril za delo v skupini. Pristopil bi do sodelavcev in nadrejenih ter se pozanimal, kako izboljaati kompetence dela v skupinah."
