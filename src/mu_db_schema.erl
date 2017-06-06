@@ -106,7 +106,8 @@ schema_def() ->
         #adb_field{ name = <<"processingSpeed">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"brainCapacity">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"brainWeight">>, type = <<"INTEGER">>},
-        #adb_field{ name = <<"default_next_question">>, type = <<"INTEGER">>}
+        #adb_field{ name = <<"default_next_question">>, type = <<"INTEGER">>},
+        #adb_field{ name = <<"answerImage">>, type = <<"TEXT">>}
       ]},
 
       #adb_table{ name = <<"logic_conditions">>, opts = [without_rowid, {foreign_key,[{key,["answer_id","question_id","questionnaire_id"]},

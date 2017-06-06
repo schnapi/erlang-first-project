@@ -46,7 +46,7 @@ getNextQuestion([Condition|T],DefaultNextQuestion,Tab) ->
 getNextQuestion([], DefaultNextQuestion,_) -> DefaultNextQuestion.
 
 nextQuestion(QuestionnaireId, QuestionId, AnswerId, Tab) ->
-	#{<<"default_next_question">> := DefaultNextQuestion, <<"processingSpeed">> := W1, <<"brainCapacity">> := W2, <<"brainWeight">> := W3} = mu_db:get_answer(QuestionnaireId, QuestionId,AnswerId),
+	#{<<"default_next_question">> := DefaultNextQuestion,<<"answerImage">>:=AnswerImage, <<"processingSpeed">> := W1, <<"brainCapacity">> := W2, <<"brainWeight">> := W3} = mu_db:get_answer(QuestionnaireId, QuestionId,AnswerId),
 		lager:error("DefaultNextQuestion: ~p",[DefaultNextQuestion]),
 	NextQuestion = getNextQuestion( mu_db:get_logic(QuestionnaireId, QuestionId, AnswerId),DefaultNextQuestion,Tab),
 		lager:error("NextQuestion: ~p",[NextQuestion]),

@@ -44,9 +44,16 @@
               </div>
               <div class="col-sm-8 well"><h3>{{question.question}}</h3></div>
               <form v-if="question.answers_type == 'selectOne'" class="col-sm-12">
-                <label v-for="(answer, index) in question.answers" class="radio-inline">
-                  <input type="radio" :value="index+1" v-model="answerId">{{answer.value}}
-                </label>
+                <div v-for="(answer, index) in question.answers" class="row">
+                  <div v-if="typeof answer['answerImage'] != 'undefined' && answer['answerImage'] != ''" class="col-sm-4">
+                      <img :src="encodeURI(question.folder+answer['answerImage'])" :alt="answer['answerImage']" class="w-100">
+                  </div>
+                  <div class-sm-8>
+                    <label class="radio-inline">
+                      <input type="radio" :value="index+1" v-model="answerId">{{answer.value}}
+                    </label>
+                  </div>
+                </div>
               </form>
               <div v-if="question.answers_type == 'textarea'" class="form-group col-12"><br>
                   <textarea class="form-control" rows="5" id="comment" v-model="answerId" placeholder="Tukaj vpišite odgovor!"></textarea>
@@ -82,7 +89,6 @@ new Vue({
     max_processingSpeed : {{max_processingSpeed}},
     max_brainCapacity : {{max_brainCapacity}},
     max_brainWeight : {{max_brainWeight}},
-    image: "test.jpg"
   },
   computed: {
     processingSpeedPercent: function() {

@@ -23,6 +23,15 @@
 .mr-2 {
   margin-right: 2px!important;
 }
+.mx-2 {
+  margin: 0 2px 0 2px!important;
+}
+.my-2 {
+  margin: 2px 0 2px 0!important;
+}
+.my-4 {
+  margin: 4px 0 4px 0!important;
+}
 .m-2 {
   margin: 2px!important;
 }

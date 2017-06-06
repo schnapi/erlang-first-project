@@ -117,7 +117,7 @@ get_questions_same_image(Folder, Image) ->
 get_questionnaire_questions(QuestionnaireId) ->
   Res = actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
   <<"SELECT id,answers_type,image,folder,question, '[' || group_concat(answers) || ']' AS answers
-    FROM (SELECT q2.*,'{\"value\":' || '\"' || an.answer || '\", \"processingSpeed\":' || '\"' || an.processingSpeed || '\",\"brainCapacity\":' || '\"' || an.brainCapacity || '\", \"brainWeight\":' || '\"' || an.brainWeight || '\",\"id\":' || '\"' || an.id || '\",\"defaultNextQuestion\":' || '\"' || an.default_next_question || '\",\"brainMotivations\":' || an.brainMotivations || ',\"conditions\":' || an.conditions || '}' AS answers
+    FROM (SELECT q2.*,'{\"value\":' || '\"' || an.answer || '\", \"processingSpeed\":' || '\"' || an.processingSpeed || '\",\"brainCapacity\":' || '\"' || an.brainCapacity || '\", \"brainWeight\":' || '\"' || an.brainWeight || '\",\"id\":' || '\"' || an.id || '\",\"defaultNextQuestion\":' || '\"' || an.default_next_question || '\",\"answerImage\":' || '\"' || an.answerImage || '\",\"brainMotivations\":' || an.brainMotivations || ',\"conditions\":' || an.conditions || '}' AS answers
     FROM questionnaires AS q1 INNER JOIN questions AS q2 on q1.id=q2.questionnaire_id
     LEFT JOIN (SELECT an.*,  '[' || ifnull(group_concat('{ \"nextQuestion\":' || lc.next_question || ',\"condition\":' || lc.condition || '}'),'') || ']' as conditions,
     '[' || ifnull(group_concat('{ \"text\":\"' || bm.text || '\",\"special_id\":' || bm.special_id || '}'),'') || ']' as brainMotivations FROM answers AS an
@@ -129,7 +129,7 @@ get_questionnaire_questions(QuestionnaireId) ->
 get_questionnaire_question(QuestionnaireId, QuestionId) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
    <<"SELECT id,answers_type,image,folder,question,'[' || group_concat(answers) || ']' AS answers
-   FROM (SELECT q2.*,default_next_question, '{\"value\":' || '\"' || an.answer || '\", \"processingSpeed\":' || '\"' || an.processingSpeed || '\", \"brainCapacity\":' || '\"' || an.brainCapacity || '\", \"brainWeight\":' || '\"' || an.brainWeight || '\",\"brainMotivations\":' || an.brainMotivations || '}' AS answers
+   FROM (SELECT q2.*,default_next_question, '{\"value\":' || '\"' || an.answer || '\",\"answerImage\":' || '\"' || an.answerImage || '\", \"processingSpeed\":' || '\"' || an.processingSpeed || '\", \"brainCapacity\":' || '\"' || an.brainCapacity || '\", \"brainWeight\":' || '\"' || an.brainWeight || '\",\"brainMotivations\":' || an.brainMotivations || '}' AS answers
    FROM questions AS q2
    LEFT JOIN (SELECT an.*,
    '[' || ifnull(group_concat('{ \"text\":\"' || bm.text || '\",\"special_id\":' || bm.special_id || '}'),'') || ']' as brainMotivations FROM answers AS an
@@ -142,7 +142,7 @@ get_questionnaire_question(QuestionnaireId, QuestionId) ->
   end.
 get_questionnaire_question(QuestionnaireId, QuestionId, AnswerId) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"SELECT ifnull(default_next_question, -1) as default_next_question,id,answers_type,image,question,'[' || group_concat(answers) || ']' AS answers FROM
+   <<"SELECT ifnull(default_next_question, -1) as default_next_question,answerImage, id,answers_type,image,question,'[' || group_concat(answers) || ']' AS answers FROM
    (SELECT q2.*,default_next_question, '{\"value\":' || '\"' || an.answer || '\", \"processingSpeed\":' || '\"' || an.processingSpeed || '\", \"brainCapacity\":' || '\"' || an.brainCapacity || '\", \"brainWeight\":' || '\"' || an.brainWeight || '\"}' AS answers FROM questions AS q2
     LEFT JOIN answers AS an ON an.questionnaire_id = q2.questionnaire_id AND an.question_id = q2.id
     WHERE q2.questionnaire_id=?1 AND q2.id=?2 AND an.id=?3) GROUP BY id;">>, [create], [[QuestionnaireId, QuestionId,AnswerId]]) of
@@ -257,9 +257,9 @@ insert_update_answer(AnswerMap, QuestionId, QuestionnaireId) ->lager:debug("~p",
   case AnswerMap of
     #{ <<"id">> := AnswerId, <<"value">> := Answer} ->
       case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-        <<"INSERT OR REPLACE INTO answers VALUES(?1,?2,?3,?4,?5,?6,?7,?8);">>, [create], [[AnswerId, QuestionId,
+        <<"INSERT OR REPLACE INTO answers VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9);">>, [create], [[AnswerId, QuestionId,
         QuestionnaireId,Answer,maps:get(<<"processingSpeed">>, AnswerMap, 0),maps:get(<<"brainCapacity">>, AnswerMap, 0),
-        maps:get(<<"brainWeight">>, AnswerMap, 0), maps:get(<<"defaultNextQuestion">>, AnswerMap, QuestionId+1)]]) of
+        maps:get(<<"brainWeight">>, AnswerMap, 0), maps:get(<<"defaultNextQuestion">>, AnswerMap, QuestionId+1),maps:get(<<"answerImage">>, AnswerMap, <<"">>)]]) of
         {ok,Va} -> lager:debug("Inserting updating answer ~p",[Va]),
         mu_db:insert_update_logic(maps:get(<<"conditions">>, AnswerMap, []),QuestionnaireId, QuestionId, AnswerId, 1),
         lager:error("dsa ~p",[maps:get(<<"brainMotivations">>, AnswerMap, [])]),
