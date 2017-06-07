@@ -203,8 +203,8 @@
                       <tr>
                         <td style="width:1px">{{answer.id = index1+1}}.</td>
                         <td class="h-100">
-                          <textarea class="form-control h-100" rows="5" :id="'odgovor'+(index+1)" :name="'odgovor'+(index+1)" v-model="answer.value" v-validate="'required'"></textarea>
-                          <span class="text-danger" v-if="errors.has('odgovor'+(index+1))">{{errors.first('odgovor'+(index+1))}}</span>
+                          <textarea class="form-control h-100" rows="5" :id="'odgovor'+(index+1)+(index1+1)" :name="'odgovor'+(index+1)+(index1+1)" v-model="answer.value" v-validate="'required'"></textarea>
+                          <span class="text-danger" v-if="errors.has('odgovor'+(index+1)+(index1+1))">{{errors.first('odgovor'+(index+1)+(index1+1))}}</span>
                         </td>
                         <td v-if="questionnaire.scoring" style="width:1px">
                           Hitrost procesiranja: <input class="form-control" type='text' value="1" v-model='answer.processingSpeed' :id="'hitrost procesiranja'+(index+1)+(index1+1)" :name="'hitrost procesiranja'+(index+1)+(index1+1)" v-validate="'required|numeric'">

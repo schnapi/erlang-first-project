@@ -6,6 +6,7 @@ _*
 *.plt
 *.swp
 *.swo
+*.csv
 .erlang.cookie
 ebin
 log
