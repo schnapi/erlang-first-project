@@ -48,7 +48,7 @@
               </div>
               <div v-bind:class="{'form-group': true, 'has-danger': errors.has('password')}">
                   <label class="control-label" for="password">Geslo:</label>
-                  <input id="password" name="password" type="password" class="form-control" placeholder="Geslo" v-model="password" v-validate="'required|min:8|max:32'">
+                  <input id="password" name="password" type="password" class="form-control" placeholder="Geslo" v-model="password" v-validate="'required|min:8'">
                   <span class="text-danger" v-if="errors.has('password')">{{errors.first('password')}}</span>
               </div>
               <div v-bind:class="{'form-group': true}">
@@ -225,6 +225,7 @@
           $.post("/api/registration", userdata, function(data) {
             if (data.error) {alert("Napaka pri generiranju datoteke!")}
             else {
+              //goToLink(link)
               var link=document.createElement('a');
               document.body.appendChild(link);
               link.href="/"+data ;

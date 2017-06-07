@@ -39,14 +39,12 @@
               <button v-on:click="pushRow(conditionAdd[0])" class="btn btn-success" type="button">Pojdi na vprašanje</button>
               <button v-on:click="popRow(getSelectedLogic().conditions)" class="btn btn-danger" type="button">Odstrani</button>
             </p>
-            <div class="container">
-            <div class="row align-items-center row-eq-height">
+            <div class="row w-100 text-center row-eq-height">
               <div class="col-3">Pojdi na vprašanje</div>
               <div class="col-5">Pogoji</div>
               <div class="col-3">Logični operator</div>
               <div class="col-1">&#8203;</div>
-            </div>
-            <div class="row align-items-center row-eq-height" v-for="(obj, index) in getSelectedLogic().conditions">
+            <div class="row w-100 text-center row-eq-height" style="border: 1px solid #ddd;" v-for="(obj, index) in getSelectedLogic().conditions">
               <div class="col-3">
                 <select class="custom-select" v-model="obj.nextQuestion">
                   <option value="">Zaključi vprašalnik</option>
@@ -124,31 +122,35 @@
           </div>
           <div slot="body" class="row">
             <div v-for="(file, index) in filesManager.files" class="img-thumbnail d-inline-block mx-2 my-4" v-on:click="selectImage(index)" style="width:100px">
-              <img :src="filesManager.folder+file" class="thumbnail" style="width:100%">
+              <img :src="encodeURI(filesManager.folder+file)" class="thumbnail" style="width:100%">
               <div class="caption text-center">{{file}}</div>
             </div>
           </div>
           <div slot="footer"></div>
         </modal>
 
-      <div class="form-group row">
+      <div class="form-group row" v-bind:class="{'form-group': true, 'has-danger': errors.has('password')}">
         <div class="col-sm-10">
-          <label class="col-form-label col-form-label-lg" for="usr">Ime vprašalnika:</label>
-          <input type="text" class="form-control" v-model="questionnaire.name" id="usr">
+          <label class="control-label" for="ime vprašalnika">Ime vprašalnika:</label>
+          <input type="text" id="ime vprašalnika" name="ime vprašalnika" class="form-control" v-model="questionnaire.name" v-validate="'required'">
+          <span class="text-danger" v-if="errors.has('ime vprašalnika')">{{errors.first('ime vprašalnika')}}</span>
         </div>
       </div>
       <div class="form-group row">
         <div class="col-sm-3">
-          <label class="col-form-label col-form-label-sm" for="usr">Maksimalna hitrost procesiranja:</label>
-          <input type="text" class="form-control" v-model="questionnaire.max_processingSpeed" id="usr">
+          <label class="control-label" for="maksimalna hitrost procesiranja">Maksimalna hitrost procesiranja:</label>
+          <input type="text" id="maksimalna hitrost procesiranja" name="maksimalna hitrost procesiranja" class="form-control" v-model="questionnaire.max_processingSpeed" v-validate="'required|numeric'">
+          <span class="text-danger" v-if="errors.has('maksimalna hitrost procesiranja')">{{errors.first('maksimalna hitrost procesiranja')}}</span>
         </div>
         <div class="col-sm-3">
-          <label class="col-form-label col-form-label-sm" for="usr">Maksimalne spominske kapacitete:</label>
-          <input type="text" class="form-control" v-model="questionnaire.max_brainCapacity" id="usr">
+          <label class="control-label" for="maksimalne spominske kapacitete">Maksimalne spominske kapacitete:</label>
+          <input type="text" id="maksimalne spominske kapacitete" name="maksimalne spominske kapacitete" class="form-control" v-model="questionnaire.max_brainCapacity" v-validate="'required|numeric'">
+          <span class="text-danger" v-if="errors.has('maksimalne spominske kapacitete')">{{errors.first('maksimalne spominske kapacitete')}}</span>
         </div>
         <div class="col-sm-3">
-          <label class="col-form-label col-form-label-sm" for="usr">Maksimalna teža možganov:</label>
-          <input type="text" class="form-control" v-model="questionnaire.max_brainWeight" id="usr">
+          <label class="control-label" for="maksimalna teža možganov">Maksimalna teža možganov:</label>
+          <input type="text" id="maksimalna teža možganov" name="maksimalna teža možganov" class="form-control" v-model="questionnaire.max_brainWeight" v-validate="'required|numeric'">
+          <span class="text-danger" v-if="errors.has('maksimalna teža možganov')">{{errors.first('maksimalna teža možganov')}}</span>
         </div>
         <div class="col-sm-2 form-check">
           <label class="form-check-label">Točkovanje vključeno</label>
@@ -156,9 +158,9 @@
         </div>
       </div>
       <!-- <div class="form-group row">
-        <label class="col-5 col-form-label col-form-label-sm" for="usr">Minimalno število točk, da se uporabniku odklene naslednji vprašalnik:</label>
+        <label class="col-5 col-form-label col-form-label-sm" for="qImageSel">Minimalno število točk, da se uporabniku odklene naslednji vprašalnik:</label>
         <div class="col-7">
-          <input type="text" class="form-control" v-model="questionnaire." id="usr">
+          <input type="text" class="form-control" v-model="questionnaire." id="qImageSel">
         </div>
       </div> -->
       <draggable v-model="questions" class="dragArea">
@@ -171,11 +173,12 @@
           </div>
           <section :id="'question' + index" class="collapse card-block panel-body" role="tabpanel" :aria-labelledby="'question' + index">
             <div class="form-group">
-              <textarea class="form-control" rows="5" id="comment" v-model="question['question']"></textarea>
+              <textarea class="form-control" rows="5" :id="'vprašanje'+(index+1)" :name="'vprašanje'+(index+1)" v-model="question['question']" v-validate="'required'"></textarea>
+              <span class="text-danger" v-if="errors.has('vprašanje'+(index+1))">{{errors.first('vprašanje'+(index+1))}}</span>
             </div>
             <div class="row">
               <div class="col-sm-2">
-                <button class="btn btn-success" v-on:click="showModalGallerySelectable(index)">Izberi sliko</button>
+                <button class="btn btn-success" v-on:click="showModalGallerySelectable(index)">Izberi sliko</button><br>
                 <a v-if="question['image'] != ''" @click="removeImage1(index)">Odstrani sliko</a>
               </div>
               <div class="col-sm-9"><input class="form-control" type="text" v-model="question['image']"></div>
@@ -198,28 +201,35 @@
                   <tbody>
                     <template v-for="(answer, index1) in question['answers']">
                       <tr>
-                      <td style="width:1px">{{answer.id = index1+1}}.</td>
-                      <td class="h-100"><textarea class="form-control h-100" v-model="answer.value"></textarea></td>
-                      <td v-if="questionnaire.scoring" style="width:1px"> {{answer.processingSpeed}}
-                        Hitrost procesiranja: <input class="form-control" type='text' value="1" v-model='answer.processingSpeed'> <br>
-                        Spominske kapacitete: <input class="form-control" type='text' value="1" v-model='answer.brainCapacity'> <br>
-                        Teža možganov: <input class="form-control" type='text' value="1" v-model='answer.brainWeight'> <br>
-                      </td>
-                      <td style="width:1px">
-                        <button class="w-100 m-2" @click="showModalLogicF(index+1, index1+1)">Logika</button>
-                        <button class="w-100 m-2" @click="showModalBrainsF(index+1, index1+1)">Dodaj možgančka</button>
-                      </td>
-                      <td style="width:1px"><button v-on:click="removeAnswer(question,index1)" class="btn btn-danger" type="button">Odstrani</button></td>
+                        <td style="width:1px">{{answer.id = index1+1}}.</td>
+                        <td class="h-100">
+                          <textarea class="form-control h-100" rows="5" :id="'odgovor'+(index+1)" :name="'odgovor'+(index+1)" v-model="answer.value" v-validate="'required'"></textarea>
+                          <span class="text-danger" v-if="errors.has('odgovor'+(index+1))">{{errors.first('odgovor'+(index+1))}}</span>
+                        </td>
+                        <td v-if="questionnaire.scoring" style="width:1px">
+                          Hitrost procesiranja: <input class="form-control" type='text' value="1" v-model='answer.processingSpeed' :id="'hitrost procesiranja'+(index+1)+(index1+1)" :name="'hitrost procesiranja'+(index+1)+(index1+1)" v-validate="'required|numeric'">
+                          <span class="text-danger" v-if="errors.has('hitrost procesiranja'+(index+1)+(index1+1))">{{errors.first('hitrost procesiranja'+(index+1)+(index1+1))}}</span> <br>
+                          Spominske kapacitete: <input class="form-control" type='text' value="1" v-model='answer.brainCapacity' :id="'spominske kapacitete'+(index+1)+(index1+1)" :name="'spominske kapacitete'+(index+1)+(index1+1)" v-validate="'required|numeric'">
+                          <span class="text-danger" v-if="errors.has('spominske kapacitete'+(index+1)+(index1+1))">{{errors.first('spominske kapacitete'+(index+1)+(index1+1))}}</span> <br>
+                          Teža možganov: <input class="form-control" type='text' value="1" v-model='answer.brainWeight' :id="'teža možganov'+(index+1)+(index1+1)" :name="'teža možganov'+(index+1)+(index1+1)" v-validate="'required|numeric'">
+                          <span class="text-danger" v-if="errors.has('teža možganov'+(index+1)+(index1+1))">{{errors.first('teža možganov'+(index+1)+(index1+1))}}</span> <br>
+                        </td>
+                        <td style="width:1px">
+                          <button class="w-100 m-2" @click="showModalLogicF(index+1, index1+1)">Logika</button>
+                          <button class="w-100 m-2" @click="showModalBrainsF(index+1, index1+1)">Dodaj možgančka</button>
+                        </td>
+                        <td style="width:1px"><button v-on:click="removeAnswer(question,index1)" class="btn btn-danger" type="button">Odstrani</button></td>
                       </tr>
-                      <tr><td colspan="5">
-                        <div class="row">
-                          <div class="col-sm-3">
-                            <button class="btn btn-success" v-on:click="showModalGallerySelectable(index,index1)">Izberi sliko</button>
-                            <a v-if="answer['answerImage'] != ''" @click="removeImage2(index,index1)">Odstrani sliko</a>
+                      <tr>
+                        <td colspan="5">
+                          <div class="row">
+                            <div class="col-sm-3">
+                              <button class="btn btn-success" v-on:click="showModalGallerySelectable(index,index1)">Izberi sliko</button><br>
+                              <a v-if="answer['answerImage'] != ''" @click="removeImage2(index,index1)">Odstrani sliko</a>
+                            </div>
+                            <div class="col-sm-9"><input class="form-control" type="text" v-model="answer['answerImage']"></div>
                           </div>
-                          <div class="col-sm-9"><input class="form-control" type="text" v-model="answer['answerImage']"></div>
-                        </div>
-                      </td>
+                        </td>
                       </tr>
                     </template>
                   </tbody>
@@ -266,10 +276,6 @@
 
 {% block footer_javascript %}
 
-  Vue.component('modal', {
-    template: '#modal-template'
-  })
-
   var name = getUrlParam('name');
   var id = getUrlParam('id');
   var scoring = getUrlParam('scoring')==0?false:true;
@@ -281,8 +287,12 @@
   if(!Number.isInteger(max_brainWeight)) max_brainWeight=0
 
   if(name=="null") name="";
-    toggle=true;
 
+  Vue.use(VeeValidate);
+
+  Vue.component('modal', {
+    template: '#modal-template'
+  })
   var VueQuestions = new Vue({
     el: '#questions',
     data: {
@@ -468,7 +478,6 @@
         obj.pop()
       },
       removeQuestion: function (index) {
-        toggle=false;
         Vue.delete(this.questions, index);
       },
       addQuestion: function() {
@@ -489,22 +498,32 @@
         this.getSelectedLogic().brainMotivations.push({text: "Možganček reče:", special_id: this.getSelectedLogic().brainMotivations.length+1})
       },
       save: function() {
-        // alertj(this.questions)
-        this.questionnaire.scoring = + this.questionnaire.scoring //convert boolean to number
-        // alert(this.questionnaire.scoring )
-        var userdata = JSON.stringify({
-          "questionnaire": this.questionnaire,
-          "questions": this.questions
-        });
-        self=this;
-        $.post("/api/edit_questionnaire", userdata, function(data) {
-          if(data.error) alert("Prišlo do je napake, podatki niso vnešeni");
-          else {
-            self.questionnaire.id=data
-            window.history.replaceState(null, "test", location.protocol + '//' + location.host + location.pathname+"?id="+self.questionnaire.id+"&name="+self.questionnaire.name+"&scoring="+self.questionnaire.scoring+"&max_processingSpeed="+self.questionnaire.max_processingSpeed+"&max_brainWeight="+self.questionnaire.max_brainWeight+"&max_brainCapacity="+self.questionnaire.max_brainCapacity)
-            alert("Ustrezno vnešeni podatki!");
-          }
-        })
+        this.$validator.validateAll();
+        if (!this.errors.any()) {
+          // alertj(this.questions)
+          this.questionnaire.scoring = + this.questionnaire.scoring //convert boolean to number
+          // alert(this.questionnaire.scoring )
+          var userdata = JSON.stringify({
+            "questionnaire": this.questionnaire,
+            "questions": this.questions
+          });
+          self=this;
+          $.post("/api/edit_questionnaire", userdata, function(data) {
+            if(data.error) alert("Prišlo do je napake, podatki niso vnešeni");
+            else {
+              self.questionnaire.id=data
+              window.history.replaceState(null, "test", location.protocol + '//' + location.host + location.pathname+"?id="+self.questionnaire.id+"&name="+self.questionnaire.name+"&scoring="+self.questionnaire.scoring+"&max_processingSpeed="+self.questionnaire.max_processingSpeed+"&max_brainWeight="+self.questionnaire.max_brainWeight+"&max_brainCapacity="+self.questionnaire.max_brainCapacity)
+              alert("Ustrezno vnešeni podatki!");
+            }
+          })
+        }
+        else {
+          var link=document.createElement('a');
+          document.body.appendChild(link);
+          link.href="#"+this.errors.errors[0].field ;
+          link.click();
+          document.body.removeChild(link);
+        }
       },
       removeImage1(index){
         this.questions[index]['image'] = "";
