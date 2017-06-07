@@ -66,14 +66,14 @@
                   </div>
                 </template>
                 <div v-else class="col-5">
-                  <button @click="selectParentheses(obj1,'p1','(')" type="button" style="padding: 1px 6px" class="btn btn-primary" v-bind:class="{ disabled: ifExistVal(obj1,'p1') }">(</button>
+                  <button @click="selectParentheses(obj1,'p1','(',$event)" type="button" style="padding: 1px 6px" class="btn btn-primary" v-bind:class="{ disabled: ifExistVal(obj1,'p1') }">(</button>
                   <select class="custom-select" v-model="obj1.id">
                     <option v-for="n in questions.length" :value="n">Vprašanje {{n}}</option>
                   </select> =
                   <select class="custom-select" v-model="obj1.answer">
                     <option v-for="(answer, index2) in questions[obj1.id-1].answers" :value="index2+1">{{answer.value.substring(0, 20)}}</option>
                   </select>
-                  <button @click="selectParentheses(obj1,'p2',')')" type="button" style="padding: 1px 6px"  class="btn btn-primary" v-bind:class="{ disabled: ifExistVal(obj1,'p2') }">)</button>
+                  <button @click="selectParentheses(obj1,'p2',')',$event)" type="button" style="padding: 1px 6px"  class="btn btn-primary" v-bind:class="{ disabled: ifExistVal(obj1,'p2') }">)</button>
                 </div>
                 <div class="offset-3" v-if="(index1+1)%2==0 && index1!=obj.condition.length-1 "></div>
               </template>
@@ -108,7 +108,7 @@
               <div class="mr-auto"> <h3>Pregled galerije</h3></div>
               <input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="10000" />
               <label class="btn btn-success btn-file" onclick="triggerClick()">
-                Dodaj sliko<input style="display:none" type="file" name="fileselect[]" multiple="multiple" accept="image/*" @change="onFileChange(index)" />
+                Dodaj sliko<input style="display:none" type="file" name="fileselect[]" multiple="multiple" accept="image/*" @change="onFileChange(index,$event)" />
               </label>
               <button class="btn btn-danger" v-on:click="deleteSelImages()">Izbriši slike</button>
               <span class="fa fa-remove close mx-2" v-on:click="close()"></span>
@@ -121,7 +121,7 @@
               </div>
           </div>
           <div slot="body" class="row">
-            <div v-for="(file, index) in filesManager.files" class="img-thumbnail d-inline-block mx-2 my-4" v-on:click="selectImage(index)" style="width:100px">
+            <div v-for="(file, index) in filesManager.files" class="img-thumbnail d-inline-block mx-2 my-4" v-on:click="selectImage(index,$event)" style="width:100px">
               <img :src="encodeURI(filesManager.folder+file)" class="thumbnail" style="width:100%">
               <div class="caption text-center">{{file}}</div>
             </div>
@@ -380,7 +380,7 @@
           }
         })
       },
-      selectImage(index) {
+      selectImage(index,event) {
         if(this.selectableImage != undefined) {
           ind1= this.selectableImage[0], ind2=this.selectableImage[1];
           if(ind2==-1) {
@@ -402,7 +402,7 @@
         }
         event.currentTarget.classList.toggle('active')
       },
-      selectParentheses: function(obj,para,p) {
+      selectParentheses: function(obj,para,p,event) {
         event.target.classList.toggle('disabled')
         if(obj[para] == ""){
           obj[para]=p
@@ -567,13 +567,13 @@
         })
         this.questions[index]['image'] = ""
       },
-      onFileChange(index) {
+      onFileChange(index,event) {
         var files = event.target.files || event.dataTransfer.files;
         if (!files.length)
           return;
-        this.uploadImage(files[0],this.filesManager.folder,files[0].name);
+        this.uploadImage(files[0],this.filesManager.folder,files[0].name,event);
       },
-      uploadImage(file,folder,fileName) {
+      uploadImage(file,folder,fileName,event) {
         filePath = folder+fileName
         var data = JSON.stringify({
           fileExist: filePath,

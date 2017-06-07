@@ -9,7 +9,7 @@
           </div>
         </div>
         <div class="row" id="modalGallery">
-          <div v-for="(file, index) in filesManager.files" class="img-thumbnail d-inline-block mx-2 my-2" v-on:click="selectImage(index)" style="width:100px">
+          <div v-for="(file, index) in filesManager.files" class="img-thumbnail d-inline-block mx-2 my-2" v-on:click="selectImage(index,$event)" style="width:100px">
             <img :src="encodeURI(filesManager.folder+file)" class="thumbnail" style="width:100%">
             <div class="caption text-center" style="word-wrap: break-word;">{{file}}</div>
           </div>
@@ -17,7 +17,7 @@
         <div class="mt-10 text-center">
           <input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="300000" />
           <label class="btn btn-primary btn-file" onclick="triggerClick()">
-            Naloži avatarja<input style="display:none" type="file" name="fileselect[]" multiple="multiple" accept="image/*" @change="onFileChange()" />
+            Naloži avatarja<input style="display:none" type="file" name="fileselect[]" multiple="multiple" accept="image/*" @change="onFileChange($event)" />
           </label>
           <label class="btn btn-primary btn-file" v-on:click="deleteSelImages()">Izbriši avatarja/-e</label>
         </div>
@@ -90,7 +90,7 @@
           }
         })
       },
-      selectImage(index) {
+      selectImage(index,event) {
         // ind = myArray.findIndex(x => x.question_id === index+1 && x.questionnaire_id === self.questionnaire.id)
         ind = this.removeFilesInd.indexOf(index)
         if(ind == -1) {
@@ -103,13 +103,13 @@
         }
         event.currentTarget.classList.toggle('active')
       },
-      onFileChange() {
+      onFileChange(event) {
         var files = event.target.files || event.dataTransfer.files;
         if (!files.length)
           return;
-        this.uploadImage(files[0],this.filesManager.folder,files[0].name);
+        this.uploadImage(files[0],this.filesManager.folder,files[0].name,event);
       },
-      uploadImage(file,folder,fileName) {
+      uploadImage(file,folder,fileName,event) {
         filePath = folder+fileName
         var data = JSON.stringify({
           fileExist: filePath,
