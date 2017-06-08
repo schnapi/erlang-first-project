@@ -129,6 +129,7 @@ schema_def() ->
         #adb_field{ name = <<"question_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"questionnaire_id">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"text">>, type = <<"TEXT">>},
+        #adb_field{ name = <<"min_score">>, type = <<"INTEGER">>},
         #adb_field{ name = <<"special_id">>, type = <<"INTEGER">>}
       ]}
     ]}

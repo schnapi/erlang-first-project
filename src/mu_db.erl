@@ -263,7 +263,7 @@ insert_update_answer(AnswerMap, QuestionId, QuestionnaireId) ->lager:debug("~p",
         {ok,Va} -> lager:debug("Inserting updating answer ~p",[Va]),
         mu_db:insert_update_logic(maps:get(<<"conditions">>, AnswerMap, []),QuestionnaireId, QuestionId, AnswerId, 1),
         lager:error("dsa ~p",[maps:get(<<"brainMotivations">>, AnswerMap, [])]),
-        mu_db:insert_update_brainMotivation(maps:get(<<"brainMotivations">>, AnswerMap, []),QuestionnaireId, QuestionId, AnswerId, 1), ok;
+        mu_db:insert_update_brainMotivation(maps:get(<<"brainMotivations">>, AnswerMap, []),QuestionnaireId, QuestionId, AnswerId, 1,1), ok;
         {error,Error} -> lager:error("INSERT OR REPLACE INTO answers: ~p",[Error]), error
       end;
     _ -> lager:error("Answer data are missing, probably due test inserting :) "), error
@@ -279,15 +279,15 @@ insert_update_logic([Condition|T],QuestionnaireId, QuestionId, AnswerId, Id) ->
   insert_update_logic(T,QuestionnaireId, QuestionId, AnswerId, Id+1);
 insert_update_logic([],QuestionnaireId, QuestionId, AnswerId, Id) -> ok.
 
-insert_update_brainMotivation([Motivation|T],QuestionnaireId, QuestionId, AnswerId, Id) ->
-  #{<<"text">> := Text, <<"special_id">> := SpecialId} = Motivation,
+insert_update_brainMotivation([Motivation|T],QuestionnaireId, QuestionId, AnswerId, Id, MinScore) ->
+  #{<<"text">> := Text, <<"special_id">> := SpecialId, <<"min_score">> := MinScore } = Motivation,
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"INSERT OR REPLACE INTO brain_motivations VALUES(?1,?2,?3,?4,?5,?6);">>, [create], [[Id, AnswerId, QuestionId,QuestionnaireId,Text, SpecialId]]) of
+   <<"INSERT OR REPLACE INTO brain_motivations VALUES(?1,?2,?3,?4,?5,?6,?7);">>, [create], [[Id, AnswerId, QuestionId,QuestionnaireId,Text, SpecialId,MinScore]]) of
    {ok,Va} -> lager:debug("insert_update_brainMotivation ~p",[Va]), ok;
    {error,Error} -> lager:error("~p",[Error]), error
   end,
-  insert_update_brainMotivation(T,QuestionnaireId, QuestionId, AnswerId, Id+1);
-insert_update_brainMotivation([],QuestionnaireId, QuestionId, AnswerId, Id) -> ok.
+  insert_update_brainMotivation(T,QuestionnaireId, QuestionId, AnswerId, Id+1,MinScore);
+insert_update_brainMotivation([],QuestionnaireId, QuestionId, AnswerId, Id,MinScore) -> ok.
 
 get_logic_column_names() ->
   actordb_client:exec_single(config(), <<"mocenum">>, <<"questionnaire">>,
