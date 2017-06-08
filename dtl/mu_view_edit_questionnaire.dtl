@@ -87,6 +87,7 @@
             <div class="d-flex justify-content-end">
               <div class="mr-auto"> <h3>Možganček reče:</h3></div>
               <button class="mx-2 pull-right" v-on:click="addBrainMotivation()">Dodaj motivacijo</button>
+              <button class="mx-2 pull-right" v-on:click="cloneToAnswers()">Kopiraj v vse odgovore</button>
               <button class="mx-2 pull-right" v-on:click="popRow(questions[selected.question-1].answers[selected.answer-1].brainMotivations)">Izbriši zadnjo motivacijo</button>
             </div>
           </div>
@@ -491,6 +492,13 @@
           answers: [],
           folder: ""
         });
+      },
+      cloneToAnswers() {
+        temp = this.questions[this.selected.question-1].answers[this.selected.answer-1].brainMotivations
+        this.questions[this.selected.question-1].answers.forEach(function(item,index) {
+          item.brainMotivations = temp;
+        });
+        alert("Podatki so kopirani!")
       },
       addAnswer: function(question) {question.answers.push({});},
       removeAnswer: function(question, index) {Vue.delete(question.answers, index)},
