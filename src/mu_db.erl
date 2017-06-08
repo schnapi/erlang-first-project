@@ -120,7 +120,7 @@ get_questionnaire_questions(QuestionnaireId) ->
     FROM (SELECT q2.*,'{\"value\":' || '\"' || an.answer || '\", \"processingSpeed\":' || '\"' || an.processingSpeed || '\",\"brainCapacity\":' || '\"' || an.brainCapacity || '\", \"brainWeight\":' || '\"' || an.brainWeight || '\",\"id\":' || '\"' || an.id || '\",\"defaultNextQuestion\":' || '\"' || an.default_next_question || '\",\"answerImage\":' || '\"' || an.answerImage || '\",\"brainMotivations\":' || an.brainMotivations || ',\"conditions\":' || an.conditions || '}' AS answers
     FROM questionnaires AS q1 INNER JOIN questions AS q2 on q1.id=q2.questionnaire_id
     LEFT JOIN (SELECT an.*,  '[' || ifnull(group_concat('{ \"nextQuestion\":' || lc.next_question || ',\"condition\":' || lc.condition || '}'),'') || ']' as conditions,
-    '[' || ifnull(group_concat('{ \"text\":\"' || bm.text || '\",\"special_id\":' || bm.special_id || '}'),'') || ']' as brainMotivations FROM answers AS an
+    '[' || ifnull(group_concat('{ \"text\":\"' || bm.text || '\",\"min_score\":' || bm.min_score || ',\"special_id\":' || bm.special_id || '}'),'') || ']' as brainMotivations FROM answers AS an
      LEFT JOIN logic_conditions AS lc on an.questionnaire_id = lc.questionnaire_id AND an.question_id=lc.question_id AND an.id=lc.answer_id
      LEFT JOIN brain_motivations AS bm on an.questionnaire_id = bm.questionnaire_id AND an.question_id=bm.question_id AND an.id=bm.answer_id
      WHERE an.questionnaire_id=?1 GROUP BY an.question_id, an.id ) AS an
@@ -132,7 +132,7 @@ get_questionnaire_question(QuestionnaireId, QuestionId) ->
    FROM (SELECT q2.*,default_next_question, '{\"value\":' || '\"' || an.answer || '\",\"answerImage\":' || '\"' || an.answerImage || '\", \"processingSpeed\":' || '\"' || an.processingSpeed || '\", \"brainCapacity\":' || '\"' || an.brainCapacity || '\", \"brainWeight\":' || '\"' || an.brainWeight || '\",\"brainMotivations\":' || an.brainMotivations || '}' AS answers
    FROM questions AS q2
    LEFT JOIN (SELECT an.*,
-   '[' || ifnull(group_concat('{ \"text\":\"' || bm.text || '\",\"special_id\":' || bm.special_id || '}'),'') || ']' as brainMotivations FROM answers AS an
+   '[' || ifnull(group_concat('{ \"text\":\"' || bm.text || '\", \"min_score\":' || bm.min_score || ', \"special_id\":' || bm.special_id || '}'),'') || ']' as brainMotivations FROM answers AS an
     LEFT JOIN brain_motivations AS bm on an.questionnaire_id = bm.questionnaire_id AND an.question_id=bm.question_id AND an.id=bm.answer_id
     WHERE an.questionnaire_id=?1 GROUP BY an.question_id, an.id ) AS an ON an.questionnaire_id = q2.questionnaire_id AND an.question_id = q2.id
     WHERE q2.questionnaire_id=?1 AND q2.id=?2) GROUP BY id;">>, [create], [[QuestionnaireId, QuestionId]]) of
@@ -263,7 +263,7 @@ insert_update_answer(AnswerMap, QuestionId, QuestionnaireId) ->lager:debug("~p",
         {ok,Va} -> lager:debug("Inserting updating answer ~p",[Va]),
         mu_db:insert_update_logic(maps:get(<<"conditions">>, AnswerMap, []),QuestionnaireId, QuestionId, AnswerId, 1),
         lager:error("dsa ~p",[maps:get(<<"brainMotivations">>, AnswerMap, [])]),
-        mu_db:insert_update_brainMotivation(maps:get(<<"brainMotivations">>, AnswerMap, []),QuestionnaireId, QuestionId, AnswerId, 1,1), ok;
+        mu_db:insert_update_brainMotivation(maps:get(<<"brainMotivations">>, AnswerMap, []),QuestionnaireId, QuestionId, AnswerId, 1), ok;
         {error,Error} -> lager:error("INSERT OR REPLACE INTO answers: ~p",[Error]), error
       end;
     _ -> lager:error("Answer data are missing, probably due test inserting :) "), error
@@ -279,15 +279,15 @@ insert_update_logic([Condition|T],QuestionnaireId, QuestionId, AnswerId, Id) ->
   insert_update_logic(T,QuestionnaireId, QuestionId, AnswerId, Id+1);
 insert_update_logic([],QuestionnaireId, QuestionId, AnswerId, Id) -> ok.
 
-insert_update_brainMotivation([Motivation|T],QuestionnaireId, QuestionId, AnswerId, Id, MinScore) ->
-  #{<<"text">> := Text, <<"special_id">> := SpecialId, <<"min_score">> := MinScore } = Motivation,
+insert_update_brainMotivation([Motivation|T],QuestionnaireId, QuestionId, AnswerId, Id) ->
+  #{<<"text">> := Text, <<"special_id">> := SpecialId } = Motivation,
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"questionnaire">>,
-   <<"INSERT OR REPLACE INTO brain_motivations VALUES(?1,?2,?3,?4,?5,?6,?7);">>, [create], [[Id, AnswerId, QuestionId,QuestionnaireId,Text, SpecialId,MinScore]]) of
+   <<"INSERT OR REPLACE INTO brain_motivations VALUES(?1,?2,?3,?4,?5,?6,?7);">>, [create], [[Id, AnswerId, QuestionId,QuestionnaireId,Text,maps:get(<<"min_score">>, Motivation, 0), SpecialId]]) of
    {ok,Va} -> lager:debug("insert_update_brainMotivation ~p",[Va]), ok;
    {error,Error} -> lager:error("~p",[Error]), error
   end,
-  insert_update_brainMotivation(T,QuestionnaireId, QuestionId, AnswerId, Id+1,MinScore);
-insert_update_brainMotivation([],QuestionnaireId, QuestionId, AnswerId, Id,MinScore) -> ok.
+  insert_update_brainMotivation(T,QuestionnaireId, QuestionId, AnswerId, Id+1);
+insert_update_brainMotivation([],QuestionnaireId, QuestionId, AnswerId, Id) -> ok.
 
 get_logic_column_names() ->
   actordb_client:exec_single(config(), <<"mocenum">>, <<"questionnaire">>,

@@ -46,7 +46,7 @@
               <form v-if="question.answers_type == 'selectOne'" class="col-sm-12">
                 <div v-for="(answer, index) in question.answers" class="row">
                   <div v-if="typeof answer['answerImage'] != 'undefined' && answer['answerImage'] != ''" class="col-sm-4">
-                      <img :src="encodeURI(question.folder+answer['answerImage'])" :alt="answer['answerImage']" class="w-100">
+                      <img :src="encodeURI(questionanswer['answerImage'])" :alt="answer['answerImage']" class="w-100">
                   </div>
                   <div class-sm-8>
                     <label class="radio-inline">
@@ -99,6 +99,9 @@ new Vue({
     },
     processingBrainWeight: function() {
       return Math.round(100/this.max_brainWeight*this.brainWeight)
+    },
+    totalScore: function() {
+      return (this.brainWeight+this.brainCapacity+this.processingSpeed)/3
     }
   },
   mounted: function() {
@@ -115,6 +118,17 @@ new Vue({
       })
   },
   methods: {
+    filterBrainMotivations() {
+      var temp = [];
+      if(this.showBrainMotivations.length == 0) return;
+      for(var i = 0; i < this.showBrainMotivations.length; i++) {
+        if(this.totalScore <= this.showBrainMotivations[i].min_score) {
+          temp[0] = this.showBrainMotivations[i];
+          break;
+        }
+      }
+      this.showBrainMotivations = temp;
+    },
     nextQuestion: function() {
       if(this.question != "" && this.nextQuestionFlag && this.answerId > 0) {
         this.brainMotivations = this.question.answers[this.answerId-1]["brainMotivations"];
@@ -157,6 +171,7 @@ new Vue({
             self.processingSpeed=data.processingSpeed
             self.brainCapacity=data.brainCapacity
             self.brainWeight=data.brainWeight
+            self.filterBrainMotivations();
             if(self.showBrainMotivations.length==0)
             {window.history.replaceState(null, "test", location.protocol + '//' + location.host + "/")
             window.location.href = "/questionnaires"}
@@ -176,7 +191,9 @@ new Vue({
               self.processingSpeed=data.processingSpeed
               self.brainCapacity=data.brainCapacity
               self.brainWeight=data.brainWeight
+              self.filterBrainMotivations()
             } catch(ex) {
+            alertj(data.question.answers);
               alert("Napaka: "+data.question.answers)
             }
           }
