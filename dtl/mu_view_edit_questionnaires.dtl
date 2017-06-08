@@ -5,11 +5,10 @@
         <div class="btn-toolbar" role="toolbar">
           {% for questionnaire in questionnaires %}
             <div class="mr-2 row" style="margin-bottom: 10px;padding:0;" role="group">
-              <input type="hidden" class='id' value="{{questionnaire.id}}">
               <div class="btn btn-default col-sm-8">{{questionnaire.name}}</div>
               <div class="col-sm-4">
                 <a href="edit_questionnaire?id={{questionnaire.id}}&name={{questionnaire.name}}&scoring={{questionnaire.scoring}}&max_brainCapacity={{questionnaire.max_brainCapacity}}&max_brainWeight={{questionnaire.max_brainWeight}}&max_processingSpeed={{questionnaire.max_processingSpeed}}" class="btn btn-success mr-2">Uredi</a>
-                <button type="button" class="btn btn-danger" onclick="removeQuestionnaire(this)">Izbriši</button>
+                <button type="button" class="btn btn-danger" onclick="removeQuestionnaire({{questionnaire.id}},this)">Izbriši</button>
               </div>
             </div>
           {% endfor %}
@@ -22,5 +21,21 @@
 {% endblock %}
 
 {% block footer_javascript %}
-{% include "../www/js/edit_questionnaires.js" %}
+function removeQuestionnaire(id,cur) {
+  var userdata = JSON.stringify({
+    "remove": id,
+  });
+  $.post("/api/edit_questionnaire", userdata, function(data) {
+    if(data.error)
+      alert(data.error);
+    else {
+      alert("Ustrezno odstranjeni podatki!");
+      $(cur).parent().parent().remove();
+    }
+  })
+
+}
+function newQuestionnaire() {
+  location.href = '/edit_questionnaire';
+}
 {% endblock %}
