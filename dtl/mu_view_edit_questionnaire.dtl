@@ -555,7 +555,6 @@
             "questionnaire": this.questionnaire,
             "questions": this.questions
           });
-          alertj(this.questions)
           console.log(userdata);
           self=this;
           $.post("/api/edit_questionnaire", userdata, function(data) {
