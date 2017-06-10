@@ -46,7 +46,7 @@
               <form v-if="question.answers_type == 'selectOne'" class="col-sm-12">
                 <div v-for="(answer, index) in question.answers" class="row">
                   <div v-if="typeof answer['answerImage'] != 'undefined' && answer['answerImage'] != ''" class="col-sm-4">
-                      <img :src="encodeURI(questionanswer['answerImage'])" :alt="answer['answerImage']" class="w-100">
+                      <img :src="encodeURI(question.folder+answer['answerImage'])" :alt="answer['answerImage']" class="w-100">
                   </div>
                   <div class-sm-8>
                     <label class="radio-inline">
@@ -121,6 +121,10 @@ new Vue({
     filterBrainMotivations() {
       var temp = [];
       if(this.showBrainMotivations.length == 0) return;
+      // sort by min_score
+      this.showBrainMotivations.sort(function(a, b) {
+        return a.min_score - b.min_score;
+      });
       for(var i = 0; i < this.showBrainMotivations.length; i++) {
         if(this.totalScore <= this.showBrainMotivations[i].min_score) {
           temp[0] = this.showBrainMotivations[i];
@@ -128,6 +132,7 @@ new Vue({
         }
       }
       this.showBrainMotivations = temp;
+      this.nextQuestionFlag=true
     },
     nextQuestion: function() {
       if(this.question != "" && this.nextQuestionFlag && this.answerId > 0) {

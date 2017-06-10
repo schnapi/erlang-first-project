@@ -9,245 +9,251 @@
     </div>
     <div id="accordion" role="tablist" aria-multiselectable="true">
       <div id="questions">
-      <modal v-if="showModalLogic" @close="showModalLogic = false">
-          <h3 slot="header">Načrtovanje logike</h3>
-          <div slot="body">
-            <!-- show logic just for testing purposes -->
-            {{loadtest()}}
-            <table class="table">
-            <tbody>
-              <tr>
-                <th>Vprašanje</th>
-                <td>Vprašanje {{selected.question}}</td>
-              </tr>
-              <tr>
-                <th>Odgovor</th>
-                <td>{{questions[selected.question-1].answers[selected.answer-1].value}}</td>
-              </tr>
-              <tr>
-                <th>Privzeto naslednje vprašanje</th>
-                <td>
-                  <select class="custom-select" v-model="getSelectedLogic().defaultNextQuestion">
-                    <option value="">Zaključi vprašalnik</option>
-                    <option v-for="n in questions.length" :value="n" :selected="n == getSelectedLogic().defaultNextQuestion ? 'true' : ''">Vprašanje {{n}}</option>
-                  </select>
-                </td>
-              </tr>
-            </tbody>
-            </table>
-            <p>
-              <button v-on:click="pushRow(conditionAdd[0])" class="btn btn-success" type="button">Pojdi na vprašanje</button>
-              <button v-on:click="popRow(getSelectedLogic().conditions)" class="btn btn-danger" type="button">Odstrani</button>
-            </p>
-            <div class="row w-100 text-center row-eq-height">
-              <div class="col-3">Pojdi na vprašanje</div>
-              <div class="col-5">Pogoji</div>
-              <div class="col-3">Logični operator</div>
-              <div class="col-1">&#8203;</div>
-            <div class="row w-100 text-center row-eq-height" style="border: 1px solid #ddd;" v-for="(obj, index) in getSelectedLogic().conditions">
-              <div class="col-3">
-                <select class="custom-select" v-model="obj.nextQuestion">
-                  <option value="">Zaključi vprašalnik</option>
-                  <option v-for="n in questions.length" :value="n">Vprašanje {{n}}</option>
-                </select>
-              </div>
-              <template v-for="(obj1, index1) in obj.condition">
-                <template v-if="obj1.op!=undefined">
-                  <div class="col-3">
-                    <select class="custom-select" v-model="obj1.op">
-                      <option value=""></option>
-                      <option value="and">in</option>
-                      <option value="or">ali</option>
+        <modal v-if="showModalLogic" @close="showModalLogic = false">
+            <h3 slot="header">Načrtovanje logike</h3>
+            <div slot="body">
+              <!-- show logic just for testing purposes -->
+              {{loadtest()}}
+              <table class="table">
+              <tbody>
+                <tr>
+                  <th>Vprašanje</th>
+                  <td>Vprašanje {{selected.question}}</td>
+                </tr>
+                <tr>
+                  <th>Odgovor</th>
+                  <td>{{questions[selected.question-1].answers[selected.answer-1].value}}</td>
+                </tr>
+                <tr>
+                  <th>Privzeto naslednje vprašanje</th>
+                  <td>
+                    <select class="custom-select" v-model="getSelectedLogic().defaultNextQuestion">
+                      <option value="">Zaključi vprašalnik</option>
+                      <option v-for="n in questions.length" :value="n" :selected="n == getSelectedLogic().defaultNextQuestion ? 'true' : ''">Vprašanje {{n}}</option>
                     </select>
-                  </div>
-                  <div class="col-1">
-                    <span v-on:click="addRowList(obj.condition, index1+1)" class="add fa fa-plus"></span>
-                    <span v-on:click="removeRow(getSelectedLogic().conditions, obj.condition, index1)" class="remove fa fa-remove"></span>
-                  </div>
-                </template>
-                <div v-else class="col-5">
-                  <button @click="selectParentheses(obj1,'p1','(',$event)" type="button" style="padding: 1px 6px" class="btn btn-primary" v-bind:class="{ disabled: ifExistVal(obj1,'p1') }">(</button>
-                  <select class="custom-select" v-model="obj1.id">
+                  </td>
+                </tr>
+              </tbody>
+              </table>
+              <p>
+                <button v-on:click="pushRow(conditionAdd[0])" class="btn btn-success" type="button">Pojdi na vprašanje</button>
+                <button v-on:click="popRow(getSelectedLogic().conditions)" class="btn btn-danger" type="button">Odstrani</button>
+              </p>
+              <div class="row w-100 text-center row-eq-height">
+                <div class="col-3">Pojdi na vprašanje</div>
+                <div class="col-5">Pogoji</div>
+                <div class="col-3">Logični operator</div>
+                <div class="col-1">&#8203;</div>
+              <div class="row w-100 text-center row-eq-height" style="border: 1px solid #ddd;" v-for="(obj, index) in getSelectedLogic().conditions">
+                <div class="col-3">
+                  <select class="custom-select" v-model="obj.nextQuestion">
+                    <option value="">Zaključi vprašalnik</option>
                     <option v-for="n in questions.length" :value="n">Vprašanje {{n}}</option>
-                  </select> =
-                  <select class="custom-select" v-model="obj1.answer">
-                    <option v-for="(answer, index2) in questions[obj1.id-1].answers" :value="index2+1">{{answer.value.substring(0, 20)}}</option>
                   </select>
-                  <button @click="selectParentheses(obj1,'p2',')',$event)" type="button" style="padding: 1px 6px"  class="btn btn-primary" v-bind:class="{ disabled: ifExistVal(obj1,'p2') }">)</button>
                 </div>
-                <div class="offset-3" v-if="(index1+1)%2==0 && index1!=obj.condition.length-1 "></div>
-              </template>
+                <template v-for="(obj1, index1) in obj.condition">
+                  <template v-if="obj1.op!=undefined">
+                    <div class="col-3">
+                      <select class="custom-select" v-model="obj1.op">
+                        <option value=""></option>
+                        <option value="and">in</option>
+                        <option value="or">ali</option>
+                      </select>
+                    </div>
+                    <div class="col-1">
+                      <span v-on:click="addRowList(obj.condition, index1+1)" class="add fa fa-plus"></span>
+                      <span v-on:click="removeRow(getSelectedLogic().conditions, obj.condition, index1)" class="remove fa fa-remove"></span>
+                    </div>
+                  </template>
+                  <div v-else class="col-5">
+                    <button @click="selectParentheses(obj1,'p1','(',$event)" type="button" style="padding: 1px 6px" class="btn btn-primary" v-bind:class="{ disabled: ifExistVal(obj1,'p1') }">(</button>
+                    <select class="custom-select" v-model="obj1.id">
+                      <option v-for="n in questions.length" :value="n">Vprašanje {{n}}</option>
+                    </select> =
+                    <select class="custom-select" v-model="obj1.answer">
+                      <option v-for="(answer, index2) in questions[obj1.id-1].answers" :value="index2+1">{{answer.value.substring(0, 20)}}</option>
+                    </select>
+                    <button @click="selectParentheses(obj1,'p2',')',$event)" type="button" style="padding: 1px 6px"  class="btn btn-primary" v-bind:class="{ disabled: ifExistVal(obj1,'p2') }">)</button>
+                  </div>
+                  <div class="offset-3" v-if="(index1+1)%2==0 && index1!=obj.condition.length-1 "></div>
+                </template>
+              </div>
             </div>
-          </div>
-          </div>
-        </modal>
+            </div>
+          </modal>
 
-        <modal v-if="showModalBrains" id="modalGallery" @close="showModalBrains = false">>
-          <div slot="header">
-            <div class="d-flex justify-content-end">
-              <div class="mr-auto"> <h3>Možganček reče:</h3></div>
-              <button class="mx-2 pull-right" v-on:click="addBrainMotivation()">Dodaj motivacijo</button>
-              <button class="mx-2 pull-right" v-on:click="cloneToAnswers()">Kopiraj v vse odgovore</button>
-              <button class="mx-2 pull-right" v-on:click="popRow(questions[selected.question-1].answers[selected.answer-1].brainMotivations)">Izbriši zadnjo motivacijo</button>
+          <modal v-if="showModalBrains" id="modalGallery" @close="showModalBrains = false">>
+            <div slot="header">
+              <div class="d-flex justify-content-end">
+                <div class="mr-auto"> <h3>Možganček reče:</h3></div>
+                <button class="mx-2 pull-right" v-on:click="addBrainMotivation()">Dodaj možgančka</button>
+                <button class="mx-2 pull-right" v-on:click="popRow(questions[selected.question-1].answers[selected.answer-1].brainMotivations)">Izbriši zadnjo motivacijo</button>
+              </div>
             </div>
-          </div>
-          <div slot="body">
-            <div class="row">
-              <div class="col-8">Tukaj lahko dodate možgančke. Prioriteta pomeni zaporedje prikaza možgančkov. Enaka prioriteta pomeni prikaz več možgančkov hkrati!</div>
-              <div class="col-1">Prioriteta</div>
-              <div class="col-1">Minimalne točke</div>
+            <div slot="body">
+              <div class="row">
+                <div class="col-9">Tukaj lahko dodate možgančke. Primer za maksimalne točke: <strong>možganček se prikaže, ko imamo manj ali enako točk od maksimalnih.</strong> To pomeni, če imamo maksimalne točke nastavljene na 2 in dosežemo 3 točke se ta možganček ne bo prikazal! Prioriteta pomeni, če želimo prikazati možgančke eden za drugim!</div>
+                <div class="col-1">Prioriteta</div>
+                <div class="col-2 form-check">
+                  <label class="form-check-label">Maksimalne točke</label>
+                  <input class="form-check-input" type="checkbox" v-model="questions[selected.question-1]['flagMaxPoints']">
+                </div>
+              </div>
+              <div class="form-group row" v-for="(obj, index) in questions[selected.question-1].answers[selected.answer-1].brainMotivations">
+                <div class="col-9"><textarea class="form-control" rows="5" v-model="obj.text"></textarea></div>
+                <div class="col-1"><input type="text" class="form-control" v-model="obj.special_id"></div>
+                <div class="col-2"><input type="text" class="form-control" v-model="obj.min_score" :disabled="questions[selected.question-1]['flagMaxPoints'] == true ? false : true"></div>
+              </div>
             </div>
-            <div class="form-group row" v-for="(obj, index) in questions[selected.question-1].answers[selected.answer-1].brainMotivations">
-              <div class="col-8"><textarea class="form-control" rows="5" v-model="obj.text"></textarea></div>
-              <div class="col-1"><input type="text" class="form-control" v-model="obj.special_id"></div>
-              <div class="col-1"><input type="text" class="form-control" v-model="obj.min_score"></div>
+            <div slot="footer">
+              <button class="modal-default-button" v-on:click="cloneToAnswers()">
+                OK
+              </button>
             </div>
-          </div>
-        </modal>
 
-        <modal v-if="showModalGallery" id="modalGallery">
-          <div slot="header" style="width:inherit">
-            <div class="d-flex justify-content-end"  style="position:fixed; width:inherit; z-index: 5555; background:white; padding: 15px; margin-top: 15px; border-bottom: solid 1px #eceeef;">
-              <div class="mr-auto"> <h3>Pregled galerije</h3></div>
-              <input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="10000" />
-              <label class="btn btn-success btn-file" onclick="triggerClick()">
-                Dodaj sliko<input style="display:none" type="file" name="fileselect[]" multiple="multiple" accept="image/*" @change="onFileChange(index,$event)" />
-              </label>
-              <button class="btn btn-danger" v-on:click="deleteSelImages()">Izbriši slike</button>
-              <span class="fa fa-remove close mx-2" v-on:click="close()"></span>
-            </div>
-              <div class="d-flex justify-content-end" style="visibility:hidden" >
+          </modal>
+
+          <modal v-if="showModalGallery" id="modalGallery">
+            <div slot="header" style="width:inherit">
+              <div class="d-flex justify-content-end"  style="position:fixed; width:inherit; z-index: 5555; background:white; padding: 15px; margin-top: 15px; border-bottom: solid 1px #eceeef;">
                 <div class="mr-auto"> <h3>Pregled galerije</h3></div>
-                <button class="btn btn-success" v-on:click="deleteSelImages()">Dodaj sliko</button>
+                <input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="10000" />
+                <label class="btn btn-success btn-file" onclick="triggerClick()">
+                  Dodaj sliko<input style="display:none" type="file" name="fileselect[]" multiple="multiple" accept="image/*" @change="onFileChange(index,$event)" />
+                </label>
                 <button class="btn btn-danger" v-on:click="deleteSelImages()">Izbriši slike</button>
                 <span class="fa fa-remove close mx-2" v-on:click="close()"></span>
               </div>
-          </div>
-          <div slot="body" class="row">
-            <div v-for="(file, index) in filesManager.files" class="img-thumbnail d-inline-block mx-2 my-4" v-on:click="selectImage(index,$event)" style="width:100px">
-              <img :src="encodeURI(filesManager.folder+file)" class="thumbnail" style="width:100%">
-              <div class="caption text-center">{{file}}</div>
+                <div class="d-flex justify-content-end" style="visibility:hidden" >
+                  <div class="mr-auto"> <h3>Pregled galerije</h3></div>
+                  <button class="btn btn-success" v-on:click="deleteSelImages()">Dodaj sliko</button>
+                  <button class="btn btn-danger" v-on:click="deleteSelImages()">Izbriši slike</button>
+                  <span class="fa fa-remove close mx-2" v-on:click="close()"></span>
+                </div>
             </div>
-          </div>
-          <div slot="footer"></div>
-        </modal>
-
-      <div class="form-group row" v-bind:class="{'form-group': true, 'has-danger': errors.has('password')}">
-        <div class="col-sm-10">
-          <label class="control-label" for="ime vprašalnika">Ime vprašalnika:</label>
-          <input type="text" id="ime vprašalnika" name="ime vprašalnika" class="form-control" v-model="questionnaire.name" v-validate="'required'">
-          <span class="text-danger" v-if="errors.has('ime vprašalnika')">{{errors.first('ime vprašalnika')}}</span>
-        </div>
-      </div>
-      <div class="form-group row">
-        <div class="col-sm-3">
-          <label class="control-label" for="maksimalna hitrost procesiranja">Maksimalna hitrost procesiranja:</label>
-          <input type="text" id="maksimalna hitrost procesiranja" name="maksimalna hitrost procesiranja" class="form-control" v-model="questionnaire.max_processingSpeed" v-validate="'required|numeric'">
-          <span class="text-danger" v-if="errors.has('maksimalna hitrost procesiranja')">{{errors.first('maksimalna hitrost procesiranja')}}</span>
-        </div>
-        <div class="col-sm-3">
-          <label class="control-label" for="maksimalne spominske kapacitete">Maksimalne spominske kapacitete:</label>
-          <input type="text" id="maksimalne spominske kapacitete" name="maksimalne spominske kapacitete" class="form-control" v-model="questionnaire.max_brainCapacity" v-validate="'required|numeric'">
-          <span class="text-danger" v-if="errors.has('maksimalne spominske kapacitete')">{{errors.first('maksimalne spominske kapacitete')}}</span>
-        </div>
-        <div class="col-sm-3">
-          <label class="control-label" for="maksimalna teža možganov">Maksimalna teža možganov:</label>
-          <input type="text" id="maksimalna teža možganov" name="maksimalna teža možganov" class="form-control" v-model="questionnaire.max_brainWeight" v-validate="'required|numeric'">
-          <span class="text-danger" v-if="errors.has('maksimalna teža možganov')">{{errors.first('maksimalna teža možganov')}}</span>
-        </div>
-        <div class="col-sm-2 form-check">
-          <label class="form-check-label">Točkovanje vključeno</label>
-          <input class="form-check-input form-control" style="height:2rem" type="checkbox" v-model="questionnaire.scoring">
-        </div>
-      </div>
-      <!-- <div class="form-group row">
-        <label class="col-5 col-form-label col-form-label-sm" for="qImageSel">Minimalno število točk, da se uporabniku odklene naslednji vprašalnik:</label>
-        <div class="col-7">
-          <input type="text" class="form-control" v-model="questionnaire." id="qImageSel">
-        </div>
-      </div> -->
-      <draggable v-model="questions" class="dragArea">
-        <div v-for="(question, index) in questions" class="card question panel panel-default">
-          <div class="card-header panel-heading" role="tab">
-            <a data-toggle="collapse" data-parent="#accordion" :href="'#question' + index" aria-expanded="true" :aria-controls="'question' + index">
-              <h4>Vprašanje:<span>{{question.id = index+1}}</span></h4>
-            </a>
-            <a v-on:click="removeQuestion(index)">Odstrani</a>
-          </div>
-          <section :id="'question' + index" class="collapse card-block panel-body" role="tabpanel" :aria-labelledby="'question' + index">
-            <div class="form-group">
-              <textarea class="form-control" rows="5" :id="'vprašanje'+(index+1)" :name="'vprašanje'+(index+1)" v-model="question['question']" v-validate="'required'"></textarea>
-              <span class="text-danger" v-if="errors.has('vprašanje'+(index+1))">{{errors.first('vprašanje'+(index+1))}}</span>
-            </div>
-            <div class="row">
-              <div class="col-sm-2">
-                <button class="btn btn-success" v-on:click="showModalGallerySelectable(index)">Izberi sliko</button><br>
-                <a v-if="question['image'] != ''" @click="removeImage1(index)">Odstrani sliko</a>
+            <div slot="body" class="row">
+              <div v-for="(file, index) in filesManager.files" class="img-thumbnail d-inline-block mx-2 my-4" v-on:click="selectImage(index,$event)" style="width:100px">
+                <img :src="encodeURI(filesManager.folder+file)" class="thumbnail" style="width:100%">
+                <div class="caption text-center">{{file}}</div>
               </div>
-              <div class="col-sm-9"><input class="form-control" type="text" v-model="question['image']"></div>
             </div>
-            <div class="form-group">
-              <!-- <progress style="width:100%" v-if="progressBars[index].max!=progressBars[index].value" :max="progressBars[index].max" :value="progressBars[index].value"></progress> -->
-            </div>
-              <br>
-              <p>Tip odgovora:
-                <select v-model="question['answers_type']">
-                  <option value="selectOne">Eden pravilni odgovor</option>
-                  <option value="textarea">Vnos teksta</option>
-                  <!-- <option value="selectMulti">Več pravilnih odgovorov</option> -->
-                  <option value="motivation">Oblaček MocenUm</option>
-                </select>
-              </p>
-              <template v-if="question['answers_type'] == 'selectOne'">
-                <table class="answers table">
-                  <thead><tr><th></th><th>Odgovor</th><th v-if="questionnaire.scoring" align="center">Točke</th><th>Ostalo</th><th></th></tr></thead>
-                  <tbody>
-                    <template v-for="(answer, index1) in question['answers']">
-                      <tr>
-                        <td style="width:1px">{{answer.id = index1+1}}.</td>
-                        <td class="h-100">
-                          <textarea class="form-control h-100" rows="5" :id="'odgovor'+(index+1)+(index1+1)" :name="'odgovor'+(index+1)+(index1+1)" v-model="answer.value" v-validate="'required'"></textarea>
-                          <span class="text-danger" v-if="errors.has('odgovor'+(index+1)+(index1+1))">{{errors.first('odgovor'+(index+1)+(index1+1))}}</span>
-                        </td>
-                        <td v-if="questionnaire.scoring" style="width:1px">
-                          Hitrost procesiranja: <input class="form-control" type='text' value="1" v-model='answer.processingSpeed' :id="'hitrost procesiranja'+(index+1)+(index1+1)" :name="'hitrost procesiranja'+(index+1)+(index1+1)" v-validate="'required|numeric'">
-                          <span class="text-danger" v-if="errors.has('hitrost procesiranja'+(index+1)+(index1+1))">{{errors.first('hitrost procesiranja'+(index+1)+(index1+1))}}</span> <br>
-                          Spominske kapacitete: <input class="form-control" type='text' value="1" v-model='answer.brainCapacity' :id="'spominske kapacitete'+(index+1)+(index1+1)" :name="'spominske kapacitete'+(index+1)+(index1+1)" v-validate="'required|numeric'">
-                          <span class="text-danger" v-if="errors.has('spominske kapacitete'+(index+1)+(index1+1))">{{errors.first('spominske kapacitete'+(index+1)+(index1+1))}}</span> <br>
-                          Teža možganov: <input class="form-control" type='text' value="1" v-model='answer.brainWeight' :id="'teža možganov'+(index+1)+(index1+1)" :name="'teža možganov'+(index+1)+(index1+1)" v-validate="'required|numeric'">
-                          <span class="text-danger" v-if="errors.has('teža možganov'+(index+1)+(index1+1))">{{errors.first('teža možganov'+(index+1)+(index1+1))}}</span> <br>
-                        </td>
-                        <td style="width:1px">
-                          <button class="w-100 m-2" @click="showModalLogicF(index+1, index1+1)">Logika</button>
-                          <button class="w-100 m-2" @click="showModalBrainsF(index+1, index1+1)">Dodaj možgančka</button>
-                        </td>
-                        <td style="width:1px"><button v-on:click="removeAnswer(question,index1)" class="btn btn-danger" type="button">Odstrani</button></td>
-                      </tr>
-                      <tr>
-                        <td colspan="5">
-                          <div class="row">
-                            <div class="col-sm-3">
-                              <button class="btn btn-success" v-on:click="showModalGallerySelectable(index,index1)">Izberi sliko</button><br>
-                              <a v-if="answer['answerImage'] != ''" @click="removeImage2(index,index1)">Odstrani sliko</a>
-                            </div>
-                            <div class="col-sm-9"><input class="form-control" type="text" v-model="answer['answerImage']"></div>
-                          </div>
-                        </td>
-                      </tr>
-                    </template>
-                  </tbody>
-                </table>
-                <button v-on:click="addAnswer(question)">Dodaj odgovor</button>
-              </template>
-            </section>
-          </section>
+            <div slot="footer"></div>
+          </modal>
+
+        <div class="form-group row" v-bind:class="{'form-group': true, 'has-danger': errors.has('password')}">
+          <div class="col-sm-10">
+            <label class="control-label" for="ime vprašalnika">Ime vprašalnika:</label>
+            <input type="text" id="ime vprašalnika" name="ime vprašalnika" class="form-control" v-model="questionnaire.name" v-validate="'required'">
+            <span class="text-danger" v-if="errors.has('ime vprašalnika')">{{errors.first('ime vprašalnika')}}</span>
+          </div>
         </div>
-      </draggable>
+        <div class="form-group row">
+          <div class="col-sm-3">
+            <label class="control-label" for="maksimalna hitrost procesiranja">Maksimalna hitrost procesiranja:</label>
+            <input type="text" id="maksimalna hitrost procesiranja" name="maksimalna hitrost procesiranja" class="form-control" v-model="questionnaire.max_processingSpeed" v-validate="'required|numeric'">
+            <span class="text-danger" v-if="errors.has('maksimalna hitrost procesiranja')">{{errors.first('maksimalna hitrost procesiranja')}}</span>
+          </div>
+          <div class="col-sm-3">
+            <label class="control-label" for="maksimalne spominske kapacitete">Maksimalne spominske kapacitete:</label>
+            <input type="text" id="maksimalne spominske kapacitete" name="maksimalne spominske kapacitete" class="form-control" v-model="questionnaire.max_brainCapacity" v-validate="'required|numeric'">
+            <span class="text-danger" v-if="errors.has('maksimalne spominske kapacitete')">{{errors.first('maksimalne spominske kapacitete')}}</span>
+          </div>
+          <div class="col-sm-3">
+            <label class="control-label" for="maksimalna teža možganov">Maksimalna teža možganov:</label>
+            <input type="text" id="maksimalna teža možganov" name="maksimalna teža možganov" class="form-control" v-model="questionnaire.max_brainWeight" v-validate="'required|numeric'">
+            <span class="text-danger" v-if="errors.has('maksimalna teža možganov')">{{errors.first('maksimalna teža možganov')}}</span>
+          </div>
+          <div class="col-sm-2 form-check">
+            <label class="form-check-label">Točkovanje vključeno</label>
+            <input class="form-check-input form-control" style="height:2rem" type="checkbox" v-model="questionnaire.scoring">
+          </div>
+        </div>
+        <!-- <div class="form-group row">
+          <label class="col-5 col-form-label col-form-label-sm" for="qImageSel">Minimalno število točk, da se uporabniku odklene naslednji vprašalnik:</label>
+          <div class="col-7">
+            <input type="text" class="form-control" v-model="questionnaire." id="qImageSel">
+          </div>
+        </div> -->
+        <draggable v-model="questions" class="dragArea">
+          <div v-for="(question, index) in questions" class="card question panel panel-default">
+            <div class="card-header panel-heading" role="tab">
+              <a data-toggle="collapse" data-parent="#accordion" :href="'#question' + index" aria-expanded="true" :aria-controls="'question' + index">
+                <h4>Vprašanje:<span>{{question.id = index+1}}</span></h4>
+              </a>
+              <a v-on:click="removeQuestion(index)">Odstrani</a>
+            </div>
+            <section :id="'question' + index" class="collapse card-block panel-body" role="tabpanel" :aria-labelledby="'question' + index">
+              <div class="form-group">
+                <textarea class="form-control" rows="5" :id="'vprašanje'+(index+1)" :name="'vprašanje'+(index+1)" v-model="question['question']" v-validate="'required'"></textarea>
+                <span class="text-danger" v-if="errors.has('vprašanje'+(index+1))">{{errors.first('vprašanje'+(index+1))}}</span>
+              </div>
+              <div class="row">
+                <div class="col-sm-2">
+                  <button class="btn btn-success" v-on:click="showModalGallerySelectable(index)">Izberi sliko</button><br>
+                  <a v-if="question['image'] != ''" @click="removeImage1(index)">Odstrani sliko</a>
+                </div>
+                <div class="col-sm-9"><input class="form-control" type="text" v-model="question['image']"></div>
+              </div>
+              <div class="form-group">
+                <!-- <progress style="width:100%" v-if="progressBars[index].max!=progressBars[index].value" :max="progressBars[index].max" :value="progressBars[index].value"></progress> -->
+              </div>
+                <br>
+                <p>Tip odgovora:
+                  <select v-model="question['answers_type']">
+                    <option value="selectOne">Eden pravilni odgovor</option>
+                    <option value="textarea">Vnos teksta</option>
+                    <!-- <option value="selectMulti">Več pravilnih odgovorov</option> -->
+                    <option value="motivation">Oblaček MocenUm</option>
+                  </select>
+                </p>
+                <template v-if="question['answers_type'] == 'selectOne'">
+                  <table class="answers table">
+                    <thead><tr><th></th><th>Odgovor</th><th v-if="questionnaire.scoring" align="center">Točke</th><th>Ostalo</th><th></th></tr></thead>
+                    <tbody>
+                      <template v-for="(answer, index1) in question['answers']">
+                        <tr>
+                          <td style="width:1px">{{answer.id = index1+1}}.</td>
+                          <td class="h-100">
+                            <textarea class="form-control h-100" rows="5" :id="'odgovor'+(index+1)+(index1+1)" :name="'odgovor'+(index+1)+(index1+1)" v-model="answer.value" v-validate="'required'"></textarea>
+                            <span class="text-danger" v-if="errors.has('odgovor'+(index+1)+(index1+1))">{{errors.first('odgovor'+(index+1)+(index1+1))}}</span>
+                          </td>
+                          <td v-if="questionnaire.scoring" style="width:1px">
+                            Hitrost procesiranja: <input class="form-control" type='text' value="1" v-model='answer.processingSpeed' :id="'hitrost procesiranja'+(index+1)+(index1+1)" :name="'hitrost procesiranja'+(index+1)+(index1+1)" v-validate="'required|numeric'">
+                            <span class="text-danger" v-if="errors.has('hitrost procesiranja'+(index+1)+(index1+1))">{{errors.first('hitrost procesiranja'+(index+1)+(index1+1))}}</span> <br>
+                            Spominske kapacitete: <input class="form-control" type='text' value="1" v-model='answer.brainCapacity' :id="'spominske kapacitete'+(index+1)+(index1+1)" :name="'spominske kapacitete'+(index+1)+(index1+1)" v-validate="'required|numeric'">
+                            <span class="text-danger" v-if="errors.has('spominske kapacitete'+(index+1)+(index1+1))">{{errors.first('spominske kapacitete'+(index+1)+(index1+1))}}</span> <br>
+                            Teža možganov: <input class="form-control" type='text' value="1" v-model='answer.brainWeight' :id="'teža možganov'+(index+1)+(index1+1)" :name="'teža možganov'+(index+1)+(index1+1)" v-validate="'required|numeric'">
+                            <span class="text-danger" v-if="errors.has('teža možganov'+(index+1)+(index1+1))">{{errors.first('teža možganov'+(index+1)+(index1+1))}}</span> <br>
+                          </td>
+                          <td style="width:1px">
+                            <button class="w-100 m-2" @click="showModalLogicF(index+1, index1+1)">Logika</button>
+                            <button class="w-100 m-2" @click="showModalBrainsF(index+1, index1+1)">Dodaj možgančka</button>
+                          </td>
+                          <td style="width:1px"><button v-on:click="removeAnswer(question,index1)" class="btn btn-danger" type="button">Odstrani</button></td>
+                        </tr>
+                        <tr>
+                          <td colspan="5">
+                            <div class="row">
+                              <div class="col-sm-3">
+                                <button class="btn btn-success" v-on:click="showModalGallerySelectable(index,index1)">Izberi sliko</button><br>
+                                <a v-if="answer['answerImage'] != ''" @click="removeImage2(index,index1)">Odstrani sliko</a>
+                              </div>
+                              <div class="col-sm-9"><input class="form-control" type="text" v-model="answer['answerImage']"></div>
+                            </div>
+                          </td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                  <button v-on:click="addAnswer(question)">Dodaj odgovor</button>
+                </template>
+              </section>
+            </section>
+          </div>
+        </draggable>
+      </div>
     </div>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/sortable/1.4.2/Sortable.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.13.1/lodash.min.js"></script>
-    <script type="text/javascript" src="https://cdn.rawgit.com/David-Desmaisons/Vue.Draggable/master/dist/vuedraggable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+
     <script type="text/x-template" id="modal-template">
       <transition name="modal">
         <div class="modal-mask">
@@ -328,9 +334,10 @@
           data.forEach(function(question) {
             if (question['answers'] != "undefined") {
               try{
+                question['flagMaxPoints'] = false
                 question['answers'] = JSON.parse(question['answers'])
               } catch(exx) {
-                alertj("Napaka: "+ question['answers'])
+                alertj("Napaka pri parsanju: vnos prepovedanih znakov: "+ question['answers'])
               }
             }
             else question['answers']=[]
@@ -341,6 +348,9 @@
       })
     },
     methods: {
+      alertj: function(obj) {
+        alertj(obj)
+      },
       ifExistVal: function(obj,para) {
         if(obj[para] == "") return true
         return false
@@ -494,29 +504,58 @@
         });
       },
       cloneToAnswers() {
-        temp = this.questions[this.selected.question-1].answers[this.selected.answer-1].brainMotivations
-        this.questions[this.selected.question-1].answers.forEach(function(item,index) {
-          item.brainMotivations = temp;
-        });
-        alert("Podatki so kopirani!")
+        if(this.questions[this.selected.question-1]['flagMaxPoints'] == true) {
+          res = confirm("Ali želite, da veljajo pogoji maksimalne točke za vse odgovore?")
+          if(res) {
+            temp = this.questions[this.selected.question-1].answers[this.selected.answer-1].brainMotivations
+            this.questions[this.selected.question-1].answers.forEach(function(item,index) {
+              item.brainMotivations = clone(temp);
+            });
+          }
+        }
+        this.showModalBrains = false;
       },
-      addAnswer: function(question) {question.answers.push({});},
+      addAnswer: function(question) {
+        question.answers.push({brainCapacity:"0",brainWeight:"0",processingSpeed:"0",});
+        self = this
+        for(index = 0; index< question.answers[0].brainMotivations.length;index++) {
+          item=question.answers[0].brainMotivations[index]
+          if(item.min_score > 0)
+          {
+              res = confirm("V odgovorih pri možgančkih so zaznane maksimalne točke! Ali želite, da veljajo pogoji maksimalne točke za vse odgovore?")
+              if(res) {
+                temp = question.answers[index].brainMotivations
+                question.answers.forEach(function(item,index1) {
+                  self.$set(question.answers[index1], "brainMotivations", clone(temp))
+                });
+              }
+              return false;
+          }
+        }
+      },
       removeAnswer: function(question, index) {Vue.delete(question.answers, index)},
       addBrainMotivation() {
         if(this.getSelectedLogic().brainMotivations == undefined)
           this.$set(this.getSelectedLogic(), "brainMotivations", [])
-        this.getSelectedLogic().brainMotivations.push({text: "Možganček reče:", special_id: this.getSelectedLogic().brainMotivations.length+1, min_score: 0})
+        this.getSelectedLogic().brainMotivations.push({text: "Možganček reče:", special_id: 1, min_score: 0})
       },
       save: function() {
         this.$validator.validateAll();
         if (!this.errors.any()) {
           // alertj(this.questions)
           this.questionnaire.scoring = + this.questionnaire.scoring //convert boolean to number
-          // alert(this.questionnaire.scoring )
+          if(this.questions != undefined)
+            this.questions.forEach(function(item) {
+              if(item.answers != undefined)
+                item.answers.forEach(function(item1) {
+                  item1.value = item1.value.replace(/"/g,"").replace(/'/g,"")
+                });
+            });
           var userdata = JSON.stringify({
             "questionnaire": this.questionnaire,
             "questions": this.questions
           });
+          alertj(this.questions)
           console.log(userdata);
           self=this;
           $.post("/api/edit_questionnaire", userdata, function(data) {
@@ -529,11 +568,29 @@
           })
         }
         else {
-          var link=document.createElement('a');
-          document.body.appendChild(link);
-          link.href="#"+this.errors.errors[0].field ;
-          link.click();
-          document.body.removeChild(link);
+          num = 0, index=0;
+          self=this;
+          $(".collapse").on('shown.bs.collapse', function(){
+            index+=1;
+            if(index==num) {
+              var link=document.createElement('a');
+              document.body.appendChild(link);
+              link.href="#"+self.errors.errors[0].field ;
+              link.click();
+              document.body.removeChild(link);
+            }
+          });
+          num=$('.panel-body:not(".in")').length;
+          if(num==0) {
+
+            var link=document.createElement('a');
+            document.body.appendChild(link);
+            link.href="#"+self.errors.errors[0].field ;
+            link.click();
+            document.body.removeChild(link);
+          }
+          else
+            $('.panel-body:not(".in")').collapse('show');
         }
       },
       removeImage1(index){
