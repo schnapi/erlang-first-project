@@ -8,9 +8,7 @@
         <section id="question">
           <div class="row">
             <div class="col-sm-8">
-              <h3>{{ name }}</h3>
-              {{question.id}} / {{numOfQuestions}}
-              Progress bar vprašanja: <progress :max="numOfQuestions" :value="question.id"></progress>
+              <h3>{{ name }}</h3><progress :max="numOfQuestions" :value="question.id"></progress>
             </div>
             <div class="col-sm-4" v-if="scoring=='1'">
               <div>Hitrost procesiranja:</div>
@@ -182,7 +180,6 @@ new Vue({
             window.location.href = "/questionnaires"}
           }
           else {
-            try {
               if(data.question.answers != "undefined") {
                 data.question.answers = JSON.parse(data.question.answers)
                 self.answerId = 0
@@ -197,10 +194,6 @@ new Vue({
               self.brainCapacity=data.brainCapacity
               self.brainWeight=data.brainWeight
               self.filterBrainMotivations()
-            } catch(ex) {
-            alertj(data.question.answers);
-              alert("Napaka: "+data.question.answers)
-            }
           }
         }
       })

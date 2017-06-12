@@ -518,20 +518,21 @@
       addAnswer: function(question) {
         question.answers.push({brainCapacity:"0",brainWeight:"0",processingSpeed:"0",});
         self = this
-        for(index = 0; index< question.answers[0].brainMotivations.length;index++) {
-          item=question.answers[0].brainMotivations[index]
-          if(item.min_score > 0)
-          {
-              res = confirm("V odgovorih pri možgančkih so zaznane maksimalne točke! Ali želite, da veljajo pogoji maksimalne točke za vse odgovore?")
-              if(res) {
-                temp = question.answers[index].brainMotivations
-                question.answers.forEach(function(item,index1) {
-                  self.$set(question.answers[index1], "brainMotivations", clone(temp))
-                });
-              }
-              return false;
+        if(question.answers.length>0 && question.answers[0].brainMotivations!= undefined)
+          for(index = 0; index< question.answers[0].brainMotivations.length;index++) {
+            item=question.answers[0].brainMotivations[index]
+            if(item.min_score > 0)
+            {
+                res = confirm("V odgovorih pri možgančkih so zaznane maksimalne točke! Ali želite, da veljajo pogoji maksimalne točke za vse odgovore?")
+                if(res) {
+                  temp = question.answers[index].brainMotivations
+                  question.answers.forEach(function(item,index1) {
+                    self.$set(question.answers[index1], "brainMotivations", clone(temp))
+                  });
+                }
+                return false;
+            }
           }
-        }
       },
       removeAnswer: function(question, index) {Vue.delete(question.answers, index)},
       addBrainMotivation() {
@@ -549,6 +550,10 @@
               if(item.answers != undefined)
                 item.answers.forEach(function(item1) {
                   item1.value = item1.value.replace(/"/g,"").replace(/'/g,"")
+                  if(item1.brainMotivations != undefined)
+                    item1.brainMotivations.forEach(function(item2) {
+                      item2.text = item2.text.replace(/"/g,"").replace(/'/g,"")
+                    })
                 });
             });
           var userdata = JSON.stringify({
