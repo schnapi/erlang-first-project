@@ -182,7 +182,7 @@
                   alert(data.error);
                 else {
                   alert("Registracija uspela");
-                  users.gridData.push(self.$data)
+                  users.gridData.push(clone(self.$data))
                 }
               })
             }
