@@ -126,8 +126,7 @@ get_questionnaire_questions(QuestionnaireId) ->
     FROM (SELECT q2.*,'{\"value\":' || '\"' || an.answer || '\", \"processingSpeed\":' || '\"' || an.processingSpeed || '\",\"brainCapacity\":' || '\"' || an.brainCapacity || '\", \"brainWeight\":' || '\"' || an.brainWeight || '\",\"id\":' || '\"' || an.id || '\",\"defaultNextQuestion\":' || '\"' || an.default_next_question || '\",\"answerImage\":' || '\"' || an.answerImage || '\",\"brainMotivations\":' || an.brainMotivations || ',\"conditions\":' || an.conditions || '}' AS answers
     FROM questionnaires AS q1 INNER JOIN questions AS q2 on q1.id=q2.questionnaire_id
     LEFT JOIN (SELECT an.*,  '[' || ifnull(group_concat('{ \"nextQuestion\":' || lc.next_question || ',\"condition\":' || lc.condition || '}'),'') || ']' as conditions,
-    '[' || ifnull(group_concat('{ \"text\":\"' || bm.text || '\",\"
-    \":' || bm.min_score || ',\"special_id\":' || bm.special_id || '}'),'') || ']' as brainMotivations FROM answers AS an
+    '[' || ifnull(group_concat('{ \"text\":\"' || bm.text || '\",\"min_score\":' || bm.min_score || ',\"special_id\":' || bm.special_id || '}'),'') || ']' as brainMotivations FROM answers AS an
      LEFT JOIN logic_conditions AS lc on an.questionnaire_id = lc.questionnaire_id AND an.question_id=lc.question_id AND an.id=lc.answer_id
      LEFT JOIN brain_motivations AS bm on an.questionnaire_id = bm.questionnaire_id AND an.question_id=bm.question_id AND an.id=bm.answer_id
      WHERE an.questionnaire_id=?1 GROUP BY an.question_id, an.id ) AS an
