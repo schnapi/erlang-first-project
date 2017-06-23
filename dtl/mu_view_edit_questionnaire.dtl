@@ -285,6 +285,19 @@
 
 {% block footer_javascript %}
 
+function escape (val) {
+    if (typeof(val)!="string") return val;
+    return val
+      .replace(/[\"]/g, '')
+      .replace(/[\\]/g, '')
+      .replace(/[\/]/g, '')
+      .replace(/[\b]/g, '')
+      .replace(/[\f]/g, '')
+      .replace(/[\n]/g, '\\n')
+      .replace(/[\r]/g, '')
+      .replace(/[\t]/g, '')
+    ;
+}
   var name = getUrlParam('name');
   var id = getUrlParam('id');
   var scoring = getUrlParam('scoring')==0?false:true;
@@ -337,7 +350,12 @@
                 question['flagMaxPoints'] = false
                 question['answers'] = JSON.parse(question['answers'])
               } catch(exx) {
-                alertj("Napaka pri parsanju: vnos prepovedanih znakov: "+ question['answers'])
+                try{
+                  question['answers'] = JSON.parse(question['answers'].replace(/[\n]/g, '\\n'))
+                  alertj("Napako smo delno rešili s tem da smo zbrisali nekatere prepovedane znake!"+ question['answers'])
+                } catch(exx) {
+                  alertj("Napaka pri parsanju: vnos prepovedanih znakov: "+ question['answers'])
+                }
               }
             }
             else question['answers']=[]
@@ -545,14 +563,15 @@
         if (!this.errors.any()) {
           // alertj(this.questions)
           this.questionnaire.scoring = + this.questionnaire.scoring //convert boolean to number
+
           if(this.questions != undefined)
             this.questions.forEach(function(item) {
               if(item.answers != undefined)
                 item.answers.forEach(function(item1) {
-                  item1.value = item1.value.replace(/"/g,"").replace(/'/g,"")
+                  item1.value = escape(item1.value)
                   if(item1.brainMotivations != undefined)
                     item1.brainMotivations.forEach(function(item2) {
-                      item2.text = item2.text.replace(/"/g,"").replace(/'/g,"")
+                      item2.text = escape(item2.text)
                     })
                 });
             });
@@ -568,6 +587,7 @@
               self.questionnaire.id=data
               window.history.replaceState(null, "test", location.protocol + '//' + location.host + location.pathname+"?id="+self.questionnaire.id+"&name="+self.questionnaire.name+"&scoring="+self.questionnaire.scoring+"&max_processingSpeed="+self.questionnaire.max_processingSpeed+"&max_brainWeight="+self.questionnaire.max_brainWeight+"&max_brainCapacity="+self.questionnaire.max_brainCapacity)
               alert("Ustrezno vnešeni podatki!");
+              location.reload();
             }
           })
         }

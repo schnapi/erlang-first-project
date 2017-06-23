@@ -1,27 +1,25 @@
 
 Vprašalnik,Datum,Lokalni čas,Hitrost procesiranja,Možganska kapaciteta,Teža možganov
-Možnost rasti,04/06/2017,23:31:53,27.272727,27.272727,27.272727
+PREPRIČANOST VASE,07/06/2017,23:45:56,100,100,100
+
+Vprašanje ID,1
+Vprašanje,Vpraaanje 1
+Odgovor,Da
+
+Vprašanje ID,2
+Vprašanje,Vpraaanje 2
+Odgovor,Ne
+
+Vprašalnik,Datum,Lokalni čas
+Možnost rasti,07/06/2017,23:46:20
 
 Vprašanje ID,1
 Vprašanje,"�Menim, da ne morem veliko narediti za izboljaanje svojih umskih sposobnosti.�"
-Odgovor,Ne
-
-Vprašanje ID,2
-Vprašanje,"�Verjamem, da lahko s trudom precej izboljaam svoje umske sposobnosti.�"
 Odgovor,Da
 
-Vprašanje ID,3
-Vprašanje,"»Lahko se naučim novih stvari, ne zmorem pa izboljšati svojih umskih sposobnosti.«"
+Vprašalnik,Datum,Lokalni čas
+Možnost rasti,07/06/2017,23:46:28
+
+Vprašanje ID,1
+Vprašanje,"�Menim, da ne morem veliko narediti za izboljaanje svojih umskih sposobnosti.�"
 Odgovor,Da
-
-Vprašanje ID,4
-Vprašanje,"�Menim, da imam ne glede na svojo trenutno stopnjo umskih sposobnosti zmo~nost, da jo precej izboljaam.�"
-Odgovor,Ne
-
-Vprašanje ID,7
-Vprašanje,"Oseba na sliki je pravkar prejela e-poštno sporočilo, da je ocena njene delovne uspešnosti nižja od povprečja. Kako bi ti razmišljal, če bi bil ta oseba?"
-Odgovor,"Razmišljal bi, da bom v prihodnje v svoje delo vložil več truda. Prav tako bi načrtoval, da se bom udeležil dodatnih usposabljanj in tako izboljšal svojo delovno učinkovitost."
-
-Vprašanje ID,8
-Vprašanje,"Oseba na sliki ni bila izbrana za skupinski projekt. Kako bi ti razmišljal, če bi bil ta oseba?"
-Odgovor,"Razmialjal bi, da se nisem dovolj uril za delo v skupini. Pristopil bi do sodelavcev in nadrejenih ter se pozanimal, kako izboljaati kompetence dela v skupinah."
