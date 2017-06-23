@@ -133,7 +133,7 @@ new Vue({
       this.nextQuestionFlag=true
     },
     nextQuestion: function() {
-      if(this.question != "" && this.nextQuestionFlag && this.answerId > 0) {
+      if(this.question != "" && this.nextQuestionFlag && (this.answerId > 0 )) {
         this.brainMotivations = this.question.answers[this.answerId-1]["brainMotivations"];
         this.nextQuestionFlag = false
       }
@@ -152,6 +152,10 @@ new Vue({
               return false
             }
             this.nextQuestionFlag = true
+          }
+          if(this.showBrainMotivations.length>0 && this.question.answers_type=="motivation") {
+            this.showBrainMotivations = temp;
+            return false;
           }
           this.showBrainMotivations = temp;
       }
@@ -175,9 +179,11 @@ new Vue({
             self.brainCapacity=data.brainCapacity
             self.brainWeight=data.brainWeight
             self.filterBrainMotivations();
-            if(self.showBrainMotivations.length==0)
-            {window.history.replaceState(null, "test", location.protocol + '//' + location.host + "/")
-            window.location.href = "/questionnaires"}
+            if(self.showBrainMotivations.length==0 && self.nextQuestionFlag)
+              {
+                window.history.replaceState(null, "test", location.protocol + '//' + location.host + "/")
+                window.location.href = "/questionnaires"
+              }
           }
           else {
               if(data.question.answers != "undefined") {
