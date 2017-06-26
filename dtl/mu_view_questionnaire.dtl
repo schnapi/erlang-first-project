@@ -32,9 +32,18 @@
             </div>
           </div>
           <template v-else class="row">
-            <div v-if="question.answers_type == 'motivation'" class="row">
-              <div class="col-sm-3"><img class="w-100" src="static/images/smartBrain.png" alt="Možganček"></div>
-              <div class="col-sm-9 well"><h3>{{question.question}}</h3></div>
+            <div v-if="question.answers_type == 'motivation'">
+              <div class="row">
+                <div class="col-sm-3"><img class="w-100" src="static/images/smartBrain.png" alt="Možganček"></div>
+                <div class="col-sm-9 well"><h3>{{question.question}}</h3></div>
+              </div>
+              <div v-if="typeof question['image'] != 'undefined' && question['image'] != ''" class="row">
+                <div class="col-sm-offset-4"></div>
+                <div class="col-sm-4">
+                  <img :src="encodeURI(question.folder + question.image)" :alt="question.image" class="w-100">
+                </div>
+                <div class="col-sm-offset-4"></div>
+              </div>
             </div>
             <div v-else class="row">
               <div v-if="typeof question['image'] != 'undefined' && question['image'] != ''" class="col-sm-4">
@@ -128,6 +137,10 @@ new Vue({
           temp[0] = this.showBrainMotivations[i];
           break;
         }
+      }
+      if(this.showBrainMotivations.length > 0 && temp.length == 0) {
+        this.nextQuestionFlag=true
+        return;
       }
       this.showBrainMotivations = temp;
       this.nextQuestionFlag=true
