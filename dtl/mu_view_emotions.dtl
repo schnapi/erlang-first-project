@@ -60,6 +60,7 @@
           <label for="emotiontype">Izberite tip grafa:</label>
           <select class="form-control" id="emotiontype" v-model="emotionReviewType" v-on:change="onChange()">
             <option disabled value="">Izberite</option>
+            <option value="daily">Dnevni</option>
             <option value="weekly">Tedenski</option>
             <option value="monthly">Mesečni</option>
           </select>

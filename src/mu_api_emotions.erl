@@ -61,6 +61,12 @@ get_user_emotions(Req0, State, ReviewType) ->
   {ok, SessionId} = mu_sessions:get_sessionid(Req0),
   {UserID} = mu_sessions:get_userid_from_session(SessionId),
   case ReviewType of
+    <<"daily">> ->
+      {Today,Time} = erlang:universaltime(),
+      NowSecs = calendar:datetime_to_gregorian_seconds({Today, {0,0,0}}),
+      MaxTimeSecs = NowSecs + 24 * 60 * 60,
+      UserEmotions = mu_db:get_user_emotions(UserID, NowSecs, MaxTimeSecs),
+      http_request_util:cowboy_out(mu_json_success_handler, UserEmotions, Req0, State);
     <<"weekly">> ->
       {Today,Time} = erlang:universaltime(),
       DayOfWeek = calendar:day_of_the_week(Today),
@@ -68,7 +74,7 @@ get_user_emotions(Req0, State, ReviewType) ->
       Twenty_Four_Hours_From_Now = 24 * 60 * 60,
       NewMinTimeSecs = NowSecs - Twenty_Four_Hours_From_Now*(DayOfWeek-1),
       NewMaxTimeSecs = NowSecs + Twenty_Four_Hours_From_Now*(8-DayOfWeek),
-      UserEmotions = mu_db:get_user_emotions_week(UserID, NewMinTimeSecs, NewMaxTimeSecs),
+      UserEmotions = mu_db:get_user_emotions(UserID, NewMinTimeSecs, NewMaxTimeSecs),
       http_request_util:cowboy_out(mu_json_success_handler, UserEmotions, Req0, State);
     <<"monthly">> ->
       {{Year, Month, _}, _} = calendar:now_to_datetime(erlang:now()),
@@ -76,7 +82,7 @@ get_user_emotions(Req0, State, ReviewType) ->
       MinSeconds = calendar:datetime_to_gregorian_seconds({{Year, Month, 1},{0,0,0}}),
       TmpSec = calendar:datetime_to_gregorian_seconds({{Year, Month, LastDay},{0,0,0}}),
       SecLastDay = TmpSec + (24 * 60 * 60),
-      UserEmotions = mu_db:get_user_emotions_month(UserID, MinSeconds, TmpSec),
+      UserEmotions = mu_db:get_user_emotions(UserID, MinSeconds, TmpSec),
       http_request_util:cowboy_out(mu_json_success_handler, UserEmotions, Req0, State);
     _ ->
       lager:debug("something is wrong with emotionreviewtype", []),

@@ -112,7 +112,17 @@ new Vue({
         var t = [];
         for(var i = 0; i < chartData.length; i++) {
           var tmp = {};
-          tmp["y"] = chartData[i]["dateCreatedStr"];
+          if(this.emotionReviewType == 'daily') {
+            var regex = /.*\s(\d*\:\d*).*/g;
+            var tmpDate = regex.exec(chartData[i]["dateCreatedStr"]);
+            if(tmpDate.length < 2) {
+              console.log("Something went wrong with date parsing.");
+            }
+            tmp["y"] = tmpDate[1];
+          }
+          else {
+            tmp["y"] = chartData[i]["dateCreatedStr"];
+          }
           // gre za a
           if(chartData[i]["emotion_type"] == "positive") {
             // gre za 1
@@ -162,7 +172,10 @@ new Vue({
       },
       onChange: function() {
         if(this.emotionReviewType == 'weekly') {
-            this.currentBrainInstruction = "Raziskave kažejo, da smo ljudje v najslabšem razpoloženju v začetku tedna (v nedeljo in skozi ves ponedeljek). Raven pozitivnih emocij se nato zviša v torek, zopet nekoliko upade v sredo, ter se izjemno izboljša ob koncu tedna. Najboljše razpoloženje, z največ pozitivnimi in najmanj negativnimi čustvi velja za soboto.";
+          this.currentBrainInstruction = "Raziskave kažejo, da smo ljudje v najslabšem razpoloženju v začetku tedna (v nedeljo in skozi ves ponedeljek). Raven pozitivnih emocij se nato zviša v torek, zopet nekoliko upade v sredo, ter se izjemno izboljša ob koncu tedna. Najboljše razpoloženje, z največ pozitivnimi in najmanj negativnimi čustvi velja za soboto.";
+        }
+        else if(this.emotionReviewType == 'daily') {
+          this.currentBrainInstruction = "Čeprav veliko ljudi meni, da so jutranje osebe ali nočne sove, pa raziskave kažejo, da čustva pri večini sledijo približno enakem vzorcu. Največ pozitivnih emocij navadno doživljamo v sredini dneva, medtem ko zgodaj zjutraj in pozno ponoči raven pozitivnih čustev upade. Negativno razpoloženje je nekoliko povišano zjutraj, kasneje tekom dneva pa ostaja na povprečni ravni.";
         }
         else {
           this.currentBrainInstruction = "Tukaj lahko vidiš tudi kako se je počutje spreminalo skozi trenuten mesec.";
