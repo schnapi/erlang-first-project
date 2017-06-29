@@ -44,6 +44,10 @@ out(Path, Context1) ->
     <<"/thoughts">> ->
       DefaultOut = #{ data => Context ++ [{pagetitle, <<"Dnevnik misli">>}] ++ Context1},
       DefaultOut#{ view => mu_view_thoughts };
+    <<"/emotions">> ->
+      %DefaultOut = #{ data => Context ++ [{pagetitle, <<"Počutje"/utf8>>}] ++ Context1 ++ { javascript_file, {file, "./www/js/login.js"}}},
+      %DefaultOut#{ view => mu_view_emotions };
+      #{ view => mu_view_emotions, data => [{ javascript_file, {file, "./www/js/emotions.js"}}, {pagetitle, <<"Počutje"/utf8>>}]} ;
     <<"/jsontest">> ->
       % #{ status => 200, headers=>#{<<"content-type">> => <<"application/json">>}, body => Html};
       % A = 1,

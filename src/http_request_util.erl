@@ -26,7 +26,8 @@ lager:debug("Module: ~p",[Module]),
   UserId = getUserIdFromReq(Req0),
 
   UserData = mu_db:get_user_registration(UserId),
-  BasicMenu = [{<<"Domov">>, <<"index">>, <<"fa-home">>},{<<"Vprašalniki"/utf8>>, <<"questionnaires">>, <<"fa-question-circle">>}, {<<"Dnevnik misli"/utf8>>, <<"thoughts">>, <<"fa-cloud">>}],
+  BasicMenu = [{<<"Domov">>, <<"index">>, <<"fa-home">>},{<<"Vprašalniki"/utf8>>, <<"questionnaires">>, <<"fa-question-circle">>},
+               {<<"Dnevnik misli"/utf8>>, <<"thoughts">>, <<"fa-cloud">>}, {<<"Počutje"/utf8>>, <<"emotions">>, <<"fa-heart-o">>}],
   case maps:get(<<"role">>,UserData,0) of
     <<"admin">> -> AdminMenu = [{<<"Urejanje avatarjev">>, <<"edit_avatar">>, <<"fa-user">>}, {<<"Admin vprašalniki"/utf8>>,<<"edit_questionnaires">>, <<"fa-edit">>},
     {<<"Pregled uporabnikov"/utf8>>,<<"admin_registration">>, <<"fa-edit">>}];

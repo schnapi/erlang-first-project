@@ -7,6 +7,7 @@
 -export([insert_new_session/2, delete_session_record/1, get_sessions_userid/1,
          get_all_sessions_records/1]).
 -export([insert_new_thought/3, get_all_thoughts/1]).
+-export([get_user_emotions_week/3, get_user_emotions_month/3, insert_emotion/5]).
 -export([check_schema/0, upgrade_schema/0]).
 
 -compile(export_all).
@@ -389,6 +390,35 @@ insert_new_thought(UserID, Thought, CurrentDate) ->
   case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
    <<"INSERT INTO Thoughts VALUES(null,?1,?2,?3);">>, [create], [[UserID, Thought, CurrentDate]]) of
     {ok,{_,_,_}} -> lager:debug("thought has been inserted:",[]);
+    {error,Error} -> lager:error("~p",[Error]), error
+  end.
+
+% get all emotions for specific user between specific dates
+get_user_emotions_week(UserID, MinDate, MaxDate) ->
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
+    <<"SELECT * FROM Emotions where email=?1 and dateCreated > ?2 and dateCreated < ?3 ORDER BY dateCreated;">>, [], [[UserID, MinDate, MaxDate]]) of
+    {ok, {false, Res}} ->
+      Res;
+    {ok,{false,[]}} -> [];
+    Error -> lager:error("~p",[Error]), error
+  end.
+
+get_user_emotions_month(UserID, FirstDay, LastDay) ->
+  lager:debug("prvi: ~p, zadnji: ~p", [FirstDay, LastDay]),
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
+    %<<"SELECT * FROM Emotions where email=?1 and dateCreated > ?2 and dateCreated < ?3 ORDER BY dateCreated;">>, [], [[UserID, FirstDay, LastDay]]) of
+    <<"SELECT * FROM Emotions where email=?1 and dateCreated > ?2 ORDER BY dateCreated;">>, [], [[UserID, FirstDay, LastDay]]) of
+    {ok, {false, Res}} ->
+      Res;
+    {ok,{false,[]}} -> [];
+    Error -> lager:error("~p",[Error]), error
+  end.
+
+% insert emotion
+insert_emotion(UserID, EmotionType, EmotionIntensity, CurrentDate, CurrentDateStr) ->
+  case actordb_client:exec_single_param(config(), <<"mocenum">>, <<"user">>,
+   <<"INSERT INTO Emotions VALUES(null,?1,?2,?3,?4,?5);">>, [create], [[UserID, EmotionType, EmotionIntensity, CurrentDate, CurrentDateStr]]) of
+    {ok,{_,_,_}} -> lager:debug("emotion has been inserted:",[]);
     {error,Error} -> lager:error("~p",[Error]), error
   end.
 

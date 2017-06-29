@@ -31,6 +31,7 @@ start(_, _) ->
       {"/api/view_questionnaire", mu_questionnaire, []},
       {"/api/questionnaire", mu_api_questionnaire, []},
       {"/api/thoughts", mu_api_thoughts, []},
+      {"/api/emotions/[...]", mu_api_emotions, []},
       {"/questionnaire", mu_api_questionnaire, []},
       {"/static/[...]", cowboy_static, {dir, "www"}},
       {"/"++getConfigPathImage()++"[...]", cowboy_static, {dir, getConfigPathImage()}},
