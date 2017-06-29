@@ -45,6 +45,7 @@ new Vue({
       },
       startWithEmotionIdentification: function() {
         this.showCircle = false;
+        this.showSaveButton = false;
         this.currentBrainInstruction = 'Pred tabo sta dva gumba, ki ti bosta v pomoč pri identifikaciji počutja. Za začetek označi ali je tvoje trenutno doživljanje bolj prijetno ali bolj neprijetno.';
         this.possibleOptions = [
           {
@@ -105,7 +106,7 @@ new Vue({
       },
       startWithEmotionReview: function() {
         this.emotionReviewType = "";
-        this.currentBrainInstruction = "Tukaj lahko pregledaš svoja pretekla počutja. Izberi kakšen izris grafa želiš.";
+        this.currentBrainInstruction = "Tukaj lahko pregledaš statistiko svojega počutja izrisano v grafu. Izbiraš lahko med različnimi obdobji. ";
       },
       makeGraph: function(chartData) {
         var t = [];
@@ -160,6 +161,12 @@ new Vue({
         })
       },
       onChange: function() {
+        if(this.emotionReviewType == 'weekly') {
+            this.currentBrainInstruction = "Raziskave kažejo, da smo ljudje v najslabšem razpoloženju v začetku tedna (v nedeljo in skozi ves ponedeljek). Raven pozitivnih emocij se nato zviša v torek, zopet nekoliko upade v sredo, ter se izjemno izboljša ob koncu tedna. Najboljše razpoloženje, z največ pozitivnimi in najmanj negativnimi čustvi velja za soboto.";
+        }
+        else {
+          this.currentBrainInstruction = "Tukaj lahko vidiš tudi kako se je počutje spreminalo skozi trenuten mesec.";
+        }
         $("#morris-area-chart").html("");
         $('#legend').html("");
         var self = this;

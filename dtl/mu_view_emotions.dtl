@@ -35,101 +35,94 @@
   }
 </style>
 {% verbatim %}
-<div id="tab-list">
-  <ul class="nav nav-tabs" role="tablist">
+<div class="container">
+  <div id="tab-list">
+    <ul class="nav nav-tabs" role="tablist">
       <li role="presentation" :class="{active:tabs.emotionReview.isActive}">
-          <a role="tab" @click.stop.prevent="setActive(tabs.emotionReview)"><i class="fa fa-heartbeat" ></i> Moje doživljanje</a>
+        <a role="tab" @click.stop.prevent="setActive(tabs.emotionReview)"><i class="fa fa-heartbeat" ></i> Moja doživljanja</a>
       </li>
       <li role="presentation" :class="{active:tabs.emotionIdentification.isActive}">
-          <a role="tab" @click.stop.prevent="setActive(tabs.emotionIdentification)"><i class="fa fa-plus-circle"></i> Identifikacija čustev</a>
+        <a role="tab" @click.stop.prevent="setActive(tabs.emotionIdentification)"><i class="fa fa-plus-circle"></i> Identifikacija čustev</a>
       </li>
-  </ul>
+    </ul>
 
-  <!-- PREGLED -->
-  <div class="tab-content" v-if="activeTab.id == tabs.emotionReview.id" align="center">
-    <div class="row" style="padding-top:20px;">
-      <div class="col-sm-10">
-        <div class="row">
+    <!-- PREGLED -->
+    <div class="tab-content" v-if="activeTab.id == tabs.emotionReview.id" align="center">
+      <div style="padding-top:20px;">
+        <div class="col-sm-10">
           <div class="col-sm-5"><img style="width:100%; max-width:250px" src="static/images/smartBrain.png" alt="Možganček"></div>
           <div class="col-sm-7 well" style="font-size:15px; font-weight:bold;">
             {{currentBrainInstruction}}
           </div>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="form-group col-sm-4" style="padding-top:30px;">
-        <label for="emotiontype">Izberite tip grafa:</label>
-        <select class="form-control" id="emotiontype" v-model="emotionReviewType" v-on:change="onChange()">
-          <option disabled value="">Izberite</option>
-          <option value="weekly">Tedenski</option>
-          <option value="monthly">Mesečni</option>
-        </select>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-sm-12" v-if="emotionReviewType != ''">
-        <div class="flot-chart">
-          <div id="morris-area-chart"></div>
+        <div class="form-group col-sm-4" style="padding-top:30px;">
+          <label for="emotiontype">Izberite tip grafa:</label>
+          <select class="form-control" id="emotiontype" v-model="emotionReviewType" v-on:change="onChange()">
+            <option disabled value="">Izberite</option>
+            <option value="weekly">Tedenski</option>
+            <option value="monthly">Mesečni</option>
+          </select>
         </div>
-        <div id="legend"></div>
-      </div>
+        <div class="col-sm-12" v-if="emotionReviewType != ''">
+          <div class="flot-chart">
+            <div id="morris-area-chart"></div>
+          </div>
+          <div id="legend"></div>
+        </div>
     </div>
-  </div>
 
-  <!-- DODAJANJE -->
-  <div class="tab-content" v-if="activeTab.id == tabs.emotionIdentification.id" align="center">
-    <div class="row" style="padding-top:20px;">
-      <div class="col-sm-10">
-        <div class="row">
+    <!-- DODAJANJE -->
+    <div class="tab-content" v-if="activeTab.id == tabs.emotionIdentification.id" align="center">
+      <div style="padding-top:20px;">
+        <div class="col-sm-10">
           <div class="col-sm-5"><img style="width:100%; max-width:250px" src="static/images/smartBrain.png" alt="Možganček"></div>
           <div class="col-sm-7 well" style="font-size:15px; font-weight:bold;">
             {{currentBrainInstruction}}
           </div>
         </div>
       </div>
-    </div>
-    <div style="padding-top:20px;">
-      <button style="margin:20px;" class="btn btn-lg btn-primary" v-for="option in possibleOptions" v-on:click="option.func(option.value)">{{option.text}}</button>
-    </div>
-    <div id="circle-container" v-if="showCircle">
-      <div class="quarter top-left" v-bind:class="{colored: complete_emotion == 'negativestrong'}" v-on:click="switchEmotion('negative', 'strong')"><div class="centered-text">Močno neprijetno</div></div>
-      <div class="quarter top-right" v-bind:class="{colored: complete_emotion == 'positivestrong'}" v-on:click="switchEmotion('positive', 'strong')"><div class="centered-text">Močno prijetno</div></div>
-      <div class="quarter bottom-left" v-bind:class="{colored: complete_emotion == 'negativeweak'}" v-on:click="switchEmotion('negative', 'weak')"><div class="centered-text">Šibko neprijetno</div></div>
-      <div class="quarter bottom-right" v-bind:class="{colored: complete_emotion == 'positiveweak'}" v-on:click="switchEmotion('positive', 'weak')"><div class="centered-text">Šibko prijetno</div></div>
+      <div style="width:300px; padding-top:20px;">
+        <button style="margin:20px;" class="btn btn-lg btn-primary" v-for="option in possibleOptions" v-on:click="option.func(option.value)">{{option.text}}</button>
+      </div>
+      <div id="circle-container" v-if="showCircle">
+        <div class="quarter top-left" v-bind:class="{colored: complete_emotion == 'negativestrong'}" v-on:click="switchEmotion('negative', 'strong')"><div class="centered-text">Močno neprijetno</div></div>
+        <div class="quarter top-right" v-bind:class="{colored: complete_emotion == 'positivestrong'}" v-on:click="switchEmotion('positive', 'strong')"><div class="centered-text">Močno prijetno</div></div>
+        <div class="quarter bottom-left" v-bind:class="{colored: complete_emotion == 'negativeweak'}" v-on:click="switchEmotion('negative', 'weak')"><div class="centered-text">Šibko neprijetno</div></div>
+        <div class="quarter bottom-right" v-bind:class="{colored: complete_emotion == 'positiveweak'}" v-on:click="switchEmotion('positive', 'weak')"><div class="centered-text">Šibko prijetno</div></div>
+      </div>
+
+      <div style="padding:30px;" v-if="showSaveButton">
+        <button style="margin-top:30px;" class="btn btn-lg btn-success" v-on:click="saveEmotion()"><i class="fa fa-check-circle-o"></i> Shrani počutje</button>
+      </div>
     </div>
 
-    <div style="padding-top:20px;" v-if="showSaveButton">
-      <button class="btn btn-lg btn-success" v-on:click="saveEmotion()"><i class="fa fa-check-circle-o"></i> Shrani počutje</button>
-    </div>
-  </div>
 
 
-
-  <!-- MODAL FOR WELCOME NOTIFICATION -->
-  <div class="modal" id="welcomeTitleEmotions" role="dialog">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header modal-header-primary">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4 class="modal-title">Počutje</h4>
-        </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-sm-10">
-              <div class="row">
-                <div class="col-sm-5"><img style="width:100%; max-width:250px" src="static/images/smartBrain.png" alt="Možganček"></div>
-                <div class="col-sm-7 well">Tukaj lahko pregledaš statistiko svojih preteklih počutij. <br>Prav tako lahko identificiraš trenutno počutje in ga zabeležiš.</div>
+    <!-- MODAL FOR WELCOME NOTIFICATION -->
+    <div class="modal" id="welcomeTitleEmotions" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header modal-header-primary">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Počutje</h4>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-sm-10">
+                <div class="row">
+                  <div class="col-sm-5"><img style="width:100%; max-width:250px" src="static/images/smartBrain.png" alt="Možganček"></div>
+                  <div class="col-sm-7 well">Tukaj lahko pregledaš statistiko svojih preteklih počutij. <br>Prav tako lahko identificiraš trenutno počutje in ga zabeležiš.</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
   </div>
-
 </div>
-
 {% endverbatim %}
 {% endblock %}
 
