@@ -149,7 +149,7 @@ new Vue({
               return 'močno';
             }
             else {
-              return 'average';
+              return 'neopredeljeno';
             }
           },
           labels: ['pozitivno', 'negativno']
